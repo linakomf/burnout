@@ -1,31 +1,18 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import {
-  Play,
-  Heart,
-  X,
-  Flower2,
-  LayoutGrid,
-  Wind,
-  Moon,
-  Sparkles,
-  Music,
-  Zap,
-  MoreHorizontal,
-} from 'lucide-react';
+import { Play, Heart, X, Flower2 } from 'lucide-react';
 import api from '../../utils/api';
 import { buildDefaultPracticesPayload, buildOfflinePracticesPayload } from '../../data/practicesStatic';
-import '../Tests/Tests.css';
 import './Practices.css';
 
-const PRACTICE_CATEGORY_ICONS = {
-  all: LayoutGrid,
-  breathing: Wind,
-  meditation: Moon,
-  affirmations: Sparkles,
-  music: Music,
-  quick: Zap,
+const FILTER_ICONS = {
+  all: '🌈',
+  breathing: '🌬️',
+  meditation: '🧘',
+  affirmations: '✨',
+  music: '🎵',
+  quick: '⚡',
 };
 
 function logSession(practiceKey, seconds) {
@@ -360,17 +347,6 @@ const Practices = () => {
 
   const filtered = data?.practices?.filter((p) => filter === 'all' || p.category === filter) || [];
 
-  const filterCounts = useMemo(() => {
-    const practices = data?.practices || [];
-    const cats = data?.categories || {};
-    const counts = { all: practices.length };
-    Object.keys(cats).forEach((id) => {
-      if (id === 'all') return;
-      counts[id] = practices.filter((p) => (p.category || 'quick') === id).length;
-    });
-    return counts;
-  }, [data?.practices, data?.categories]);
-
   return (
     <div className={`practices-page${loading ? ' practices-page--loading' : ''} fade-in`}>
       {loading && (
@@ -392,67 +368,55 @@ const Practices = () => {
         <p className="pr-hint">{data.personalizedHint}</p>
       )}
 
-      <div className="tests-filter-bar" role="tablist" aria-label="Фильтр по типу практики">
-        {Object.entries(data.categories || {}).map(([id, label]) => {
-          const count = filterCounts[id] ?? 0;
-          const active = filter === id;
-          const Icon = PRACTICE_CATEGORY_ICONS[id] || MoreHorizontal;
-          return (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              className={`tests-filter-chip ${active ? 'tests-filter-chip--active' : ''}`}
-              onClick={() => setFilter(id)}
-            >
-              <span className="tests-filter-chip-ico" aria-hidden>
-                <Icon size={16} strokeWidth={2.2} />
-              </span>
-              <span className="tests-filter-chip-label">{label}</span>
-              <span className="tests-filter-chip-count">{count}</span>
-            </button>
-          );
-        })}
+      <div className="pr-filters" role="tablist">
+        {Object.entries(data.categories || {}).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={filter === id}
+            className={`pr-filter ${filter === id ? 'active' : ''}`}
+            onClick={() => setFilter(id)}
+          >
+            <span className="pr-filter-ico">{FILTER_ICONS[id] || '•'}</span>
+            {label}
+          </button>
+        ))}
       </div>
 
-      {filtered.length === 0 ? (
-        <p className="tests-catalog-empty">Нет практик в этой категории. Выберите другой фильтр.</p>
-      ) : (
-        <div className="pr-grid">
-          {filtered.map((p) => (
-            <article
-              key={p.key}
-              className="pr-card"
-              data-category={p.category || 'quick'}
+      <div className="pr-grid">
+        {filtered.map((p) => (
+          <article
+            key={p.key}
+            className="pr-card"
+            style={{ background: p.gradient }}
+          >
+            <button
+              type="button"
+              className={`pr-fav ${p.isFavorite ? 'on' : ''}`}
+              aria-label="Избранное"
+              onClick={(e) => toggleFavorite(e, p.key)}
             >
+              <Heart size={18} fill={p.isFavorite ? 'currentColor' : 'none'} />
+            </button>
+            <div className="pr-card-body">
+              <h3 className="pr-card-title">{p.title}</h3>
+              <p className="pr-card-desc">{p.description}</p>
+            </div>
+            <div className="pr-card-foot">
               <button
                 type="button"
-                className={`pr-fav ${p.isFavorite ? 'on' : ''}`}
-                aria-label="Избранное"
-                onClick={(e) => toggleFavorite(e, p.key)}
+                className="pr-play"
+                aria-label="Начать"
+                onClick={() => openPractice(p)}
               >
-                <Heart size={18} fill={p.isFavorite ? 'currentColor' : 'none'} />
+                <Play size={20} fill="currentColor" />
               </button>
-              <div className="pr-card-body">
-                <h3 className="pr-card-title">{p.title}</h3>
-                <p className="pr-card-desc">{p.description}</p>
-              </div>
-              <div className="pr-card-foot">
-                <button
-                  type="button"
-                  className="pr-play"
-                  aria-label="Начать"
-                  onClick={() => openPractice(p)}
-                >
-                  <Play size={20} fill="currentColor" />
-                </button>
-                <span className="pr-duration">{p.durationMin} мин</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
+              <span className="pr-duration">{p.durationMin} мин</span>
+            </div>
+          </article>
+        ))}
+      </div>
 
       <footer className="pr-stats-bar">
         <div className="pr-stat">

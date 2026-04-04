@@ -9,6 +9,8 @@ import Dashboard from './components/Dashboard/Dashboard';
 import Stats from './components/Dashboard/Stats';
 import { TestsList, TakeTest } from './components/Tests/Tests';
 import Profile from './components/Profile/Profile';
+import Diary from './components/Diary/Diary';
+import Practices from './components/Practices/Practices';
 import { AdminOverview, AdminUsers, AdminCategories, AdminTests } from './components/Admin/Admin';
 import AIChat from './components/AI/AIChat';
 import './styles/global.css';
@@ -17,7 +19,7 @@ import './styles/global.css';
 const PrivateRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth();
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', width: '100%' }}>
+    <div className="app-loading-fullscreen">
       <div className="loading-spinner" />
     </div>
   );
@@ -30,7 +32,7 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', width: '100%' }}>
+    <div className="app-loading-fullscreen">
       <div className="loading-spinner" />
     </div>
   );
@@ -71,8 +73,11 @@ const App = () => {
           <Route path="/tests/:id" element={
             <PrivateRoute><UserLayout><TakeTest /></UserLayout></PrivateRoute>
           } />
+          <Route path="/practices" element={
+            <PrivateRoute><UserLayout><Practices /></UserLayout></PrivateRoute>
+          } />
           <Route path="/diary" element={
-            <PrivateRoute><UserLayout><Dashboard /></UserLayout></PrivateRoute>
+            <PrivateRoute><UserLayout><Diary /></UserLayout></PrivateRoute>
           } />
           <Route path="/stats" element={
             <PrivateRoute><UserLayout><Stats /></UserLayout></PrivateRoute>

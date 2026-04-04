@@ -3,7 +3,6 @@ const router = express.Router();
 const pool = require('../db');
 const { authMiddleware } = require('../middleware/auth');
 const { PRACTICES, CATEGORY_LABELS, rankPracticesForUser } = require('../practicesCatalog');
-const { titleForTestId } = require('../testCanonical');
 
 function staticPracticesPayload() {
   return {
@@ -19,7 +18,7 @@ router.get('/', authMiddleware, async (req, res) => {
   const userId = req.user.user_id;
   try {
     const recent = await pool.query(
-      `SELECT tr.level, t.test_id, t.title, tr.created_at
+      `SELECT tr.level, t.title, tr.created_at
        FROM test_results tr
        JOIN tests t ON tr.test_id = t.test_id
        WHERE tr.user_id = $1
@@ -27,10 +26,6 @@ router.get('/', authMiddleware, async (req, res) => {
        LIMIT 8`,
       [userId]
     );
-    recent.rows = recent.rows.map((r) => ({
-      ...r,
-      title: titleForTestId(r.test_id) || r.title,
-    }));
     const levels = recent.rows.map((r) => r.level);
     const ordered = rankPracticesForUser(levels);
 

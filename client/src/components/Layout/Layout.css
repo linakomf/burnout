@@ -1,29 +1,38 @@
+/* Сайдбар position:fixed — не отнимаем место во flex; main на всю ширину + padding слева */
 .layout {
-  display: flex;
-  flex: 1;
-  min-height: 0;
+  display: block;
+  flex: 1 1 auto;
   width: 100%;
-  max-width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  min-height: 100dvh;
   background: var(--bg);
   overflow: hidden;
 }
 
 .main-content {
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  margin-left: var(--sidebar-width);
-  padding: 28px clamp(16px, 3vw, 40px);
+  width: 100%;
+  max-width: none;
+  min-height: 100%;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 20px 16px 24px;
+  padding-left: var(--sidebar-width);
+  box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeIn 0.4s ease;
+}
+
+.layout:has(.sidebar.collapsed) .main-content {
+  padding-left: var(--sidebar-collapsed);
 }
 
 @media (max-width: 768px) {
   .main-content {
-    margin-left: var(--sidebar-collapsed);
-    padding: 16px clamp(12px, 4vw, 20px);
+    padding: 16px 12px 20px;
+    padding-left: var(--sidebar-collapsed);
   }
 }

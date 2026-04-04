@@ -49,11 +49,12 @@
   border-radius: 24px;
   padding: 40px;
   width: 100%;
-  max-width: 440px;
+  max-width: none;
   box-shadow: 0 20px 60px rgba(188, 194, 244, 0.25);
   border: 1px solid rgba(188, 194, 244, 0.3);
   position: relative;
   z-index: 1;
+  box-sizing: border-box;
 }
 
 .auth-logo {

@@ -1,8 +1,110 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, CheckCircle, BookOpen } from 'lucide-react';
+import {
+  ChevronRight,
+  ChevronLeft,
+  CheckCircle,
+  BookOpen,
+  ClipboardList,
+  ListOrdered,
+  Clock,
+  Heart,
+  Users,
+  Zap,
+} from 'lucide-react';
 import api from '../../utils/api';
 import './Tests.css';
+
+const CATEGORY_CHIPS = [
+  { id: 'all', label: 'Все', emoji: '🌈' },
+  { id: 'anxiety', label: 'Тревожность', emoji: '😰' },
+  { id: 'stress', label: 'Стресс', emoji: '⚡' },
+  { id: 'mood', label: 'Настроение', emoji: '😊' },
+  { id: 'esteem', label: 'Самооценка', emoji: '⭐' },
+];
+
+function getTestBucket(test) {
+  const s = `${test.title || ''} ${test.category_name || ''} ${test.description || ''}`.toLowerCase();
+  if (/gad-7|\bgad\b|тревог|тревож|паник|беспокой|социальн/i.test(s)) return 'anxiety';
+  if (/ежедневн|чек-ин|5 вопросов/i.test(s)) return 'mood';
+  if (/стресс|выгоран|устал|перегруз|mbi|pss|напряжен|академическ/i.test(s)) return 'stress';
+  if (/настроен|счаст|эмоцион|стабильн|радост/i.test(s)) return 'mood';
+  if (/самооцен/i.test(s)) return 'esteem';
+  return 'other';
+}
+
+function badgeLabelForTest(test) {
+  const b = getTestBucket(test);
+  const map = {
+    anxiety: 'Тревожность',
+    stress: 'Стресс',
+    mood: 'Настроение',
+    esteem: 'Самооценка',
+  };
+  return map[b] || test.category_name || 'Общее';
+}
+
+const ESTIMATED_QUESTIONS = {
+  1: 10,
+  2: 9,
+  3: 8,
+  4: 22,
+  5: 10,
+  6: 7,
+  7: 5,
+};
+
+function estimateQuestions(test) {
+  const id = test.test_id;
+  if (ESTIMATED_QUESTIONS[id] != null) return ESTIMATED_QUESTIONS[id];
+  return 10;
+}
+
+function TestCardIcon({ bucket }) {
+  const wrap = 'tests-catalog-card-icon';
+  if (bucket === 'anxiety') {
+    return (
+      <span className={`${wrap} tests-catalog-card-icon--lavender`}>
+        <Heart size={20} strokeWidth={2.2} />
+      </span>
+    );
+  }
+  if (bucket === 'stress') {
+    return (
+      <span className={`${wrap} tests-catalog-card-icon--coral`}>
+        <Zap size={20} strokeWidth={2.2} />
+      </span>
+    );
+  }
+  if (bucket === 'mood') {
+    return (
+      <span className={`${wrap} tests-catalog-card-icon--mint`}>
+        <CheckCircle size={20} strokeWidth={2.2} />
+      </span>
+    );
+  }
+  if (bucket === 'esteem') {
+    return (
+      <span className={`${wrap} tests-catalog-card-icon--peach`}>
+        <Users size={20} strokeWidth={2.2} />
+      </span>
+    );
+  }
+  return (
+    <span className={`${wrap} tests-catalog-card-icon--neutral`}>
+      <BookOpen size={20} strokeWidth={2.2} />
+    </span>
+  );
+}
+
+function resultAccentColor(level) {
+  const l = String(level || '').toLowerCase();
+  if (/высок|сильн|выражен|нужен отдых|повышенн/i.test(l)) return '#e85d5d';
+  if (/средн|риск|умеренн/i.test(l)) return '#e8a84a';
+  if (/низк|нет признаков|стабильн|благополуч|хорош|ресурс/i.test(l)) return '#7db05a';
+  const legacy = { Низкий: '#B8D48A', Средний: '#F9C74F', Высокий: '#FF6B6B' };
+  return legacy[level] || '#9CAF88';
+}
 
 function parseQuestionOptions(raw) {
   if (raw == null || raw === '') return [];
@@ -21,64 +123,95 @@ function parseQuestionOptions(raw) {
 // ─── Tests List ────────────────────────────────────────────────────────────────
 export const TestsList = () => {
   const [tests, setTests] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    Promise.all([api.get('/tests'), api.get('/categories')])
-      .then(([t, c]) => { setTests(t.data); setCategories(c.data); })
+    api
+      .get('/tests')
+      .then((res) => setTests(res.data || []))
+      .catch(() => setTests([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = activeCategory === 'all'
-    ? tests
-    : tests.filter(t => t.category_id === parseInt(activeCategory));
+  const filtered = useMemo(() => {
+    if (activeCategory === 'all') return tests;
+    return tests.filter((t) => getTestBucket(t) === activeCategory);
+  }, [tests, activeCategory]);
 
   if (loading) return <div className="tests-loading"><div className="loading-spinner" /></div>;
 
   return (
-    <div className="tests-page fade-in">
-      <h1 className="page-title">Тесты</h1>
-      <p className="page-sub">Пройдите психологическую диагностику и узнайте свой уровень</p>
+    <div className="tests-catalog-page fade-in">
+      <header className="tests-catalog-header">
+        <h1 className="tests-catalog-title">
+          <span className="tests-catalog-title-ico" aria-hidden>
+            <ClipboardList size={32} strokeWidth={2} />
+          </span>
+          Тесты
+        </h1>
+        <p className="tests-catalog-sub">
+          Пройдите психологические тесты для самопознания
+        </p>
+      </header>
 
-      <div className="category-tabs">
-        <button
-          className={`cat-tab ${activeCategory === 'all' ? 'active' : ''}`}
-          onClick={() => setActiveCategory('all')}
-        >Все тесты</button>
-        {categories.map(c => (
+      <div className="tests-catalog-chips" role="tablist" aria-label="Категории">
+        {CATEGORY_CHIPS.map((chip) => (
           <button
-            key={c.category_id}
-            className={`cat-tab ${activeCategory === c.category_id ? 'active' : ''}`}
-            onClick={() => setActiveCategory(c.category_id)}
-          >{c.name}</button>
+            key={chip.id}
+            type="button"
+            role="tab"
+            aria-selected={activeCategory === chip.id}
+            className={`tests-catalog-chip ${activeCategory === chip.id ? 'active' : ''}`}
+            onClick={() => setActiveCategory(chip.id)}
+          >
+            <span className="tests-catalog-chip-emoji">{chip.emoji}</span>
+            <span className="tests-catalog-chip-label">{chip.label}</span>
+          </button>
         ))}
       </div>
 
-      <div className="tests-grid">
-        {filtered.map(test => (
-          <div key={test.test_id} className="test-card card">
-            <div className="test-card-icon"><BookOpen size={24} /></div>
-            <h3 className="test-card-title">{test.title}</h3>
-            <p className="test-card-desc">{test.description}</p>
-            <div className="test-card-meta">
-              <span className="test-card-cat">{test.category_name}</span>
-            </div>
-            <button
-              className="btn btn-primary test-card-btn"
-              onClick={() => navigate(`/tests/${test.test_id}`)}
-            >
-              Пройти тест <ChevronRight size={16} />
-            </button>
-          </div>
-        ))}
+      <div className="tests-catalog-grid">
+        {filtered.map((test) => {
+          const bucket = getTestBucket(test);
+          const nQ = estimateQuestions(test);
+          const mins = Math.max(3, Math.ceil(nQ * 0.45));
+          const badge = badgeLabelForTest(test);
+          return (
+            <article key={test.test_id} className="tests-catalog-card">
+              <div className="tests-catalog-card-top">
+                <TestCardIcon bucket={bucket} />
+                <span className="tests-catalog-card-badge">{badge}</span>
+              </div>
+              <h3 className="tests-catalog-card-title">{test.title}</h3>
+              <p className="tests-catalog-card-desc">{test.description}</p>
+              <div className="tests-catalog-card-meta">
+                <span className="tests-catalog-meta-item">
+                  <ListOrdered size={15} strokeWidth={2.2} />
+                  {nQ} вопросов
+                </span>
+                <span className="tests-catalog-meta-item">
+                  <Clock size={15} strokeWidth={2.2} />
+                  {mins} мин
+                </span>
+              </div>
+              <button
+                type="button"
+                className="tests-catalog-card-cta"
+                onClick={() => navigate(`/tests/${test.test_id}`)}
+              >
+                Начать тест
+                <ChevronRight size={18} strokeWidth={2.2} />
+              </button>
+            </article>
+          );
+        })}
       </div>
 
       {filtered.length === 0 && (
-        <div className="tests-empty">
-          <p>В этой категории нет тестов</p>
+        <div className="tests-catalog-empty">
+          <p>В этой категории пока нет тестов</p>
         </div>
       )}
     </div>
@@ -152,33 +285,57 @@ export const TakeTest = () => {
 
   // RESULT
   if (step === questions.length + 1 && result) {
-    const levelColors = { 'Низкий': '#B8D48A', 'Средний': '#F9C74F', 'Высокий': '#FF6B6B' };
-    const levelEmojis = { 'Низкий': '✅', 'Средний': '⚠️', 'Высокий': '🔴' };
-    const color = levelColors[result.result.level] || '#BCC2F4';
+    const level = result.level || result.result.level;
+    const color = resultAccentColor(level);
+    const interp = result.interpretation;
+    const scoreLabel =
+      result.scale === 'gad7'
+        ? `балл GAD-7: ${result.result.score} / ${result.maxScore ?? 21}`
+        : result.scale === 'daily5'
+          ? `индекс дня: ${result.percentage}%`
+          : result.scale === 'mbi_student'
+            ? `индекс: ${result.percentage}%`
+            : 'интенсивность по шкале';
+
+    const showCrisisHint =
+      /высокая тревож|выраженное выгорание|сильн|нужен отдых и поддержк/i.test(level || '') ||
+      result.result.level === 'Высокий';
 
     return (
       <div className="take-test fade-in">
-        <div className="test-result card">
+        <div className="test-result card test-result--rich">
           <div className="result-icon" style={{ background: `${color}22`, color }}>
-            {levelEmojis[result.result.level]} {result.result.level} уровень
+            {level}
           </div>
-          <h1>Тест завершён!</h1>
+          <h1>Тест завершён</h1>
           <p className="result-test-title">{test.title}</p>
           <div className="result-score-circle" style={{ borderColor: color }}>
             <span className="result-score-num">{result.percentage}%</span>
-            <span className="result-score-label">уровень стресса</span>
+            <span className="result-score-label">{scoreLabel}</span>
           </div>
-          {result.result.level === 'Высокий' && (
+          {interp && (
+            <div className="result-interpret">
+              <h2 className="result-interpret-title">{interp.title}</h2>
+              <p className="result-interpret-text">{interp.text}</p>
+              <p className="result-interpret-rec">
+                <strong>Рекомендация:</strong> {interp.recommendation}
+              </p>
+            </div>
+          )}
+          {showCrisisHint && (
             <div className="result-warning">
-              ⚠️ Рекомендуем обратиться к психологу или воспользоваться ИИ-ассистентом
+              ⚠️ При сильном дискомфорте обратитесь к специалисту. ИИ и приложение не заменяют очную помощь.
             </div>
           )}
           <div className="result-actions">
-            <button className="btn btn-ghost" onClick={() => navigate('/tests')}>
+            <button type="button" className="btn btn-ghost" onClick={() => navigate('/tests')}>
               Все тесты
             </button>
-            <button className="btn btn-primary" onClick={() => navigate('/stats')}>
-              Моя статистика
+            <button type="button" className="btn btn-secondary" onClick={() => navigate('/practices')}>
+              Практики для меня
+            </button>
+            <button type="button" className="btn btn-primary" onClick={() => navigate('/stats')}>
+              Аналитика
             </button>
           </div>
         </div>

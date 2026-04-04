@@ -3,7 +3,7 @@
 
 ALTER TABLE tests ADD COLUMN IF NOT EXISTS scoring_type VARCHAR(40) DEFAULT 'likert_sum';
 
--- test_id=1 (PSS) в каталоге не используется
+UPDATE tests SET scoring_type = 'likert_sum' WHERE test_id = 1 AND (scoring_type IS NULL OR scoring_type = 'likert_sum');
 UPDATE tests SET scoring_type = 'mbi_student' WHERE test_id = 2;
 UPDATE tests SET scoring_type = 'likert_sum' WHERE test_id IN (3, 4, 5);
 
