@@ -20,28 +20,9 @@ const Login = () => {
     setLoading(true);
     try {
       const user = await login(form.email, form.password);
-      if (user.role === 'admin') navigate('/admin-dashboard', { replace: true });
-      else navigate('/user-dashboard', { replace: true });
+      navigate(user.role === 'admin' ? '/admin' : '/dashboard');
     } catch (err) {
-      if (!err.response) {
-        setError('Сервер не отвечает. Запустите backend (например npm run server) и проверьте server/.env.');
-      } else if (err.response.status === 401) {
-        setError('Неверный логин или пароль');
-      } else {
-        const d = err.response?.data;
-        const raw =
-          typeof d === 'string' && d.trim()
-            ? d.replace(/<[^>]+>/g, '').slice(0, 400)
-            : d?.message || d?.error || '';
-        const low = String(raw).toLowerCase();
-        if (/econnrefused|proxy error|could not proxy/i.test(low)) {
-          setError('Backend недоступен. Запустите сервер на порту из proxy (обычно 5000) и проверьте .env.');
-        } else {
-          setError(
-            raw || `Ошибка сервера (${err.response.status}). Проверьте JWT_SECRET и логи backend.`
-          );
-        }
-      }
+      setError(err.response?.data?.message || 'Ошибка входа');
     } finally {
       setLoading(false);
     }
@@ -58,7 +39,7 @@ const Login = () => {
       <div className="auth-card fade-in">
         <div className="auth-logo">
           <div className="auth-logo-icon"><Brain size={26} /></div>
-          <span>Burnout</span>
+          <span>MindTrack</span>
         </div>
 
         <h1 className="auth-title">Добро пожаловать</h1>
@@ -76,11 +57,9 @@ const Login = () => {
             <label>Email</label>
             <input
               className="input"
-              type="text"
+              type="email"
               name="email"
-              inputMode="email"
-              autoComplete="username"
-              placeholder="Ваш email"
+              placeholder="your@email.com"
               value={form.email}
               onChange={handleChange}
               required
@@ -113,10 +92,6 @@ const Login = () => {
         <p className="auth-switch">
           Нет аккаунта?{' '}
           <Link to="/register">Зарегистрироваться</Link>
-        </p>
-        <p className="auth-demo-hint" style={{ marginTop: 14, fontSize: '0.8125rem', color: 'var(--text-light)', lineHeight: 1.5, textAlign: 'center' }}>
-          Учётная запись администратора создаётся при старте сервера (см. <code>DEFAULT_ADMIN_EMAIL</code> /{' '}
-          <code>DEFAULT_ADMIN_PASSWORD</code> в server/.env). Нужны запущенные backend и база данных.
         </p>
       </div>
     </div>

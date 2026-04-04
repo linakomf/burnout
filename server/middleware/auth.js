@@ -10,12 +10,7 @@ const authMiddleware = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const rawId = decoded.user_id ?? decoded.sub ?? decoded.id;
-    const user_id = parseInt(String(rawId), 10);
-    if (!Number.isFinite(user_id)) {
-      return res.status(403).json({ message: 'Недействительный токен' });
-    }
-    req.user = { ...decoded, user_id };
+    req.user = decoded;
     next();
   } catch (err) {
     return res.status(403).json({ message: 'Недействительный токен' });

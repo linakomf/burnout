@@ -1,7 +1,6 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout/Layout';
 import Landing from './components/Auth/Landing';
 import Login from './components/Auth/Login';
@@ -10,175 +9,79 @@ import Dashboard from './components/Dashboard/Dashboard';
 import Stats from './components/Dashboard/Stats';
 import { TestsList, TakeTest } from './components/Tests/Tests';
 import Profile from './components/Profile/Profile';
-import Diary from './components/Diary/Diary';
-import Practices from './components/Practices/Practices';
 import { AdminOverview, AdminUsers, AdminCategories, AdminTests } from './components/Admin/Admin';
-import AdminPortal from './components/AdminPortal/AdminPortal';
-import UserDashboard from './components/Dashboards/UserDashboard';
-import AdminDashboard from './components/Dashboards/AdminDashboard';
 import AIChat from './components/AI/AIChat';
-import OnboardingBurnout from './components/Onboarding/OnboardingBurnout';
-import Personalization from './components/Personalization/Personalization';
 import './styles/global.css';
 
+// Protected route — если не вошёл, отправляет на лендинг
 const PrivateRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth();
   if (loading) return (
-    <div className="app-loading-fullscreen">
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', width: '100%' }}>
       <div className="loading-spinner" />
     </div>
   );
   if (!user) return <Navigate to="/" replace />;
-  if (adminOnly && user.role !== 'admin') return <Navigate to="/user-dashboard" replace />;
+  if (adminOnly && user.role !== 'admin') return <Navigate to="/dashboard" replace />;
   return children;
 };
 
-function RequireAdminDashboard({ children }) {
-  const { user, loading } = useAuth();
-  if (loading) return (
-    <div className="app-loading-fullscreen">
-      <div className="loading-spinner" />
-    </div>
-  );
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.role !== 'admin') return <Navigate to="/user-dashboard" replace />;
-  return children;
-}
-
-function RequireUserDashboard({ children }) {
-  const { user, loading } = useAuth();
-  if (loading) return (
-    <div className="app-loading-fullscreen">
-      <div className="loading-spinner" />
-    </div>
-  );
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
-  return children;
-}
-
-/** Публичные страницы: вошедший студент/преподаватель без теста → онбординг; остальные → кабинет */
+// Публичный маршрут — если уже вошёл, отправляет на дашборд
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return (
-    <div className="app-loading-fullscreen">
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', width: '100%' }}>
       <div className="loading-spinner" />
     </div>
   );
-  if (user) {
-    if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
-    return <Navigate to="/user-dashboard" replace />;
-  }
+  if (user) return <Navigate to="/dashboard" replace />;
   return children;
 };
 
-/** Доступ к основному приложению только после первичного теста выгорания */
-function RequireOnboardingDone({ children }) {
-  const { user } = useAuth();
-  if (user && user.role !== 'admin' && !user.onboarding_burnout_completed) {
-    return <Navigate to="/onboarding/burnout" replace />;
-  }
-  return children;
-}
-
+// Layout с сайдбаром и ИИ-чатом
 const UserLayout = ({ children }) => (
   <Layout>
     {children}
-    <AIChatRouteAware />
+    <AIChat />
   </Layout>
 );
-
-function AIChatRouteAware() {
-  const { pathname } = useLocation();
-  if (pathname === '/dashboard') return null;
-  return <AIChat />;
-}
 
 const App = () => {
   return (
     <div className="app-shell">
-    <ThemeProvider>
     <BrowserRouter>
       <div className="app-fill">
       <AuthProvider>
         <div className="app-routes-outlet">
         <Routes>
-          {/* Главная — всегда лендинг; в кабинет — по кнопке или прямым маршрутам */}
-          <Route path="/" element={<Landing />} />
+          {/* Лендинг — главная страница до входа */}
+          <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
 
-          <Route path="/admin-portal" element={<AdminPortal />} />
-
-          <Route path="/admin-dashboard" element={
-            <RequireAdminDashboard><AdminDashboard /></RequireAdminDashboard>
-          } />
-          <Route path="/user-dashboard" element={
-            <RequireUserDashboard><UserDashboard /></RequireUserDashboard>
-          } />
-
+          {/* Вход и регистрация */}
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
-          <Route path="/onboarding/burnout" element={
-            <PrivateRoute><OnboardingBurnout /></PrivateRoute>
-          } />
-
+          {/* Страницы пользователя */}
           <Route path="/dashboard" element={
-            <PrivateRoute>
-              <RequireOnboardingDone>
-                <UserLayout><Dashboard /></UserLayout>
-              </RequireOnboardingDone>
-            </PrivateRoute>
-          } />
-          <Route path="/personalization" element={
-            <PrivateRoute>
-              <RequireOnboardingDone>
-                <UserLayout><Personalization /></UserLayout>
-              </RequireOnboardingDone>
-            </PrivateRoute>
+            <PrivateRoute><UserLayout><Dashboard /></UserLayout></PrivateRoute>
           } />
           <Route path="/tests" element={
-            <PrivateRoute>
-              <RequireOnboardingDone>
-                <UserLayout><TestsList /></UserLayout>
-              </RequireOnboardingDone>
-            </PrivateRoute>
+            <PrivateRoute><UserLayout><TestsList /></UserLayout></PrivateRoute>
           } />
           <Route path="/tests/:id" element={
-            <PrivateRoute>
-              <RequireOnboardingDone>
-                <UserLayout><TakeTest /></UserLayout>
-              </RequireOnboardingDone>
-            </PrivateRoute>
-          } />
-          <Route path="/practices" element={
-            <PrivateRoute>
-              <RequireOnboardingDone>
-                <UserLayout><Practices /></UserLayout>
-              </RequireOnboardingDone>
-            </PrivateRoute>
+            <PrivateRoute><UserLayout><TakeTest /></UserLayout></PrivateRoute>
           } />
           <Route path="/diary" element={
-            <PrivateRoute>
-              <RequireOnboardingDone>
-                <UserLayout><Diary /></UserLayout>
-              </RequireOnboardingDone>
-            </PrivateRoute>
+            <PrivateRoute><UserLayout><Dashboard /></UserLayout></PrivateRoute>
           } />
           <Route path="/stats" element={
-            <PrivateRoute>
-              <RequireOnboardingDone>
-                <UserLayout><Stats /></UserLayout>
-              </RequireOnboardingDone>
-            </PrivateRoute>
+            <PrivateRoute><UserLayout><Stats /></UserLayout></PrivateRoute>
           } />
           <Route path="/profile" element={
-            <PrivateRoute>
-              <RequireOnboardingDone>
-                <UserLayout><Profile /></UserLayout>
-              </RequireOnboardingDone>
-            </PrivateRoute>
+            <PrivateRoute><UserLayout><Profile /></UserLayout></PrivateRoute>
           } />
 
+          {/* Страницы админа */}
           <Route path="/admin" element={
             <PrivateRoute adminOnly><Layout><AdminOverview /></Layout></PrivateRoute>
           } />
@@ -192,13 +95,13 @@ const App = () => {
             <PrivateRoute adminOnly><Layout><AdminTests /></Layout></PrivateRoute>
           } />
 
+          {/* Любой другой путь → лендинг */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </div>
       </AuthProvider>
       </div>
     </BrowserRouter>
-    </ThemeProvider>
     </div>
   );
 };

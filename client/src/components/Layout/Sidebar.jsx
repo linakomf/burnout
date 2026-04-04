@@ -2,39 +2,37 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
-  Home, Calendar, BarChart2, ChevronLeft, ChevronRight, Users, Tag, Brain, Flower2, User,
+  Home, BookOpen, Calendar, BarChart2, Settings,
+  LogOut, ChevronLeft, ChevronRight, Users, Tag, Brain
 } from 'lucide-react';
 import './Sidebar.css';
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const studentLinks = [
     { path: '/dashboard', icon: <Home size={19} />, label: 'Главная' },
-    { path: '/stats',     icon: <BarChart2 size={19} />, label: 'Аналитика' },
-    { path: '/tests',     icon: <Brain size={19} />, label: 'Тесты' },
-    { path: '/practices', icon: <Flower2 size={19} />, label: 'Практики' },
     { path: '/diary',     icon: <Calendar size={19} />, label: 'ИИ Дневник' },
-    { path: '/profile',   icon: <User size={19} />, label: 'Профиль' },
+    { path: '/tests',     icon: <BookOpen size={19} />, label: 'Тесты' },
+    { path: '/stats',     icon: <BarChart2 size={19} />, label: 'Статистика' },
   ];
 
   const adminLinks = [
     { path: '/admin',            icon: <Home size={19} />,    label: 'Обзор' },
     { path: '/admin/users',      icon: <Users size={19} />,   label: 'Пользователи' },
     { path: '/admin/categories', icon: <Tag size={19} />,     label: 'Категории' },
-    { path: '/admin/tests',      icon: <Brain size={19} />, label: 'Тесты' },
-    { path: '/profile',          icon: <User size={19} />,    label: 'Профиль' },
+    { path: '/admin/tests',      icon: <BookOpen size={19} />,label: 'Тесты' },
   ];
 
   const links = user?.role === 'admin' ? adminLinks : studentLinks;
 
-  const lightStudentShell = user?.role !== 'admin';
+  const handleLogout = () => { logout(); navigate('/login'); };
 
   return (
-    <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${lightStudentShell ? 'sidebar--light-mock' : ''}`}>
+    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-icon"><Brain size={20} /></div>
@@ -58,6 +56,26 @@ const Sidebar = () => {
 
       {/* Bottom */}
       <div className="sidebar-bottom">
+        {/* Settings link */}
+        <button
+          className={`nav-item ${location.pathname === '/profile' ? 'active' : ''}`}
+          onClick={() => navigate('/profile')}
+          title={collapsed ? 'Настройки' : ''}
+        >
+          <span className="nav-icon"><Settings size={19} /></span>
+          {!collapsed && <span className="nav-label">Настройки</span>}
+        </button>
+
+        <button
+          className="nav-item"
+          type="button"
+          onClick={handleLogout}
+          title={collapsed ? 'Выйти' : ''}
+        >
+          <span className="nav-icon"><LogOut size={19} /></span>
+          {!collapsed && <span className="nav-label">Выйти</span>}
+        </button>
+
         {/* User mini */}
         <div className="user-mini" onClick={() => navigate('/profile')}>
           <div className="user-avatar">

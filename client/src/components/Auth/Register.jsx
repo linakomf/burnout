@@ -21,7 +21,7 @@ const Register = () => {
     setLoading(true);
     try {
       await register(form);
-      navigate('/user-dashboard', { replace: true });
+      navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Ошибка регистрации');
     } finally {
@@ -40,11 +40,11 @@ const Register = () => {
       <div className="auth-card fade-in">
         <div className="auth-logo">
           <div className="auth-logo-icon"><Brain size={26} /></div>
-          <span>Burnout</span>
+          <span>MindTrack</span>
         </div>
 
         <h1 className="auth-title">Создать аккаунт</h1>
-        <p className="auth-subtitle">После регистрации пройдите короткий тест выгорания (10 вопросов)</p>
+        <p className="auth-subtitle">Начните отслеживать своё эмоциональное состояние</p>
 
         {error && (
           <div className="auth-error">

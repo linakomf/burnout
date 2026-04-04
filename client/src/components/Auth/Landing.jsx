@@ -1,26 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Shield, Zap, Users, CheckCircle, LayoutDashboard } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { Brain, Shield, Zap, Users, CheckCircle } from 'lucide-react';
 import './Landing.css';
-
-/** Файл: client/public/photos/character.png (или персонаж.png). PUBLIC_URL — для деплоя не в корень домена. */
-const publicPrefix = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
-const HERO_IMAGE_SRC = encodeURI(`${publicPrefix}/photos/character.png`);
-const HERO_IMAGE_SRC_ALT = encodeURI(`${publicPrefix}/photos/персонаж.png`);
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [heroImgSrc, setHeroImgSrc] = useState(HERO_IMAGE_SRC);
-  const [heroImgFailed, setHeroImgFailed] = useState(false);
-
-  const goToApp = () => {
-    if (!user) return;
-    if (user.role === 'admin') navigate('/admin');
-    else if (!user.onboarding_burnout_completed) navigate('/onboarding/burnout');
-    else navigate('/dashboard');
-  };
 
   return (
     <div className="landing">
@@ -31,25 +15,12 @@ const Landing = () => {
           <div className="land-logo-icon"><Brain size={22} /></div>
           <div>
             <span className="land-logo-name">Burnout</span>
-            <span className="land-logo-sub">Забота о ментальном здоровье в учёбе</span>
+            <span className="land-logo-sub">AI-дневник для студентов</span>
           </div>
         </div>
         <div className="land-nav-actions">
-          {user ? (
-            <button type="button" className="land-btn-primary" onClick={goToApp}>
-              <LayoutDashboard size={18} aria-hidden />
-              В кабинет
-            </button>
-          ) : (
-            <>
-              <button type="button" className="land-btn-ghost" onClick={() => navigate('/login')}>
-                Вход
-              </button>
-              <button type="button" className="land-btn-primary" onClick={() => navigate('/register')}>
-                Регистрация
-              </button>
-            </>
-          )}
+          <button className="land-btn-ghost" onClick={() => navigate('/login')}>Вход</button>
+          <button className="land-btn-teal" onClick={() => navigate('/register')}>Регистрация</button>
         </div>
       </nav>
 
@@ -57,16 +28,15 @@ const Landing = () => {
       <section className="land-hero">
         <div className="hero-left">
           <h1 className="hero-title">
-            Выгорание<br />
-            под контролем<br />
-            <span className="hero-accent">уже с первого дня</span>
+            Твой<br />
+            персональный<br />
+            <span className="hero-accent">AI-психолог</span>
           </h1>
           <p className="hero-desc">
-            Burnout помогает студентам и преподавателям отслеживать нагрузку, проходить короткие практики и видеть динамику.
-            После регистрации вы пройдёте тест из 10 вопросов — и получите оценку уровня выгорания в процентах.
+            Отслеживай эмоции, предотвращай выгорание и получай поддержку от AI-помощника, который действительно понимает студенческую жизнь
           </p>
           <div className="hero-actions">
-            <button className="land-btn-primary hero-cta" onClick={() => navigate('/register')}>
+            <button className="land-btn-teal hero-cta" onClick={() => navigate('/register')}>
               Начать бесплатно →
             </button>
             <button className="land-btn-outline" onClick={() => { document.getElementById('features').scrollIntoView({ behavior: 'smooth' }); }}>
@@ -83,38 +53,31 @@ const Landing = () => {
               <span className="stat-label">Конфиденциально</span>
             </div>
             <div className="hero-stat">
-              <span className="stat-num">0₸</span>
+              <span className="stat-num">0₽</span>
               <span className="stat-label">Бесплатно</span>
             </div>
           </div>
         </div>
 
         <div className="hero-right">
-          <div className="hero-visual-card">
-            <div className="hero-visual-bg" aria-hidden />
-            {!heroImgFailed ? (
-              <img
-                src={heroImgSrc}
-                alt=""
-                className="hero-visual-char"
-                onError={() => {
-                  if (heroImgSrc === HERO_IMAGE_SRC) {
-                    setHeroImgSrc(HERO_IMAGE_SRC_ALT);
-                  } else {
-                    setHeroImgFailed(true);
-                  }
-                }}
-              />
-            ) : (
-              <div className="hero-visual-fallback" aria-hidden>
-                <Brain size={120} strokeWidth={1.05} />
+          <div className="hero-chat-card">
+            <div className="chat-card-header">
+              <div className="chat-bot-avatar"><Brain size={18} /></div>
+              <div>
+                <div className="chat-bot-name">AI-помощник</div>
+                <div className="chat-bot-status">Онлайн</div>
               </div>
-            )}
-            <div className="hero-visual-overlay">
-              <span className="hero-visual-badge">10 вопросов · персональный процент</span>
-              <p className="hero-visual-text">
-                Разные формулировки для студентов и преподавателей — честные ответы помогут точнее оценить состояние.
-              </p>
+            </div>
+            <div className="chat-bubble">
+              Привет! Я вижу, что сегодня ты чувствуешь лёгкую тревогу. Хочешь поговорить о том, что тебя беспокоит?
+            </div>
+            <div className="chat-emojis-section">
+              <p className="chat-emojis-label">Твои эмоции за неделю</p>
+              <div className="chat-emojis">
+                {['😊','😔','😐','😕','😊','😄','😊'].map((e, i) => (
+                  <span key={i} className="chat-emoji">{e}</span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -122,14 +85,14 @@ const Landing = () => {
 
       {/* ── Features ── */}
       <section className="land-features" id="features">
-        <h2 className="section-title">Почему Burnout?</h2>
-        <p className="section-sub">Единый стиль, понятные шаги и забота о ресурсе, а не только о баллах</p>
+        <h2 className="section-title">Почему выбирают Burnout?</h2>
+        <p className="section-sub">Современные технологии для заботы о твоём ментальном здоровье</p>
         <div className="features-grid">
           {[
-            { color: '#a3c617', icon: <Brain size={24} />, title: 'Старт с теста', desc: 'Сразу после регистрации — 10 вопросов и процент выгорания, чтобы знать отправную точку' },
-            { color: '#9d8bff', icon: '♡', title: 'Настроение и дневник', desc: 'Календарь, записи и мягкая поддержка в привычном интерфейсе' },
-            { color: '#ffb347', icon: '↗', title: 'Аналитика', desc: 'Графики и динамика по вашим данным — без лишнего шума' },
-            { color: '#5b9bd5', icon: '✦', title: 'Практики', desc: 'Дыхание, микропаузы и упражнения под ваш ритм' },
+            { color: '#5a8a8a', icon: <Brain size={24} />, title: 'AI-психолог 24/7', desc: 'Профессиональная поддержка с анализом эмоционального состояния в реальном времени' },
+            { color: '#7a9a6a', icon: '♡', title: 'Отслеживание настроения', desc: 'Календарь-heatmap с историей ваших эмоций и персонализированными рекомендациями' },
+            { color: '#7a6a9a', icon: '↗', title: 'Анализ выгорания', desc: 'Научно обоснованные методики определения и профилактики эмоционального истощения' },
+            { color: '#8a7a6a', icon: '✦', title: 'Персонализация', desc: 'Рекомендации адаптируются под ваши предпочтения, расписание и стиль жизни' },
           ].map((f, i) => (
             <div key={i} className="feature-card">
               <div className="feature-icon" style={{ background: f.color }}>
@@ -182,7 +145,7 @@ const Landing = () => {
         <div className="cta-card">
           <h2 className="cta-title">Начни заботиться о себе уже сегодня</h2>
           <p className="cta-sub">Регистрация займёт меньше минуты. Без кредитных карт, без скрытых платежей.</p>
-          <button className="land-btn-primary cta-btn" onClick={() => navigate('/register')}>
+          <button className="land-btn-teal cta-btn" onClick={() => navigate('/register')}>
             Создать аккаунт бесплатно →
           </button>
         </div>
@@ -194,7 +157,7 @@ const Landing = () => {
           <div className="land-logo-icon"><Brain size={20} /></div>
           <span className="land-logo-name">Burnout</span>
         </div>
-        <p className="footer-copy">© 2026 Burnout. Поддержка ментального здоровья студентов и преподавателей.</p>
+        <p className="footer-copy">© 2026 Burnout. AI-дневник для студентов и преподавателей.</p>
       </footer>
 
     </div>

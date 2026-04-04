@@ -2,25 +2,20 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
-const { computeTestResult } = require('../scoring');
-const { applyCanonicalToTestRow, applyCanonicalToTestRows } = require('../testCanonical');
 
 // GET /api/tests - get tests relevant to user role
 router.get('/', authMiddleware, async (req, res) => {
   const role = req.user.role;
   try {
-    const isAdmin = role === 'admin';
     const result = await pool.query(
-      `SELECT t.*, c.name as category_name, c.target_role,
-       (SELECT COUNT(*)::int FROM questions q WHERE q.test_id = t.test_id) AS question_count
-       FROM tests t
+      `SELECT t.*, c.name as category_name, c.target_role 
+       FROM tests t 
        LEFT JOIN categories c ON t.category_id = c.category_id
-       WHERE t.test_id <> 1
-         AND ($1::boolean OR c.target_role = 'all' OR c.target_role = $2)
+       WHERE c.target_role = 'all' OR c.target_role = $1
        ORDER BY t.created_at DESC`,
-      [isAdmin, role]
+      [role]
     );
-    res.json(applyCanonicalToTestRows(result.rows));
+    res.json(result.rows);
   } catch (err) {
     res.status(500).json({ message: 'Ошибка сервера' });
   }
@@ -38,16 +33,7 @@ router.get('/results/my', authMiddleware, async (req, res) => {
        ORDER BY tr.created_at DESC`,
       [req.user.user_id]
     );
-    res.json(
-      result.rows.map((row) => {
-        const fixed = applyCanonicalToTestRow({
-          test_id: row.test_id,
-          title: row.title,
-          description: row.description,
-        });
-        return { ...row, title: fixed.title, description: fixed.description };
-      })
-    );
+    res.json(result.rows);
   } catch (err) {
     res.status(500).json({ message: 'Ошибка сервера' });
   }
@@ -55,10 +41,6 @@ router.get('/results/my', authMiddleware, async (req, res) => {
 
 // GET /api/tests/:id - get test with questions
 router.get('/:id', authMiddleware, async (req, res) => {
-  const tid = parseInt(req.params.id, 10);
-  if (Number.isFinite(tid) && tid === 1) {
-    return res.status(404).json({ message: 'Тест не найден' });
-  }
   try {
     const testResult = await pool.query(
       `SELECT t.*, c.name as category_name FROM tests t 
@@ -73,10 +55,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
       [req.params.id]
     );
 
-    res.json({
-      ...applyCanonicalToTestRow(testResult.rows[0]),
-      questions: questionsResult.rows,
-    });
+    res.json({ ...testResult.rows[0], questions: questionsResult.rows });
   } catch (err) {
     res.status(500).json({ message: 'Ошибка сервера' });
   }
@@ -87,38 +66,30 @@ router.post('/:id/submit', authMiddleware, async (req, res) => {
   const { answers } = req.body; // { questionId: answerIndex }
   const userId = req.user.user_id;
   const testId = req.params.id;
-  const tid = parseInt(testId, 10);
-  if (Number.isFinite(tid) && tid === 1) {
-    return res.status(404).json({ message: 'Тест не найден' });
-  }
 
   try {
-    const testRow = await pool.query('SELECT * FROM tests WHERE test_id=$1', [testId]);
-    if (testRow.rows.length === 0) return res.status(404).json({ message: 'Тест не найден' });
+    const questions = await pool.query('SELECT * FROM questions WHERE test_id=$1', [testId]);
+    const total = questions.rows.length;
+    let score = 0;
 
-    const questions = await pool.query(
-      'SELECT * FROM questions WHERE test_id=$1 ORDER BY order_num',
-      [testId]
-    );
-    if (questions.rows.length === 0) {
-      return res.status(400).json({ message: 'В тесте нет вопросов' });
-    }
+    Object.values(answers).forEach((val) => {
+      score += Number(val);
+    });
 
-    const computed = computeTestResult(testRow.rows[0], questions.rows, answers || {});
+    const maxScore = total * 4;
+    const percentage = Math.round((score / maxScore) * 100);
+
+    let level;
+    if (percentage <= 30) level = 'Низкий';
+    else if (percentage <= 60) level = 'Средний';
+    else level = 'Высокий';
 
     const result = await pool.query(
       'INSERT INTO test_results (user_id, test_id, score, level, answers) VALUES ($1,$2,$3,$4,$5) RETURNING *',
-      [userId, testId, computed.score, computed.level, JSON.stringify(answers)]
+      [userId, testId, score, level, JSON.stringify(answers)]
     );
 
-    res.json({
-      result: result.rows[0],
-      percentage: computed.percentage,
-      level: computed.level,
-      scale: computed.scale,
-      interpretation: computed.interpretation,
-      maxScore: computed.maxScore,
-    });
+    res.json({ result: result.rows[0], percentage, level });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });
@@ -127,135 +98,21 @@ router.post('/:id/submit', authMiddleware, async (req, res) => {
 
 // ========= ADMIN ROUTES =========
 
-function normalizeCategoryId(category_id) {
-  if (category_id === '' || category_id === undefined || category_id === null) return null;
-  const n = parseInt(String(category_id), 10);
-  return Number.isFinite(n) ? n : null;
-}
-
-function normalizeQuestionPayload(q) {
-  const text = (q.question_text || '').trim();
-  let options = q.options;
-  if (typeof options === 'string') {
-    try {
-      options = JSON.parse(options);
-    } catch {
-      options = [];
-    }
-  }
-  if (!Array.isArray(options)) options = [];
-  const filtered = options.map((o) => (o == null ? '' : String(o).trim())).filter(Boolean);
-  return { question_text: text, options: filtered };
-}
-
 // POST /api/tests - create test (admin)
 router.post('/', authMiddleware, adminOnly, async (req, res) => {
-  const { title, description, category_id, questions, scoring_type } = req.body;
-  const catId = normalizeCategoryId(category_id);
-  const scoring = typeof scoring_type === 'string' && scoring_type.trim() ? scoring_type.trim() : 'likert_sum';
-
-  if (!title || !String(title).trim()) {
-    return res.status(400).json({ message: 'Укажите название теста' });
-  }
-  if (catId == null) {
-    return res.status(400).json({ message: 'Выберите категорию' });
-  }
-
+  const { title, description, category_id, questions } = req.body;
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const testResult = await client.query(
-      'INSERT INTO tests (title, description, category_id, scoring_type) VALUES ($1,$2,$3,$4) RETURNING *',
-      [String(title).trim(), description != null ? String(description).trim() : '', catId, scoring]
+      'INSERT INTO tests (title, description, category_id) VALUES ($1,$2,$3) RETURNING *',
+      [title, description, category_id]
     );
     const testId = testResult.rows[0].test_id;
 
-    let inserted = 0;
     if (questions && questions.length > 0) {
       for (let i = 0; i < questions.length; i++) {
-        const q = normalizeQuestionPayload(questions[i]);
-        if (!q.question_text) continue;
-        if (q.options.length === 0) {
-          await client.query('ROLLBACK');
-          return res.status(400).json({ message: `Вопрос ${i + 1}: добавьте хотя бы один вариант ответа` });
-        }
-        await client.query(
-          'INSERT INTO questions (test_id, question_text, options, order_num) VALUES ($1,$2,$3,$4)',
-          [testId, q.question_text, JSON.stringify(q.options), inserted + 1]
-        );
-        inserted += 1;
-      }
-    }
-    if (inserted === 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ message: 'Добавьте хотя бы один вопрос с текстом и вариантами' });
-    }
-
-    await client.query('COMMIT');
-    res.status(201).json(testResult.rows[0]);
-  } catch (err) {
-    await client.query('ROLLBACK');
-    console.error(err);
-    res.status(500).json({ message: 'Ошибка сервера' });
-  } finally {
-    client.release();
-  }
-});
-
-// PUT /api/tests/:id (admin) — метаданные и полная замена вопросов (если передан массив questions)
-router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
-  const testId = parseInt(req.params.id, 10);
-  if (!Number.isFinite(testId)) {
-    return res.status(400).json({ message: 'Некорректный id теста' });
-  }
-
-  const { title, description, category_id, questions, scoring_type } = req.body;
-  const catId = normalizeCategoryId(category_id);
-
-  if (!title || !String(title).trim()) {
-    return res.status(400).json({ message: 'Укажите название теста' });
-  }
-  if (catId == null) {
-    return res.status(400).json({ message: 'Выберите категорию' });
-  }
-
-  const scoring =
-    typeof scoring_type === 'string' && scoring_type.trim() ? scoring_type.trim() : 'likert_sum';
-
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-
-    const existing = await client.query('SELECT test_id FROM tests WHERE test_id=$1', [testId]);
-    if (existing.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ message: 'Тест не найден' });
-    }
-
-    await client.query(
-      'UPDATE tests SET title=$1, description=$2, category_id=$3, scoring_type=$4 WHERE test_id=$5',
-      [String(title).trim(), description != null ? String(description).trim() : '', catId, scoring, testId]
-    );
-
-    if (Array.isArray(questions)) {
-      const normalized = [];
-      for (let i = 0; i < questions.length; i++) {
-        const q = normalizeQuestionPayload(questions[i]);
-        if (!q.question_text) continue;
-        if (q.options.length === 0) {
-          await client.query('ROLLBACK');
-          return res.status(400).json({ message: `Вопрос ${i + 1}: добавьте хотя бы один вариант ответа` });
-        }
-        normalized.push(q);
-      }
-      if (normalized.length === 0) {
-        await client.query('ROLLBACK');
-        return res.status(400).json({ message: 'Добавьте хотя бы один вопрос с текстом и вариантами' });
-      }
-
-      await client.query('DELETE FROM questions WHERE test_id=$1', [testId]);
-      for (let i = 0; i < normalized.length; i++) {
-        const q = normalized[i];
+        const q = questions[i];
         await client.query(
           'INSERT INTO questions (test_id, question_text, options, order_num) VALUES ($1,$2,$3,$4)',
           [testId, q.question_text, JSON.stringify(q.options), i + 1]
@@ -264,28 +121,23 @@ router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
     }
 
     await client.query('COMMIT');
-
-    const testResult = await pool.query(
-      `SELECT t.*, c.name as category_name FROM tests t 
-       LEFT JOIN categories c ON t.category_id = c.category_id
-       WHERE t.test_id = $1`,
-      [testId]
-    );
-    const questionsResult = await pool.query(
-      'SELECT * FROM questions WHERE test_id = $1 ORDER BY order_num',
-      [testId]
-    );
-    res.json({
-      ...applyCanonicalToTestRow(testResult.rows[0]),
-      questions: questionsResult.rows,
-    });
+    res.status(201).json(testResult.rows[0]);
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });
   } finally {
     client.release();
   }
+});
+
+// PUT /api/tests/:id (admin)
+router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
+  const { title, description, category_id } = req.body;
+  const result = await pool.query(
+    'UPDATE tests SET title=$1, description=$2, category_id=$3 WHERE test_id=$4 RETURNING *',
+    [title, description, category_id, req.params.id]
+  );
+  res.json(result.rows[0]);
 });
 
 // DELETE /api/tests/:id (admin)
