@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
+const { computeTestResult } = require('../scoring');
 
 // GET /api/tests - get tests relevant to user role
 router.get('/', authMiddleware, async (req, res) => {
@@ -68,28 +69,32 @@ router.post('/:id/submit', authMiddleware, async (req, res) => {
   const testId = req.params.id;
 
   try {
-    const questions = await pool.query('SELECT * FROM questions WHERE test_id=$1', [testId]);
-    const total = questions.rows.length;
-    let score = 0;
+    const testRow = await pool.query('SELECT * FROM tests WHERE test_id=$1', [testId]);
+    if (testRow.rows.length === 0) return res.status(404).json({ message: 'Тест не найден' });
 
-    Object.values(answers).forEach((val) => {
-      score += Number(val);
-    });
+    const questions = await pool.query(
+      'SELECT * FROM questions WHERE test_id=$1 ORDER BY order_num',
+      [testId]
+    );
+    if (questions.rows.length === 0) {
+      return res.status(400).json({ message: 'В тесте нет вопросов' });
+    }
 
-    const maxScore = total * 4;
-    const percentage = Math.round((score / maxScore) * 100);
-
-    let level;
-    if (percentage <= 30) level = 'Низкий';
-    else if (percentage <= 60) level = 'Средний';
-    else level = 'Высокий';
+    const computed = computeTestResult(testRow.rows[0], questions.rows, answers || {});
 
     const result = await pool.query(
       'INSERT INTO test_results (user_id, test_id, score, level, answers) VALUES ($1,$2,$3,$4,$5) RETURNING *',
-      [userId, testId, score, level, JSON.stringify(answers)]
+      [userId, testId, computed.score, computed.level, JSON.stringify(answers)]
     );
 
-    res.json({ result: result.rows[0], percentage, level });
+    res.json({
+      result: result.rows[0],
+      percentage: computed.percentage,
+      level: computed.level,
+      scale: computed.scale,
+      interpretation: computed.interpretation,
+      maxScore: computed.maxScore,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });

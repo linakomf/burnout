@@ -1,4 +1,4 @@
-.profile-page { max-width: 900px; }
+.profile-page { width: 100%; max-width: none; margin: 0; box-sizing: border-box; }
 
 .profile-grid {
   display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start;

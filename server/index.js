@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
+const { ensurePracticeSchema } = require('./ensurePracticeSchema');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -23,12 +24,15 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/tests', require('./routes/tests'));
 app.use('/api/diary', require('./routes/diary'));
 app.use('/api/categories', require('./routes/categories'));
+app.use('/api/practices', require('./routes/practices'));
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+ensurePracticeSchema().finally(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
+  });
 });

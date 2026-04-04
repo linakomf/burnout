@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   Home, BookOpen, Calendar, BarChart2, Settings,
-  LogOut, ChevronLeft, ChevronRight, Users, Tag, Brain
+  LogOut, ChevronLeft, ChevronRight, Users, Tag, Brain, Flower2,
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -17,6 +17,7 @@ const Sidebar = () => {
     { path: '/dashboard', icon: <Home size={19} />, label: 'Главная' },
     { path: '/diary',     icon: <Calendar size={19} />, label: 'ИИ Дневник' },
     { path: '/tests',     icon: <BookOpen size={19} />, label: 'Тесты' },
+    { path: '/practices', icon: <Flower2 size={19} />, label: 'Практики' },
     { path: '/stats',     icon: <BarChart2 size={19} />, label: 'Статистика' },
   ];
 

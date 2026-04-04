@@ -1,4 +1,4 @@
-.admin-section { max-width: 1000px; }
+.admin-section { width: 100%; max-width: none; margin: 0; box-sizing: border-box; }
 
 .section-header {
   display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px;
