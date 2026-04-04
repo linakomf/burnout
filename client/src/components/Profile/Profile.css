@@ -1,0 +1,68 @@
+.profile-page { max-width: 900px; }
+
+.profile-grid {
+  display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start;
+}
+
+.avatar-card {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 10px; padding: 32px;
+}
+
+.avatar-wrapper { position: relative; margin-bottom: 8px; }
+.profile-avatar-img {
+  width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
+  border: 3px solid var(--primary);
+}
+.profile-avatar-placeholder {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: var(--primary); display: flex; align-items: center;
+  justify-content: center; font-size: 40px; font-weight: 800; color: var(--text-dark);
+  border: 3px solid var(--primary-light);
+}
+.avatar-upload-btn {
+  position: absolute; bottom: 0; right: 0;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--sidebar-bg); color: white;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: 2px solid white;
+  transition: background 0.2s;
+}
+.avatar-upload-btn:hover { background: var(--primary-dark); }
+
+.profile-name { font-size: 20px; font-weight: 800; }
+.profile-role-badge {
+  padding: 5px 14px; border-radius: 20px;
+  background: var(--primary-light); color: var(--text-dark);
+  font-size: 13px; font-weight: 600;
+}
+.profile-email { font-size: 14px; color: var(--text-light); }
+.profile-age { font-size: 14px; color: var(--text-mid); font-weight: 600; }
+
+.edit-card {}
+.profile-form { display: flex; flex-direction: column; gap: 18px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.profile-msg {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px; border-radius: var(--radius-sm);
+  font-size: 13px; margin-bottom: 8px;
+}
+.profile-msg.success { background: #e8f5e9; color: #2e7d32; }
+.profile-msg.error { background: #fce4ec; color: #c62828; }
+
+.form-divider {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--text-light); font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.form-divider::before, .form-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+.save-btn { align-self: flex-start; padding: 12px 28px; }
+
+@media (max-width: 700px) {
+  .profile-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+}

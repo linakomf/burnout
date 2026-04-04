@@ -1,0 +1,29 @@
+.layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  margin-left: var(--sidebar-width);
+  padding: 28px clamp(16px, 3vw, 40px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeIn 0.4s ease;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: var(--sidebar-collapsed);
+    padding: 16px clamp(12px, 4vw, 20px);
+  }
+}

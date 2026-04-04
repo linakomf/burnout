@@ -1,0 +1,119 @@
+.tests-page { max-width: 900px; }
+.tests-loading { display: flex; align-items: center; justify-content: center; height: 50vh; }
+.page-title { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+.page-sub { font-size: 14px; color: var(--text-light); margin-bottom: 24px; }
+
+.category-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.cat-tab {
+  padding: 8px 18px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: white; font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--text-mid); transition: all 0.2s;
+}
+.cat-tab.active, .cat-tab:hover {
+  background: var(--primary); border-color: var(--primary); color: var(--text-dark);
+}
+
+.tests-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
+}
+
+.test-card { display: flex; flex-direction: column; gap: 10px; cursor: default; }
+.test-card-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: var(--primary-light); display: flex; align-items: center;
+  justify-content: center; color: var(--primary-dark);
+}
+.test-card-title { font-size: 16px; font-weight: 700; }
+.test-card-desc { font-size: 13px; color: var(--text-light); line-height: 1.5; flex: 1; }
+.test-card-meta { display: flex; gap: 8px; }
+.test-card-cat {
+  font-size: 12px; padding: 3px 10px; border-radius: 12px;
+  background: var(--secondary); color: var(--text-dark); font-weight: 600;
+}
+.test-card-btn { margin-top: 4px; }
+.tests-empty { text-align: center; padding: 60px; color: var(--text-light); }
+
+/* Take Test */
+.take-test { max-width: 640px; margin: 0 auto; }
+.back-btn { margin-bottom: 20px; }
+
+.test-intro {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 16px; padding: 48px;
+}
+.test-intro-icon {
+  width: 80px; height: 80px; border-radius: 24px;
+  background: var(--primary-light); display: flex; align-items: center;
+  justify-content: center; color: var(--primary-dark);
+}
+.test-intro h1 { font-size: 24px; font-weight: 800; }
+.test-intro p { color: var(--text-light); font-size: 15px; line-height: 1.6; }
+.test-intro-meta {
+  display: flex; gap: 20px;
+  font-size: 14px; color: var(--text-mid); font-weight: 600;
+}
+.test-intro .btn { padding: 14px 40px; font-size: 16px; }
+
+.test-progress-bar {
+  height: 5px; border-radius: 3px; background: var(--border);
+  margin-bottom: 24px; overflow: hidden;
+}
+.test-progress-fill {
+  height: 100%; background: var(--primary); border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.test-q-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.q-counter { font-size: 14px; color: var(--text-light); font-weight: 600; }
+
+.test-question { padding: 32px; }
+.q-text { font-size: 18px; font-weight: 600; line-height: 1.5; margin-bottom: 24px; }
+
+.q-options { display: flex; flex-direction: column; gap: 10px; }
+.q-option {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px; border-radius: 12px;
+  border: 2px solid var(--border); background: var(--bg);
+  font-size: 15px; font-weight: 500; cursor: pointer;
+  color: var(--text-dark); text-align: left;
+  transition: all 0.15s;
+}
+.q-option:hover { border-color: var(--primary); background: var(--primary-light); }
+.q-option.selected { border-color: var(--primary-dark); background: var(--primary); }
+.q-option-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid var(--text-light); flex-shrink: 0; transition: all 0.15s;
+}
+.q-option.selected .q-option-dot {
+  background: var(--text-dark); border-color: var(--text-dark);
+}
+
+.test-q-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
+.test-q-actions .btn { padding: 14px 28px; font-size: 15px; }
+
+/* Result */
+.test-result {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 20px; padding: 48px;
+}
+.result-icon {
+  padding: 10px 24px; border-radius: 20px;
+  font-size: 16px; font-weight: 700;
+}
+.test-result h1 { font-size: 26px; font-weight: 800; }
+.result-test-title { font-size: 15px; color: var(--text-light); }
+.result-score-circle {
+  width: 140px; height: 140px; border-radius: 50%;
+  border: 6px solid; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
+}
+.result-score-num { font-size: 36px; font-weight: 800; }
+.result-score-label { font-size: 12px; color: var(--text-light); }
+.result-warning {
+  background: #fff8e1; border-radius: 12px; padding: 14px 20px;
+  font-size: 14px; color: #b45309; font-weight: 500;
+}
+.result-actions { display: flex; gap: 12px; }
