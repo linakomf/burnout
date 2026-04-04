@@ -3,31 +3,56 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  /* New green palette */
-  --primary: #7db05a;
-  --primary-dark: #4a7c3f;
-  --primary-light: #e8f4de;
+  /* Единая тема макета Mental Health: лайм + светло-серый фон */
+  --primary: #a3c617;
+  --primary-dark: #7a9014;
+  --primary-light: #eef4d5;
   --secondary: #FDCDAC;
-  --accent: #D9E285;
-  --accent-green: #9dc87a;
+  --accent: #d4e88a;
+  --accent-green: #a3c617;
+  --ink: #1a1d24;
 
-  --bg: #f0f4ee;
+  --bg: #f0f4f8;
   --bg-card: #ffffff;
   --sidebar-bg: #2c3e2d;
   --sidebar-hover: #3a5238;
-  --sidebar-active: #7db05a;
+  --sidebar-active: #a3c617;
 
-  --text-dark: #1e2d1f;
-  --text-mid: #4a5e4b;
-  --text-light: #8a9e8b;
-  --border: #dde8d8;
+  --text-dark: #1a1d24;
+  --text-mid: #5a6578;
+  --text-light: #7a8494;
+  --border: #dde4ec;
 
-  --shadow: 0 4px 20px rgba(74,124,63,0.10);
-  --shadow-md: 0 8px 32px rgba(74,124,63,0.16);
+  --shadow: 0 4px 20px rgba(26, 29, 36, 0.06);
+  --shadow-md: 0 8px 32px rgba(26, 29, 36, 0.1);
   --radius: 16px;
   --radius-sm: 10px;
   --sidebar-width: 220px;
   --sidebar-collapsed: 68px;
+}
+
+[data-theme='dark'] {
+  --primary: #c4d94a;
+  --primary-dark: #a3b832;
+  --primary-light: #2a3318;
+  --secondary: #5c4a3a;
+  --accent: #3d4a28;
+  --accent-green: #c4d94a;
+  --ink: #e8ece9;
+
+  --bg: #121816;
+  --bg-card: #1a221e;
+  --sidebar-bg: #0f1412;
+  --sidebar-hover: #1c2822;
+  --sidebar-active: #a3c617;
+
+  --text-dark: #e8ece9;
+  --text-mid: #9aaa9c;
+  --text-light: #6b786e;
+  --border: #2d3830;
+
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 12px 40px rgba(0, 0, 0, 0.45);
 }
 
 /* html, body, #root — в index.css */
@@ -122,7 +147,7 @@ body {
 .btn-primary:hover {
   background: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(74,124,63,0.3);
+  box-shadow: 0 4px 16px rgba(163, 198, 23, 0.35);
 }
 .btn-secondary { background: var(--secondary); color: var(--text-dark); }
 .btn-secondary:hover { background: #fbbf8a; transform: translateY(-1px); }
@@ -131,7 +156,11 @@ body {
   background: transparent; color: var(--text-mid);
   border: 1.5px solid var(--border);
 }
-.btn-ghost:hover { background: var(--primary-light); border-color: var(--primary); }
+.btn-ghost:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--text-dark);
+}
 .btn-danger { background: #fff0f0; color: #d04040; border: 1px solid #ffd0d0; }
 .btn-danger:hover { background: #ffe0e0; }
 
@@ -141,13 +170,22 @@ body {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   font-family: 'Nunito', sans-serif; font-size: 14px;
-  color: var(--text-dark); background: #fafcf9;
-  outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  color: var(--text-dark);
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(125,176,90,0.15);
+  box-shadow: 0 0 0 3px rgba(163, 198, 23, 0.2);
   background: #fff;
+}
+[data-theme='dark'] .input {
+  background: #141c18;
+  border-color: var(--border);
+}
+[data-theme='dark'] .input:focus {
+  background: #1a241f;
 }
 .input::placeholder { color: var(--text-light); }
 
@@ -165,6 +203,9 @@ label {
 .badge-low { background: #e4f4da; color: #3d7a2a; }
 .badge-mid { background: #fff8e0; color: #b07a10; }
 .badge-high { background: #fde8e8; color: #c03030; }
+[data-theme='dark'] .badge-low { background: #1e3d24; color: #9ddf9a; }
+[data-theme='dark'] .badge-mid { background: #3d3520; color: #e8c96a; }
+[data-theme='dark'] .badge-high { background: #3d2224; color: #f0a0a0; }
 
 /* Mood emoji */
 .mood-emoji { font-size: 24px; cursor: pointer; transition: transform 0.2s; }
@@ -196,14 +237,24 @@ label {
 
 /* Modal */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(30,45,31,0.4);
+  position: fixed; inset: 0; background: rgba(26, 29, 36, 0.42);
   backdrop-filter: blur(4px); z-index: 200;
   display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .modal-card {
-  background: white; border-radius: 22px; padding: 30px;
-  width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  background: var(--bg-card);
+  color: var(--text-dark);
+  border-radius: 22px;
+  padding: 30px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border);
+}
+[data-theme='dark'] .modal-card {
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
 }
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;

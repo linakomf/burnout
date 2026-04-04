@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+const { runOnboardingMigration } = require('../ensureOnboardingSchema');
 const { authMiddleware } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
@@ -28,7 +29,11 @@ const upload = multer({
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT user_id, name, email, role, avatar, age, created_at FROM users WHERE user_id = $1',
+      `SELECT user_id, name, email, role, avatar, age, created_at,
+        COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
+        onboarding_burnout_percent,
+        onboarding_burnout_completed_at
+       FROM users WHERE user_id = $1`,
       [req.user.user_id]
     );
     if (result.rows.length === 0) return res.status(404).json({ message: 'Пользователь не найден' });
@@ -56,7 +61,11 @@ router.put('/me', authMiddleware, async (req, res) => {
     }
 
     const result = await pool.query(
-      'UPDATE users SET name=$1, email=$2, age=$3, password=$4 WHERE user_id=$5 RETURNING user_id, name, email, role, avatar, age',
+      `UPDATE users SET name=$1, email=$2, age=$3, password=$4 WHERE user_id=$5
+       RETURNING user_id, name, email, role, avatar, age,
+         COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
+         onboarding_burnout_percent,
+         onboarding_burnout_completed_at`,
       [name || user.name, email || user.email, age || user.age, updatedPassword, userId]
     );
 
@@ -64,6 +73,54 @@ router.put('/me', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
+// POST /api/users/onboarding-burnout — первичный тест выгорания (10 вопросов)
+router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
+  if (req.user.role === 'admin') {
+    return res.status(400).json({ message: 'Для администратора не требуется' });
+  }
+  const userId = parseInt(req.user.user_id, 10);
+  if (!Number.isFinite(userId)) {
+    return res.status(400).json({ message: 'Некорректная сессия — войдите снова' });
+  }
+
+  const { answers } = req.body;
+  if (!Array.isArray(answers) || answers.length !== 10) {
+    return res.status(400).json({ message: 'Нужно ответить на 10 вопросов' });
+  }
+  const nums = answers.map((a) => parseInt(a, 10));
+  if (nums.some((n) => Number.isNaN(n) || n < 0 || n > 3)) {
+    return res.status(400).json({ message: 'Каждый ответ — число от 0 до 3' });
+  }
+  const sum = nums.reduce((s, n) => s + n, 0);
+  const percent = Math.min(100, Math.max(0, Math.round((sum / 30) * 100)));
+  try {
+    await runOnboardingMigration();
+    const result = await pool.query(
+      `UPDATE users SET
+        onboarding_burnout_completed = TRUE,
+        onboarding_burnout_percent = $1,
+        onboarding_burnout_completed_at = CURRENT_TIMESTAMP
+       WHERE user_id = $2
+       RETURNING user_id, name, email, role, avatar, age,
+         COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
+         onboarding_burnout_percent,
+         onboarding_burnout_completed_at`,
+      [percent, userId]
+    );
+    if (!result.rows[0]) {
+      return res.status(404).json({ message: 'Пользователь не найден' });
+    }
+    res.json({ percent, rawScore: sum, user: result.rows[0] });
+  } catch (err) {
+    console.error('[onboarding-burnout]', err);
+    res.status(500).json({
+      message: err.code === '42703' || /column/i.test(err.message)
+        ? 'База не обновлена. Перезапустите сервер приложения.'
+        : 'Ошибка сервера при сохранении',
+    });
   }
 });
 

@@ -389,7 +389,7 @@ const Practices = () => {
           <article
             key={p.key}
             className="pr-card"
-            style={{ background: p.gradient }}
+            data-category={p.category || 'quick'}
           >
             <button
               type="button"

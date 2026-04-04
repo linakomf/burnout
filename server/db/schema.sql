@@ -17,6 +17,11 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Первичный тест выгорания (добавляется также через ensureOnboardingSchema при старте сервера):
+-- ALTER TABLE users ADD COLUMN onboarding_burnout_completed BOOLEAN DEFAULT FALSE;
+-- ALTER TABLE users ADD COLUMN onboarding_burnout_percent INT;
+-- ALTER TABLE users ADD COLUMN onboarding_burnout_completed_at TIMESTAMP;
+
 -- Admin table
 CREATE TABLE IF NOT EXISTS admin (
     admin_id SERIAL PRIMARY KEY,

@@ -6,8 +6,12 @@
   min-width: 0;
   min-height: 100%;
   min-height: 100dvh;
-  background: var(--bg);
+  background: linear-gradient(180deg, #e8eef5 0%, #f0f4f8 40%, #eef2f6 100%);
   overflow: hidden;
+}
+
+[data-theme='dark'] .layout {
+  background: linear-gradient(180deg, #0e1210 0%, #121816 45%, #0f1512 100%);
 }
 
 .main-content {

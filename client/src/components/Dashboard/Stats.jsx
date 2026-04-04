@@ -38,6 +38,15 @@ import {
   Check,
 } from 'lucide-react';
 import api from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
+import {
+  stressFromCatalogLevel,
+  compositeStressPct,
+  compositeMoodPct,
+  compositeEnergyPct,
+  compositeAnxietyPct,
+  moodPercentFromOnboardingBurnout,
+} from '../../utils/wellnessComposite';
 import './Stats.css';
 
 const PERIODS = [
@@ -54,7 +63,7 @@ function moodScoreToPercent(avg) {
 }
 
 function stressFromTestResults(resultsInPeriod) {
-  if (!resultsInPeriod.length) return 0;
+  if (!resultsInPeriod.length) return null;
   const scores = resultsInPeriod.map((r) => Number(r.score) || 0);
   const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
   return Math.min(100, Math.round(avg));
@@ -65,11 +74,9 @@ function anxietyFromResults(resultsInPeriod) {
     /тревог|беспокой|паник/i.test(`${r.title} ${r.category_name || ''}`)
   );
   if (anxietyish.length) return stressFromTestResults(anxietyish);
-  return Math.round(stressFromTestResults(resultsInPeriod) * 0.85);
-}
-
-function energyPercent(moodPct, stressPct) {
-  return Math.min(100, Math.max(0, Math.round(moodPct * 0.45 + (100 - stressPct) * 0.55)));
+  const base = stressFromTestResults(resultsInPeriod);
+  if (base == null) return null;
+  return Math.round(base * 0.85);
 }
 
 function formatTrend(prev, cur) {
@@ -137,6 +144,8 @@ function deltaToneClass(trend, goodWhenUp) {
 }
 
 const Stats = () => {
+  const { user } = useAuth();
+  const onboardingPct = user?.onboarding_burnout_percent ?? null;
   const [period, setPeriod] = useState('week');
   const [results, setResults] = useState([]);
   const [diaryEntries, setDiaryEntries] = useState([]);
@@ -213,8 +222,13 @@ const Stats = () => {
         map.set(key, moodScoreToPercent(e.mood_score));
       }
     });
+    if (onboardingPct != null && user?.onboarding_burnout_completed_at) {
+      const key = format(new Date(user.onboarding_burnout_completed_at), 'yyyy-MM-dd');
+      const seed = moodPercentFromOnboardingBurnout(onboardingPct);
+      if (seed != null && !map.has(key)) map.set(key, seed);
+    }
     return map;
-  }, [moodStats, diaryInPeriod]);
+  }, [moodStats, diaryInPeriod, onboardingPct, user?.onboarding_burnout_completed_at]);
 
   const chartDays = useMemo(() => {
     const end = range.end;
@@ -277,7 +291,7 @@ const Stats = () => {
     });
   }, [chartDays, moodByDate, period]);
 
-  const avgMoodPct = useMemo(() => {
+  const avgMoodPctRaw = useMemo(() => {
     const vals = diaryInPeriod
       .map((e) => e.mood_score)
       .filter((v) => v != null)
@@ -293,9 +307,41 @@ const Stats = () => {
     return 0;
   }, [diaryInPeriod, moodStats, range]);
 
-  const stressPct = stressFromTestResults(resultsInPeriod);
-  const anxietyPct = anxietyFromResults(resultsInPeriod);
-  const energyPct = energyPercent(avgMoodPct, stressPct);
+  const lastTestStress = useMemo(
+    () => (results.length ? stressFromCatalogLevel(results[0]?.level) : null),
+    [results]
+  );
+
+  const stressPctValue = useMemo(
+    () =>
+      compositeStressPct({
+        onboardingPercent: onboardingPct,
+        lastTestStress,
+        periodTestStress: stressFromTestResults(resultsInPeriod),
+      }),
+    [onboardingPct, lastTestStress, resultsInPeriod]
+  );
+
+  const stressPct = stressPctValue ?? 40;
+
+  const avgMoodPct = useMemo(
+    () =>
+      compositeMoodPct({
+        diaryAvgMoodPct: avgMoodPctRaw,
+        stressPct: stressPctValue ?? 40,
+        fallbackWhenNoDiary: 0,
+      }),
+    [avgMoodPctRaw, stressPctValue]
+  );
+
+  const anxietyFromTests = anxietyFromResults(resultsInPeriod);
+  const anxietyPctValue = useMemo(
+    () => compositeAnxietyPct({ onboardingPercent: onboardingPct, periodAnxietyFromTests: anxietyFromTests }),
+    [onboardingPct, anxietyFromTests]
+  );
+  const anxietyPct = anxietyPctValue ?? Math.round(stressPct * 0.88);
+
+  const energyPct = useMemo(() => compositeEnergyPct(avgMoodPct, stressPct), [avgMoodPct, stressPct]);
 
   const prevRange = useMemo(() => {
     const len = DAYS_PERIOD[period];
@@ -320,23 +366,65 @@ const Stats = () => {
     });
   }, [results, prevRange]);
 
-  const prevMood = useMemo(() => {
+  const prevMoodPctRaw = useMemo(() => {
     const vals = prevDiary
       .map((e) => e.mood_score)
       .filter((v) => v != null)
       .map((v) => moodScoreToPercent(v));
     if (vals.length) return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
-    return null;
-  }, [prevDiary]);
+    const fromStats = moodStats
+      .filter((row) => {
+        const d = new Date(row.date);
+        return isWithinInterval(d, { start: prevRange.start, end: prevRange.end });
+      })
+      .map((row) => moodScoreToPercent(row.avg_mood));
+    if (fromStats.length) return Math.round(fromStats.reduce((a, b) => a + b, 0) / fromStats.length);
+    return 0;
+  }, [prevDiary, moodStats, prevRange]);
 
-  const prevStress = prevResults.length ? stressFromTestResults(prevResults) : null;
-  const prevAnxiety = prevResults.length ? anxietyFromResults(prevResults) : null;
-  const prevEnergy =
-    prevMood != null && prevStress != null ? energyPercent(prevMood, prevStress) : null;
+  const prevLatest = useMemo(() => {
+    const sorted = [...prevResults].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return sorted[0] ?? null;
+  }, [prevResults]);
+
+  const prevStressPctValue = useMemo(
+    () =>
+      compositeStressPct({
+        onboardingPercent: onboardingPct,
+        lastTestStress: prevLatest ? stressFromCatalogLevel(prevLatest.level) : null,
+        periodTestStress: stressFromTestResults(prevResults),
+      }),
+    [onboardingPct, prevLatest, prevResults]
+  );
+
+  const prevMood = useMemo(
+    () =>
+      compositeMoodPct({
+        diaryAvgMoodPct: prevMoodPctRaw,
+        stressPct: prevStressPctValue ?? 40,
+        fallbackWhenNoDiary: 0,
+      }),
+    [prevMoodPctRaw, prevStressPctValue]
+  );
+
+  const prevAnxietyFromTests = anxietyFromResults(prevResults);
+  const prevAnxietyValue = useMemo(
+    () =>
+      compositeAnxietyPct({
+        onboardingPercent: onboardingPct,
+        periodAnxietyFromTests: prevAnxietyFromTests,
+      }),
+    [onboardingPct, prevAnxietyFromTests]
+  );
+
+  const prevEnergy = useMemo(
+    () => compositeEnergyPct(prevMood, prevStressPctValue ?? 40),
+    [prevMood, prevStressPctValue]
+  );
 
   const moodTrend = formatTrend(prevMood, avgMoodPct);
-  const stressTrend = formatTrend(prevStress, stressPct);
-  const anxietyTrend = formatTrend(prevAnxiety, anxietyPct);
+  const stressTrend = formatTrend(prevStressPctValue, stressPctValue);
+  const anxietyTrend = formatTrend(prevAnxietyValue, anxietyPctValue);
   const energyTrend = formatTrend(prevEnergy, energyPct);
 
   const radarData = [
@@ -360,31 +448,52 @@ const Stats = () => {
   const entriesCount = diaryInPeriod.length;
   const testsCount = resultsInPeriod.length;
   const practicesDone = Math.min(30, entriesCount + testsCount);
+  const diaryNotesCount = useMemo(
+    () => diaryInPeriod.filter((e) => e.note && String(e.note).trim().length > 0).length,
+    [diaryInPeriod]
+  );
 
   const insights = useMemo(() => {
+    const sourceParts = [
+      testsCount > 0 ? `результаты тестов (${testsCount})` : null,
+      entriesCount > 0
+        ? `дневник (${entriesCount}${diaryNotesCount ? `, из них ${diaryNotesCount} с заметкой` : ''})`
+        : null,
+      onboardingPct != null ? 'первичный скрининг выгорания' : null,
+    ].filter(Boolean);
+    const sourceLead =
+      sourceParts.length > 0
+        ? `Сводка строится по: ${sourceParts.join(', ')}. Она обновляется после каждого теста и активности. `
+        : '';
+
     const out = [];
     if (avgMoodPct >= 55 && moodTrend.up !== false) {
       out.push({
         kind: 'good',
         title: 'Отличный прогресс!',
         text:
-          moodTrend.text && moodTrend.text !== '—'
+          sourceLead +
+          (moodTrend.text && moodTrend.text !== '—'
             ? `Настроение в динамике: ${moodTrend.text} к прошлому периоду. Продолжайте в том же духе.`
-            : 'Вы регулярно отмечаете состояние в дневнике — это основа осознанности.',
+            : 'Вы регулярно отмечаете состояние в дневнике — это основа осознанности.'),
         icon: Sparkles,
       });
     } else if (avgMoodPct > 0) {
       out.push({
         kind: 'good',
         title: 'Есть опора',
-        text: 'Записи в дневнике помогают замечать закономерности. Даже небольшие шаги — это вклад в благополучие.',
+        text:
+          sourceLead +
+          'Записи в дневнике помогают замечать закономерности. Даже небольшие шаги — это вклад в благополучие.',
         icon: Sparkles,
       });
     } else {
       out.push({
         kind: 'good',
         title: 'С чистого листа',
-        text: 'Добавьте пару записей в ИИ-дневнике — графики и подсказки станут точнее.',
+        text:
+          sourceLead +
+          'Добавьте пару записей в ИИ-дневнике и пройдите тест из каталога — графики и обобщение станут точнее.',
         icon: Sparkles,
       });
     }
@@ -394,7 +503,7 @@ const Stats = () => {
         kind: 'warn',
         title: 'Обратите внимание',
         text:
-          'По тестам и метрикам заметна повышенная нагрузка. Попробуйте короткие паузы и дыхание; при необходимости обсудите это со специалистом.',
+          'По совокупности тестов, скрининга и дневника заметна повышенная нагрузка. Попробуйте короткие паузы и дыхание; при необходимости обсудите это со специалистом.',
         icon: AlertCircle,
       });
     } else {
@@ -413,26 +522,48 @@ const Stats = () => {
       kind: 'tip',
       title: 'Рекомендация',
       text:
-        'Попробуйте дыхательную практику 4–6 перед важными делами или попробуйте раздел «Практики», если он есть в вашей версии приложения.',
+        'Попробуйте дыхательную практику 4–6 перед важными делами или раздел «Практики». Ответы и заметки в ИИ-дневнике тоже учитываются в общей картине активности.',
       icon: Lightbulb,
     });
     return out;
-  }, [avgMoodPct, moodTrend, anxietyPct, anxietyTrend, stressPct]);
+  }, [
+    avgMoodPct,
+    moodTrend,
+    anxietyPct,
+    anxietyTrend,
+    stressPct,
+    testsCount,
+    entriesCount,
+    diaryNotesCount,
+    onboardingPct,
+  ]);
 
   const weekGood = useMemo(() => {
     const lines = [];
     if (entriesCount >= 3) lines.push('Регулярные записи в дневнике');
-    if (avgMoodPct >= 50) lines.push('Стабильное или улучшающееся настроение');
+    if (diaryNotesCount >= 2) lines.push('Заметки в дневнике — материал для осмысленной поддержки ИИ');
+    if (avgMoodPct >= 50) lines.push('Стабильное или улучшающееся настроение (с учётом тестов и дневника)');
     if (testsCount > 0) lines.push(`Пройдено тестов за период: ${testsCount}`);
+    if (onboardingPct != null && user?.onboarding_burnout_completed) {
+      lines.push('В аналитике учтён первичный скрининг выгорания');
+    }
     if (moodTrend.up === false && moodTrend.text !== '—') {
       lines.push(`Настроение: ${moodTrend.text} к прошлому отрезку`);
     }
     if (!lines.length) {
       lines.push('Начните с одной короткой записи в дневнике');
-      lines.push('Пройдите тест — появится персональная динамика');
+      lines.push('Пройдите тест из каталога — появится персональная динамика');
     }
     return lines;
-  }, [entriesCount, avgMoodPct, testsCount, moodTrend]);
+  }, [
+    entriesCount,
+    diaryNotesCount,
+    avgMoodPct,
+    testsCount,
+    moodTrend,
+    onboardingPct,
+    user?.onboarding_burnout_completed,
+  ]);
 
   const weekGoals = [
     'Увеличить число прогулок до 5 в неделю',

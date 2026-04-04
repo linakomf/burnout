@@ -22,7 +22,12 @@ router.post('/register', async (req, res) => {
     }
 
     const result = await pool.query(
-      'INSERT INTO users (name, email, password, role, age) VALUES ($1, $2, $3, $4, $5) RETURNING user_id, name, email, role, avatar',
+      `INSERT INTO users (name, email, password, role, age)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING user_id, name, email, role, avatar, age,
+         COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
+         onboarding_burnout_percent,
+         onboarding_burnout_completed_at`,
       [name, email, password, role, age || null]
     );
 
@@ -33,7 +38,20 @@ router.post('/register', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.status(201).json({ token, user });
+    res.status(201).json({
+      token,
+      user: {
+        user_id: user.user_id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        age: user.age,
+        onboarding_burnout_completed: Boolean(user.onboarding_burnout_completed),
+        onboarding_burnout_percent: user.onboarding_burnout_percent ?? null,
+        onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });
@@ -75,6 +93,9 @@ router.post('/login', async (req, res) => {
         role: user.role,
         avatar: user.avatar,
         age: user.age,
+        onboarding_burnout_completed: Boolean(user.onboarding_burnout_completed),
+        onboarding_burnout_percent: user.onboarding_burnout_percent ?? null,
+        onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
       },
     });
   } catch (err) {

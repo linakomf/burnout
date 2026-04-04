@@ -20,7 +20,9 @@ const Login = () => {
     setLoading(true);
     try {
       const user = await login(form.email, form.password);
-      navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+      if (user.role === 'admin') navigate('/admin');
+      else if (!user.onboarding_burnout_completed) navigate('/onboarding/burnout', { replace: true });
+      else navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Ошибка входа');
     } finally {
@@ -39,7 +41,7 @@ const Login = () => {
       <div className="auth-card fade-in">
         <div className="auth-logo">
           <div className="auth-logo-icon"><Brain size={26} /></div>
-          <span>MindTrack</span>
+          <span>Burnout</span>
         </div>
 
         <h1 className="auth-title">Добро пожаловать</h1>

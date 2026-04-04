@@ -15,12 +15,12 @@ const Landing = () => {
           <div className="land-logo-icon"><Brain size={22} /></div>
           <div>
             <span className="land-logo-name">Burnout</span>
-            <span className="land-logo-sub">AI-дневник для студентов</span>
+            <span className="land-logo-sub">Забота о ментальном здоровье в учёбе</span>
           </div>
         </div>
         <div className="land-nav-actions">
           <button className="land-btn-ghost" onClick={() => navigate('/login')}>Вход</button>
-          <button className="land-btn-teal" onClick={() => navigate('/register')}>Регистрация</button>
+          <button className="land-btn-primary" onClick={() => navigate('/register')}>Регистрация</button>
         </div>
       </nav>
 
@@ -28,15 +28,16 @@ const Landing = () => {
       <section className="land-hero">
         <div className="hero-left">
           <h1 className="hero-title">
-            Твой<br />
-            персональный<br />
-            <span className="hero-accent">AI-психолог</span>
+            Выгорание<br />
+            под контролем<br />
+            <span className="hero-accent">уже с первого дня</span>
           </h1>
           <p className="hero-desc">
-            Отслеживай эмоции, предотвращай выгорание и получай поддержку от AI-помощника, который действительно понимает студенческую жизнь
+            Burnout помогает студентам и преподавателям отслеживать нагрузку, проходить короткие практики и видеть динамику.
+            После регистрации вы пройдёте тест из 10 вопросов — и получите оценку уровня выгорания в процентах.
           </p>
           <div className="hero-actions">
-            <button className="land-btn-teal hero-cta" onClick={() => navigate('/register')}>
+            <button className="land-btn-primary hero-cta" onClick={() => navigate('/register')}>
               Начать бесплатно →
             </button>
             <button className="land-btn-outline" onClick={() => { document.getElementById('features').scrollIntoView({ behavior: 'smooth' }); }}>
@@ -60,24 +61,19 @@ const Landing = () => {
         </div>
 
         <div className="hero-right">
-          <div className="hero-chat-card">
-            <div className="chat-card-header">
-              <div className="chat-bot-avatar"><Brain size={18} /></div>
-              <div>
-                <div className="chat-bot-name">AI-помощник</div>
-                <div className="chat-bot-status">Онлайн</div>
-              </div>
-            </div>
-            <div className="chat-bubble">
-              Привет! Я вижу, что сегодня ты чувствуешь лёгкую тревогу. Хочешь поговорить о том, что тебя беспокоит?
-            </div>
-            <div className="chat-emojis-section">
-              <p className="chat-emojis-label">Твои эмоции за неделю</p>
-              <div className="chat-emojis">
-                {['😊','😔','😐','😕','😊','😄','😊'].map((e, i) => (
-                  <span key={i} className="chat-emoji">{e}</span>
-                ))}
-              </div>
+          <div className="hero-visual-card">
+            <div className="hero-visual-bg" aria-hidden />
+            <img
+              src="/photos/персонаж.png"
+              alt=""
+              className="hero-visual-char"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+            <div className="hero-visual-overlay">
+              <span className="hero-visual-badge">10 вопросов · персональный процент</span>
+              <p className="hero-visual-text">
+                Разные формулировки для студентов и преподавателей — честные ответы помогут точнее оценить состояние.
+              </p>
             </div>
           </div>
         </div>
@@ -85,14 +81,14 @@ const Landing = () => {
 
       {/* ── Features ── */}
       <section className="land-features" id="features">
-        <h2 className="section-title">Почему выбирают Burnout?</h2>
-        <p className="section-sub">Современные технологии для заботы о твоём ментальном здоровье</p>
+        <h2 className="section-title">Почему Burnout?</h2>
+        <p className="section-sub">Единый стиль, понятные шаги и забота о ресурсе, а не только о баллах</p>
         <div className="features-grid">
           {[
-            { color: '#5a8a8a', icon: <Brain size={24} />, title: 'AI-психолог 24/7', desc: 'Профессиональная поддержка с анализом эмоционального состояния в реальном времени' },
-            { color: '#7a9a6a', icon: '♡', title: 'Отслеживание настроения', desc: 'Календарь-heatmap с историей ваших эмоций и персонализированными рекомендациями' },
-            { color: '#7a6a9a', icon: '↗', title: 'Анализ выгорания', desc: 'Научно обоснованные методики определения и профилактики эмоционального истощения' },
-            { color: '#8a7a6a', icon: '✦', title: 'Персонализация', desc: 'Рекомендации адаптируются под ваши предпочтения, расписание и стиль жизни' },
+            { color: '#a3c617', icon: <Brain size={24} />, title: 'Старт с теста', desc: 'Сразу после регистрации — 10 вопросов и процент выгорания, чтобы знать отправную точку' },
+            { color: '#9d8bff', icon: '♡', title: 'Настроение и дневник', desc: 'Календарь, записи и мягкая поддержка в привычном интерфейсе' },
+            { color: '#ffb347', icon: '↗', title: 'Аналитика', desc: 'Графики и динамика по вашим данным — без лишнего шума' },
+            { color: '#5b9bd5', icon: '✦', title: 'Практики', desc: 'Дыхание, микропаузы и упражнения под ваш ритм' },
           ].map((f, i) => (
             <div key={i} className="feature-card">
               <div className="feature-icon" style={{ background: f.color }}>
@@ -145,7 +141,7 @@ const Landing = () => {
         <div className="cta-card">
           <h2 className="cta-title">Начни заботиться о себе уже сегодня</h2>
           <p className="cta-sub">Регистрация займёт меньше минуты. Без кредитных карт, без скрытых платежей.</p>
-          <button className="land-btn-teal cta-btn" onClick={() => navigate('/register')}>
+          <button className="land-btn-primary cta-btn" onClick={() => navigate('/register')}>
             Создать аккаунт бесплатно →
           </button>
         </div>
@@ -157,7 +153,7 @@ const Landing = () => {
           <div className="land-logo-icon"><Brain size={20} /></div>
           <span className="land-logo-name">Burnout</span>
         </div>
-        <p className="footer-copy">© 2026 Burnout. AI-дневник для студентов и преподавателей.</p>
+        <p className="footer-copy">© 2026 Burnout. Поддержка ментального здоровья студентов и преподавателей.</p>
       </footer>
 
     </div>

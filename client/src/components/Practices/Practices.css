@@ -4,8 +4,7 @@
   margin: 0 auto;
   padding: 8px 4px 48px;
   box-sizing: border-box;
-  background: #faf9f6;
-  border-radius: 24px;
+  background: transparent;
   min-height: calc(100dvh - 40px);
 }
 
@@ -30,8 +29,8 @@
   margin-bottom: 20px;
   border-radius: 28px;
   padding: 2px;
-  background: linear-gradient(135deg, #f5d4c4 0%, #f9e8b8 45%, #e8f0dc 100%);
-  box-shadow: 0 12px 40px rgba(80, 60, 40, 0.08);
+  background: linear-gradient(135deg, #e8f0c4 0%, #dde8f5 45%, #f0f4f8 100%);
+  box-shadow: 0 12px 40px rgba(26, 29, 36, 0.07);
 }
 
 .pr-hero-inner {
@@ -43,7 +42,7 @@
 }
 
 .pr-hero-flower {
-  color: #c97d5a;
+  color: #a3c617;
   margin-bottom: 12px;
 }
 
@@ -65,12 +64,15 @@
 
 .pr-hint {
   font-size: 14px;
-  color: #6b7a6d;
+  font-weight: 500;
+  color: #5a6578;
   margin: 0 0 18px;
-  padding: 12px 16px;
+  padding: 14px 18px;
   background: #fff;
-  border-radius: 14px;
-  border: 1px solid #e8ebe4;
+  border-radius: 16px;
+  border: 1px solid #dde4ec;
+  box-shadow: 0 2px 12px rgba(26, 29, 36, 0.04);
+  line-height: 1.5;
 }
 
 .pr-filters {
@@ -97,14 +99,14 @@
 }
 
 .pr-filter:hover {
-  border-color: #c5d4b8;
+  border-color: #c5d0dc;
 }
 
 .pr-filter.active {
-  background: #fff;
-  border-color: #9caf88;
-  box-shadow: 0 4px 18px rgba(156, 175, 136, 0.28);
-  color: #4a6a42;
+  background: #1a1d24;
+  border-color: #1a1d24;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(26, 29, 36, 0.2);
 }
 
 .pr-filter-ico {
@@ -119,17 +121,52 @@
 }
 
 .pr-card {
+  --pr-accent: #a3c617;
   position: relative;
-  border-radius: 26px;
-  min-height: 220px;
-  padding: 22px 20px 18px;
+  border-radius: 22px;
+  min-height: 200px;
+  padding: 20px 20px 18px 24px;
   display: flex;
   flex-direction: column;
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.18);
-  box-shadow: 0 10px 32px rgba(40, 40, 40, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #1a1d24;
+  text-shadow: none;
+  background: #fff;
+  border: 1.5px solid #dde4ec;
+  box-shadow: 0 4px 22px rgba(26, 29, 36, 0.06);
   overflow: hidden;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.pr-card[data-category='breathing'] {
+  --pr-accent: #a3c617;
+}
+.pr-card[data-category='meditation'] {
+  --pr-accent: #9d8bff;
+}
+.pr-card[data-category='quick'] {
+  --pr-accent: #ffb347;
+}
+.pr-card[data-category='affirmations'] {
+  --pr-accent: #e879a8;
+}
+.pr-card[data-category='music'] {
+  --pr-accent: #5b9bd5;
+}
+
+.pr-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: var(--pr-accent);
+  border-radius: 22px 0 0 22px;
+}
+
+.pr-card:hover {
+  border-color: #c5d0dc;
+  box-shadow: 0 10px 32px rgba(26, 29, 36, 0.09);
 }
 
 .pr-fav {
@@ -139,51 +176,57 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.35);
-  color: #fff;
+  border: 1px solid #e8ecf2;
+  background: #f4f6f9;
+  color: #7a8494;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(6px);
-  transition: transform 0.15s, background 0.2s;
+  transition: transform 0.15s, background 0.2s, color 0.2s;
 }
 
 .pr-fav:hover {
   transform: scale(1.06);
-  background: rgba(255, 255, 255, 0.5);
+  background: #eef2f6;
+  color: #5a6578;
 }
 
 .pr-fav.on {
-  color: #ff6b8a;
+  color: #e85d8e;
+  border-color: rgba(232, 93, 142, 0.35);
+  background: #fff5f8;
 }
 
 .pr-card-body {
   flex: 1;
-  padding-right: 36px;
+  padding-right: 44px;
+  min-width: 0;
 }
 
 .pr-card-title {
   margin: 0 0 10px;
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.02em;
+  color: #1a1d24;
+  line-height: 1.25;
 }
 
 .pr-card-desc {
   margin: 0;
   font-size: 14px;
-  line-height: 1.5;
-  opacity: 0.95;
+  line-height: 1.55;
   font-weight: 500;
+  color: #5a6578;
 }
 
 .pr-card-foot {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: auto;
+  padding-top: 16px;
 }
 
 .pr-play {
@@ -191,24 +234,25 @@
   height: 48px;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.92);
-  color: #4a5a48;
+  background: #1a1d24;
+  color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  transition: transform 0.15s;
+  box-shadow: 0 4px 14px rgba(26, 29, 36, 0.2);
+  transition: transform 0.15s, background 0.2s;
 }
 
 .pr-play:hover {
   transform: scale(1.06);
+  background: #a3c617;
 }
 
 .pr-duration {
   font-size: 14px;
-  font-weight: 700;
-  opacity: 0.95;
+  font-weight: 800;
+  color: #1a1d24;
 }
 
 .pr-stats-bar {
@@ -218,8 +262,8 @@
   padding: 24px 20px;
   background: #fff;
   border-radius: 22px;
-  border: 1px solid #e8ebe4;
-  box-shadow: 0 6px 28px rgba(46, 62, 48, 0.06);
+  border: 1px solid #dde4ec;
+  box-shadow: 0 6px 28px rgba(26, 29, 36, 0.06);
   margin-bottom: 20px;
 }
 
@@ -231,7 +275,7 @@
   display: block;
   font-size: 28px;
   font-weight: 800;
-  color: #2a332b;
+  color: #1a1d24;
 }
 
 .pr-stat-label {
@@ -251,7 +295,7 @@
 .pr-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(42, 48, 40, 0.45);
+  background: rgba(26, 29, 36, 0.42);
   backdrop-filter: blur(6px);
   z-index: 1200;
   display: flex;
@@ -290,7 +334,7 @@
   margin: 0 0 12px;
   font-size: 20px;
   font-weight: 800;
-  color: #2a332b;
+  color: #1a1d24;
   padding-right: 40px;
 }
 
@@ -298,7 +342,7 @@
   margin: 0 0 20px;
   font-size: 14px;
   line-height: 1.55;
-  color: #6b7a6d;
+  color: #5a6578;
 }
 
 .pr-modal-actions {
@@ -320,8 +364,8 @@
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #e8f4de, #9dc87a);
-  box-shadow: 0 12px 40px rgba(125, 176, 90, 0.35);
+  background: radial-gradient(circle at 35% 30%, #f4f7e8, #a3c617);
+  box-shadow: 0 12px 40px rgba(163, 198, 23, 0.35);
   transition: transform 0.85s cubic-bezier(0.45, 0, 0.25, 1);
 }
 
@@ -334,7 +378,7 @@
   margin: 0;
   font-size: 22px;
   font-weight: 800;
-  color: #2a332b;
+  color: #1a1d24;
 }
 
 .pr-breath-sub {
@@ -348,14 +392,14 @@
   font-size: 48px;
   font-weight: 800;
   text-align: center;
-  color: #4a6a42;
+  color: #5a7010;
   margin: 20px 0;
   font-variant-numeric: tabular-nums;
 }
 
 .pr-timer-done {
   text-align: center;
-  color: #6b7a6d;
+  color: #5a6578;
   font-weight: 600;
 }
 

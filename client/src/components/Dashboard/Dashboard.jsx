@@ -1,14 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { format, addDays, startOfWeek } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Bell, Clock, Circle, MessageCircle, Send, X } from 'lucide-react';
+import { Bell, Brain, Clock, Circle, Wind, Sparkles, X } from 'lucide-react';
 import api from '../../utils/api';
-import { getPsychologistReply } from '../../services/ai';
+import {
+  stressFromCatalogLevel,
+  compositeStressPct,
+  compositeMoodPct,
+  compositeEnergyPct,
+} from '../../utils/wellnessComposite';
 import './Dashboard.css';
 
-const WEEK_DAYS = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
 const ONBOARD_KEY = 'burnout_onboarding_v1';
 
 const Dashboard = () => {
@@ -23,11 +27,6 @@ const Dashboard = () => {
   const [selectedActivities, setSelectedActivities] = useState(() => new Set());
   const [expandedRecIndex, setExpandedRecIndex] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [aiHelperOpen, setAiHelperOpen] = useState(false);
-  const [aiMessages, setAiMessages] = useState([]);
-  const [aiInput, setAiInput] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const aiSendingRef = useRef(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -60,37 +59,57 @@ const Dashboard = () => {
   };
 
   const lastResult = testResults[0];
-  const levelMap = { 'Низкий': 30, 'Средний': 60, 'Высокий': 85 };
-  const stressVal = lastResult ? (levelMap[lastResult.level] || 40) : 40;
-  const moodVal = Math.max(10, 100 - stressVal);
-  const energyVal = Math.max(10, 80 - Math.floor(stressVal / 2));
+  const stressVal = useMemo(() => {
+    const lastTestStress = stressFromCatalogLevel(lastResult?.level);
+    const v = compositeStressPct({
+      onboardingPercent: user?.onboarding_burnout_percent ?? null,
+      lastTestStress,
+      periodTestStress: null,
+    });
+    return v ?? 40;
+  }, [user?.onboarding_burnout_percent, lastResult?.level]);
+
+  const moodVal = useMemo(() => {
+    const m = compositeMoodPct({
+      diaryAvgMoodPct: 0,
+      stressPct: stressVal,
+      fallbackWhenNoDiary: 0,
+    });
+    return m > 0 ? m : Math.max(10, 100 - stressVal);
+  }, [stressVal]);
+
+  const energyVal = useMemo(() => compositeEnergyPct(moodVal, stressVal), [moodVal, stressVal]);
 
   const greetingTime = () => {
     const h = today.getHours();
-    if (h < 12) return 'Доброе утро';
-    if (h < 18) return 'Добрый день';
-    return 'Добрый вечер';
+    if (h < 12) return 'ДОБРОЕ УТРО';
+    if (h < 18) return 'ДОБРЫЙ ДЕНЬ';
+    return 'ДОБРЫЙ ВЕЧЕР';
   };
 
-  const getTip = () => {
-    if (stressVal >= 70) return {
-      title: 'Совет дня: позаботьтесь о себе',
-      text: 'Уровень стресса повышен. Сделайте паузу, выйдите на свежий воздух и уделите время дыхательным упражнениям.',
-      activities: [
-        { icon: '🧘', label: 'Медитация', time: '15 мин' },
-        { icon: '🚶', label: 'Прогулка', time: '30 мин' },
-        { icon: '😴', label: 'Отдых', time: '20 мин' },
-      ]
-    };
-    if (stressVal >= 40) return {
-      title: 'Совет дня: поддержите баланс',
-      text: 'Включите любимую музыку и уделите несколько минут себе. Это поможет переключиться и немного расслабиться.',
-      activities: [
-        { icon: '🏃', label: 'Легкая активность', time: '30 мин' },
-        { icon: '🎨', label: 'Хобби', time: '30 мин' },
-        { icon: '🧘', label: 'Релаксация', time: '30 мин' },
-      ]
-    };
+  const tip = useMemo(() => {
+    if (stressVal >= 70) {
+      return {
+        title: 'Совет дня: позаботьтесь о себе',
+        text: 'Уровень стресса повышен. Сделайте паузу, выйдите на свежий воздух и уделите время дыхательным упражнениям.',
+        activities: [
+          { icon: '🧘', label: 'Медитация', time: '15 мин' },
+          { icon: '🚶', label: 'Прогулка', time: '30 мин' },
+          { icon: '😴', label: 'Отдых', time: '20 мин' },
+        ],
+      };
+    }
+    if (stressVal >= 40) {
+      return {
+        title: 'Совет дня: поддержите баланс',
+        text: 'Включите любимую музыку и уделите несколько минут себе. Это поможет переключиться и немного расслабиться.',
+        activities: [
+          { icon: '🏃', label: 'Легкая активность', time: '30 мин' },
+          { icon: '🎨', label: 'Хобби', time: '30 мин' },
+          { icon: '🧘', label: 'Релаксация', time: '30 мин' },
+        ],
+      };
+    }
     return {
       title: 'Совет дня: отличное состояние!',
       text: 'Вы в хорошей форме! Поддерживайте режим дня и не забывайте про регулярную физическую активность.',
@@ -98,16 +117,15 @@ const Dashboard = () => {
         { icon: '🏋️', label: 'Спорт', time: '45 мин' },
         { icon: '📚', label: 'Чтение', time: '30 мин' },
         { icon: '🎵', label: 'Музыка', time: '20 мин' },
-      ]
+      ],
     };
-  };
-
-  const tip = getTip();
+  }, [stressVal]);
 
   useEffect(() => {
-    setSelectedActivities(new Set());
+    const relax = tip.activities.find((a) => /релакс|медитац/i.test(a.label));
+    setSelectedActivities(relax ? new Set([relax.label]) : new Set());
     setExpandedRecIndex(null);
-  }, [tip.title]);
+  }, [tip]);
 
   const toggleActivity = (label) => {
     setSelectedActivities((prev) => {
@@ -122,38 +140,9 @@ const Dashboard = () => {
     setExpandedRecIndex((cur) => (cur === index ? null : index));
   };
 
-  const sendAiHelper = async () => {
-    const t = aiInput.trim();
-    if (!t || aiSendingRef.current) return;
-    aiSendingRef.current = true;
-    const userMsg = { role: 'user', text: t };
-    const withUser = [...aiMessages, userMsg];
-    setAiMessages(withUser);
-    setAiInput('');
-    setAiLoading(true);
-    const historyForApi = withUser.map((m) => ({ role: m.role, content: m.text }));
-    try {
-      const replyText = await getPsychologistReply(historyForApi);
-      setAiMessages((prev) => [...prev, { role: 'assistant', text: replyText }]);
-    } catch (e) {
-      console.error(e);
-      setAiMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          text:
-            'Сейчас не удалось получить ответ. Попробуйте ещё раз позже или нажмите кнопку «ИИ-помощник» в углу экрана.',
-        },
-      ]);
-    } finally {
-      setAiLoading(false);
-      aiSendingRef.current = false;
-    }
-  };
-
   const recommendations = [
     {
-      img: '/photos/фото1.jpg',
+      icon: Wind,
       title: 'Уменьшить тревожность',
       category: 'Дыхание',
       time: '2 мин',
@@ -163,7 +152,7 @@ const Dashboard = () => {
       hasPlay: false,
     },
     {
-      img: '/photos/фото2.jpg',
+      icon: Brain,
       title: 'Спокойный ум',
       category: 'Тест',
       time: '2 мин',
@@ -173,7 +162,7 @@ const Dashboard = () => {
       hasPlay: false,
     },
     {
-      img: '/photos/фото3.jpg',
+      icon: Sparkles,
       title: 'Момент тишины',
       category: 'Медитация',
       time: '2 мин',
@@ -193,8 +182,12 @@ const Dashboard = () => {
 
       {/* Header */}
       <div className="dash-header">
-        <h1 className="dash-greeting">{greetingTime()}, {user?.name?.split(' ')[0]}!</h1>
-        <button className="notif-btn"><Bell size={20} /></button>
+        <h1 className="dash-greeting">
+          {greetingTime()}, {(user?.name?.split(' ')[0] || 'друг').toUpperCase()}!
+        </h1>
+        <button type="button" className="notif-btn" aria-label="Уведомления">
+          <Bell size={20} />
+        </button>
       </div>
 
       {/* Tabs */}
@@ -211,18 +204,19 @@ const Dashboard = () => {
           return (
             <button
               key={i}
-              className={`week-day-btn ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`}
+              type="button"
+              className={`week-day-btn ${isToday && !isSelected ? 'is-today' : ''} ${isSelected ? 'selected' : ''}`}
               onClick={() => setSelectedDay(day)}
             >
-              <span className="wday-date">{format(day, 'd MMM', { locale: ru })}</span>
-              <span className="wday-name">{WEEK_DAYS[i]}</span>
+              <span className="wday-date">{format(day, 'd MMMM', { locale: ru })}</span>
+              <span className="wday-name">{format(day, 'EEEE', { locale: ru })}</span>
             </button>
           );
         })}
       </div>
 
       {/* Hero banner */}
-      <div className="hero-banner">
+      <div className="hero-banner hero-banner--mock">
         <div className="hero-left">
           <img
             src="/photos/персонаж.png"
@@ -271,17 +265,13 @@ const Dashboard = () => {
             <button type="button" className="details-btn" onClick={() => setDetailsOpen(true)}>
               Подробнее
             </button>
-            <button type="button" className="ai-helper-btn" onClick={() => setAiHelperOpen(true)}>
-              <MessageCircle size={18} />
-              ИИ-помощник
-            </button>
           </div>
         </div>
       </div>
 
       {/* Tip card */}
       <div className="tip-card">
-        <h2 className="tip-title">💡 {tip.title}</h2>
+        <h2 className="tip-title">💡 {tip.title.toUpperCase()}</h2>
         <p className="tip-body">{tip.text}</p>
         <p className="activities-label">Рекомендуемые активности</p>
         <div className="activities-grid">
@@ -313,6 +303,7 @@ const Dashboard = () => {
         <div className="recs-list">
           {recommendations.map((rec, i) => {
             const expanded = expandedRecIndex === i;
+            const RecIcon = rec.icon;
             return (
               <div
                 key={`rec-${i}`}
@@ -329,15 +320,7 @@ const Dashboard = () => {
                 aria-expanded={expanded}
               >
                 <div className="rec-img-wrap">
-                  <img
-                    src={rec.img}
-                    alt=""
-                    className="rec-img"
-                    onError={(e) => {
-                      e.target.parentElement.style.background = '#c8d8a8';
-                      e.target.style.display = 'none';
-                    }}
-                  />
+                  <RecIcon className="rec-thumb-icon" size={32} strokeWidth={1.6} aria-hidden />
                   {rec.hasPlay && (
                     <div className="rec-play">▶</div>
                   )}
@@ -355,7 +338,7 @@ const Dashboard = () => {
                       <button
                         type="button"
                         className="rec-start-btn btn btn-primary"
-                        onClick={() => navigate('/tests')}
+                        onClick={() => navigate(i === 1 ? '/tests' : '/practices')}
                       >
                         Начать
                       </button>
@@ -384,8 +367,9 @@ const Dashboard = () => {
               </button>
             </div>
             <p className="dash-details-lead">
-              Ниже — расшифровка блоков настроения, стресса и энергии. Данные основаны на ваших последних результатах тестов
-              и служат ориентиром, а не диагнозом.
+              Ниже — расшифровка блоков настроения, стресса и энергии. Показатели учитывают{' '}
+              {user?.onboarding_burnout_percent != null ? 'первичный скрининг выгорания, ' : ''}
+              последние результаты тестов из каталога и согласованы между собой. Это ориентир, а не диагноз.
             </p>
             <ul className="dash-details-list">
               <li><strong>Настроение ({moodVal}%)</strong> — чем выше значение, тем комфортнее субъективное состояние.</li>
@@ -393,66 +377,17 @@ const Dashboard = () => {
               <li><strong>Энергия ({energyVal}%)</strong> — оценка бодрости; низкие значения намекают на отдых и режим сна.</li>
             </ul>
             <p className="dash-details-note">
-              Полную динамику можно посмотреть в разделе «Статистика».
+              Полную динамику можно посмотреть в разделе «Аналитика».
             </p>
             <div className="modal-actions">
               <button type="button" className="btn btn-ghost" onClick={() => setDetailsOpen(false)}>Закрыть</button>
               <button type="button" className="btn btn-primary" onClick={() => { setDetailsOpen(false); navigate('/stats'); }}>
-                Перейти в статистику
+                Перейти в аналитику
               </button>
             </div>
           </div>
         </div>
       )}
-
-      <div className={`dash-ai-drawer ${aiHelperOpen ? 'open' : ''}`} aria-hidden={!aiHelperOpen}>
-        <div className="dash-ai-drawer-header">
-          <span className="dash-ai-drawer-title">
-            <MessageCircle size={18} /> ИИ-помощник
-            {process.env.REACT_APP_OPENAI_API_KEY?.trim() ? (
-              <span className="dash-ai-badge">ChatGPT</span>
-            ) : (
-              <span className="dash-ai-badge dash-ai-badge-muted">локально</span>
-            )}
-          </span>
-          <button type="button" className="dash-ai-close" onClick={() => setAiHelperOpen(false)} aria-label="Закрыть чат">
-            <X size={18} />
-          </button>
-        </div>
-        <div className="dash-ai-messages">
-          {aiMessages.length === 0 && (
-            <p className="dash-ai-empty">Напишите, что вас беспокоит — ответ появится здесь.</p>
-          )}
-          {aiMessages.map((msg, idx) => (
-            <div key={idx} className={`dash-ai-msg ${msg.role}`}>
-              {msg.text}
-            </div>
-          ))}
-          {aiLoading && (
-            <div className="dash-ai-msg assistant dash-ai-typing">Печатаю ответ…</div>
-          )}
-        </div>
-        <div className="dash-ai-input-row">
-          <input
-            className="dash-ai-input input"
-            placeholder="Ваше сообщение..."
-            value={aiInput}
-            onChange={(e) => setAiInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !aiLoading && sendAiHelper()}
-            disabled={aiLoading}
-          />
-          <button
-            type="button"
-            className="btn btn-primary dash-ai-send"
-            onClick={sendAiHelper}
-            disabled={!aiInput.trim() || aiLoading}
-          >
-            <Send size={16} />
-            Отправить
-          </button>
-        </div>
-      </div>
-      {aiHelperOpen && <button type="button" className="dash-ai-backdrop" aria-label="Закрыть" onClick={() => setAiHelperOpen(false)} />}
 
       {showOnboarding && (
         <div className="modal-overlay" role="dialog" aria-labelledby="onboard-title">
@@ -461,7 +396,7 @@ const Dashboard = () => {
             <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--text-mid)', marginBottom: 20 }}>
               Начните с теста <strong>GAD-7</strong> (тревожность) и <strong>ежедневного чек-ина</strong> — так в разделе «Аналитика»
               появится динамика. Затем загляните в <strong>Практики</strong>: мы подберём упражнения под ваши последние результаты.
-              В дневнике можно написать «как я себя чувствую» — ИИ даст мягкую поддержку (не диагноз).
+              В разделе «ИИ Дневник» можно записывать состояние и получать мягкую поддержку (не диагноз).
             </p>
             <div className="modal-actions" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
               <button type="button" className="btn btn-ghost" onClick={() => dismissOnboarding(false)}>
