@@ -87,3 +87,76 @@
   transition: background 0.2s; z-index: 10;
 }
 .collapse-btn:hover { background: var(--primary-dark); }
+
+/* Светлый сайдбар на главной (как в макете Desktop) */
+.sidebar.sidebar--light-mock {
+  background: #eef1f6;
+  border-right: 1px solid #dde4ec;
+  box-shadow: 4px 0 24px rgba(26, 29, 36, 0.04);
+}
+.sidebar.sidebar--light-mock .logo-text {
+  color: #1a1d24;
+}
+.sidebar.sidebar--light-mock .logo-icon {
+  background: #a3c617;
+  color: #fff;
+}
+.sidebar.sidebar--light-mock .nav-item {
+  color: #5a6578;
+}
+.sidebar.sidebar--light-mock .nav-item:hover {
+  background: rgba(163, 198, 23, 0.14);
+  color: #1a1d24;
+}
+.sidebar.sidebar--light-mock .nav-item.active {
+  background: #a3c617;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(163, 198, 23, 0.35);
+}
+.sidebar.sidebar--light-mock .collapse-btn {
+  background: #a3c617;
+  border: 2px solid #eef1f6;
+}
+.sidebar.sidebar--light-mock .user-name {
+  color: #1a1d24;
+}
+.sidebar.sidebar--light-mock .user-role {
+  color: #7a8494;
+}
+.sidebar.sidebar--light-mock .user-avatar {
+  border-color: rgba(163, 198, 23, 0.4);
+}
+.sidebar.sidebar--light-mock .user-mini:hover {
+  background: rgba(163, 198, 23, 0.1);
+}
+
+[data-theme='dark'] .sidebar.sidebar--light-mock {
+  background: #151c18;
+  border-right-color: var(--border);
+  box-shadow: 4px 0 28px rgba(0, 0, 0, 0.35);
+}
+[data-theme='dark'] .sidebar.sidebar--light-mock .logo-text {
+  color: var(--text-dark);
+}
+[data-theme='dark'] .sidebar.sidebar--light-mock .nav-item {
+  color: var(--text-mid);
+}
+[data-theme='dark'] .sidebar.sidebar--light-mock .nav-item:hover {
+  background: rgba(163, 198, 23, 0.12);
+  color: var(--text-dark);
+}
+[data-theme='dark'] .sidebar.sidebar--light-mock .nav-item.active {
+  background: var(--primary);
+  color: #1a1d24;
+  box-shadow: 0 4px 18px rgba(196, 217, 74, 0.25);
+}
+[data-theme='dark'] .sidebar.sidebar--light-mock .collapse-btn {
+  border-color: #151c18;
+}
+[data-theme='dark'] .sidebar.sidebar--light-mock .user-name {
+  color: var(--text-dark);
+}
+[data-theme='dark'] .sidebar.sidebar--light-mock .user-role {
+  color: var(--text-light);
+}

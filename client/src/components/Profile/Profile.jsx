@@ -1,11 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Camera, Save, AlertCircle, CheckCircle } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
+import {
+  Camera,
+  Save,
+  AlertCircle,
+  CheckCircle,
+  Info,
+  Bell,
+  Shield,
+  Moon,
+  Palette,
+  LogOut,
+  ChevronRight,
+} from 'lucide-react';
 import api from '../../utils/api';
 import './Profile.css';
 
+const NOTIF_KEY = 'burnout_notifications';
+
 const Profile = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -13,8 +32,23 @@ const Profile = () => {
     currentPassword: '',
     newPassword: '',
   });
-  const [msg, setMsg] = useState(null); // { type: 'success'|'error', text }
+  const [msg, setMsg] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [notifOn, setNotifOn] = useState(() => {
+    try {
+      return localStorage.getItem(NOTIF_KEY) !== '0';
+    } catch {
+      return true;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(NOTIF_KEY, notifOn ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+  }, [notifOn]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -26,7 +60,7 @@ const Profile = () => {
       const res = await api.put('/users/me', form);
       updateUser(res.data);
       setMsg({ type: 'success', text: 'Профиль успешно обновлён' });
-      setForm(f => ({ ...f, currentPassword: '', newPassword: '' }));
+      setForm((f) => ({ ...f, currentPassword: '', newPassword: '' }));
     } catch (err) {
       setMsg({ type: 'error', text: err.response?.data?.message || 'Ошибка сохранения' });
     } finally {
@@ -50,14 +84,32 @@ const Profile = () => {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const roleLabel = { student: '🎓 Студент', teacher: '👨‍🏫 Преподаватель', admin: '⚙️ Администратор' };
 
   return (
     <div className="profile-page fade-in">
-      <h1 className="page-title">Мой профиль</h1>
+      <h1 className="page-title">Профиль</h1>
+      <p className="page-sub">Данные аккаунта, настройки приложения и выход</p>
+
+      {msg && (
+        <div className={`profile-msg profile-msg--banner ${msg.type}`}>
+          {msg.type === 'success' ? (
+            <CheckCircle size={16} />
+          ) : msg.type === 'error' ? (
+            <AlertCircle size={16} />
+          ) : (
+            <Info size={16} />
+          )}
+          {msg.text}
+        </div>
+      )}
 
       <div className="profile-grid">
-        {/* Avatar card */}
         <div className="card avatar-card">
           <div className="avatar-wrapper">
             {user?.avatar ? (
@@ -88,16 +140,8 @@ const Profile = () => {
           {user?.age && <p className="profile-age">{user.age} лет</p>}
         </div>
 
-        {/* Edit form */}
         <div className="card edit-card">
-          <h2 className="card-title" style={{ marginBottom: 24 }}>Редактировать данные</h2>
-
-          {msg && (
-            <div className={`profile-msg ${msg.type}`}>
-              {msg.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-              {msg.text}
-            </div>
-          )}
+          <h2 className="card-title profile-card-title">Редактировать данные</h2>
 
           <form onSubmit={handleSave} className="profile-form">
             <div className="form-row">
@@ -123,15 +167,25 @@ const Profile = () => {
             <div className="form-row">
               <div className="form-group">
                 <label>Текущий пароль</label>
-                <input className="input" type="password" name="currentPassword"
-                  value={form.currentPassword} onChange={handleChange}
-                  placeholder="••••••••" />
+                <input
+                  className="input"
+                  type="password"
+                  name="currentPassword"
+                  value={form.currentPassword}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                />
               </div>
               <div className="form-group">
                 <label>Новый пароль</label>
-                <input className="input" type="password" name="newPassword"
-                  value={form.newPassword} onChange={handleChange}
-                  placeholder="Минимум 6 символов" />
+                <input
+                  className="input"
+                  type="password"
+                  name="newPassword"
+                  value={form.newPassword}
+                  onChange={handleChange}
+                  placeholder="Минимум 6 символов"
+                />
               </div>
             </div>
 
@@ -140,6 +194,92 @@ const Profile = () => {
               {loading ? 'Сохранение...' : 'Сохранить изменения'}
             </button>
           </form>
+        </div>
+
+        <div className="card profile-settings-card">
+          <h2 className="card-title profile-card-title">Настройки</h2>
+          <p className="profile-settings-hint">Уведомления и тема сохраняются на этом устройстве.</p>
+
+          <ul className="profile-settings-list">
+            <li className="profile-setting-row">
+              <span className="profile-setting-icon" aria-hidden>
+                <Bell size={20} strokeWidth={2} />
+              </span>
+              <div className="profile-setting-text">
+                <span className="profile-setting-label">Уведомления</span>
+                <span className="profile-setting-desc">Напоминания о дневнике и практиках в браузере</span>
+              </div>
+              <label className="profile-switch">
+                <input
+                  type="checkbox"
+                  checked={notifOn}
+                  onChange={() => setNotifOn((v) => !v)}
+                />
+                <span className="profile-switch-slider" />
+              </label>
+            </li>
+
+            <li className="profile-setting-row">
+              <span className="profile-setting-icon" aria-hidden>
+                <Shield size={20} strokeWidth={2} />
+              </span>
+              <div className="profile-setting-text">
+                <span className="profile-setting-label">Приватность</span>
+                <span className="profile-setting-desc">Кто видит ваш прогресс</span>
+              </div>
+              <button
+                type="button"
+                className="profile-setting-action"
+                onClick={() =>
+                  setMsg({ type: 'info', text: 'Раздел приватности появится в следующем обновлении.' })
+                }
+                aria-label="Приватность"
+              >
+                <ChevronRight size={22} />
+              </button>
+            </li>
+
+            <li className="profile-setting-row">
+              <span className="profile-setting-icon" aria-hidden>
+                <Moon size={20} strokeWidth={2} />
+              </span>
+              <div className="profile-setting-text">
+                <span className="profile-setting-label">Тёмная тема</span>
+                <span className="profile-setting-desc">Комфорт для глаз вечером</span>
+              </div>
+              <label className="profile-switch">
+                <input type="checkbox" checked={isDark} onChange={toggleTheme} />
+                <span className="profile-switch-slider" />
+              </label>
+            </li>
+
+            <li className="profile-setting-row">
+              <span className="profile-setting-icon" aria-hidden>
+                <Palette size={20} strokeWidth={2} />
+              </span>
+              <div className="profile-setting-text">
+                <span className="profile-setting-label">Тема оформления</span>
+                <span className="profile-setting-desc">Акцентные цвета интерфейса</span>
+              </div>
+              <button
+                type="button"
+                className="profile-setting-action"
+                onClick={() =>
+                  setMsg({ type: 'info', text: 'Выбор палитры будет доступен позже. Сейчас доступна тёмная тема выше.' })
+                }
+                aria-label="Тема оформления"
+              >
+                <ChevronRight size={22} />
+              </button>
+            </li>
+          </ul>
+
+          <div className="profile-settings-footer">
+            <button type="button" className="btn btn-danger profile-logout-btn" onClick={handleLogout}>
+              <LogOut size={18} />
+              Выйти из аккаунта
+            </button>
+          </div>
         </div>
       </div>
     </div>

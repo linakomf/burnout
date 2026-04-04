@@ -5,8 +5,7 @@
   margin: 0 auto;
   padding: 12px 8px 48px;
   box-sizing: border-box;
-  background: #f9f8f3;
-  border-radius: 24px;
+  background: transparent;
   min-height: calc(100dvh - 48px);
 }
 
@@ -28,7 +27,7 @@
   font-size: 32px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #2a332b;
+  color: #1a1d24;
   margin: 0 0 10px;
 }
 
@@ -40,9 +39,9 @@
   height: 52px;
   border-radius: 16px;
   background: #fff;
-  color: #9caf88;
-  box-shadow: 0 4px 18px rgba(46, 62, 48, 0.08);
-  border: 1px solid #e8ebe4;
+  color: #a3c617;
+  box-shadow: 0 4px 18px rgba(26, 29, 36, 0.06);
+  border: 1px solid #dde4ec;
 }
 
 .tests-catalog-sub {
@@ -70,24 +69,24 @@
   min-width: 108px;
   padding: 16px 14px;
   border-radius: 18px;
-  border: 1px solid #e8ebe4;
+  border: 1px solid #dde4ec;
   background: #fff;
   cursor: pointer;
   font-family: inherit;
-  box-shadow: 0 2px 14px rgba(46, 62, 48, 0.05);
+  box-shadow: 0 2px 14px rgba(26, 29, 36, 0.05);
   transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
   color: #333333;
 }
 
 .tests-catalog-chip:hover {
-  border-color: #c5d4b8;
-  box-shadow: 0 6px 22px rgba(46, 62, 48, 0.08);
+  border-color: #c5d0dc;
+  box-shadow: 0 6px 22px rgba(26, 29, 36, 0.07);
 }
 
 .tests-catalog-chip.active {
-  border-color: #9caf88;
-  background: linear-gradient(180deg, #f6faf3 0%, #fff 100%);
-  box-shadow: 0 6px 24px rgba(156, 175, 136, 0.25);
+  border: 3px solid #a3c617;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(163, 198, 23, 0.22);
 }
 
 .tests-catalog-chip-emoji {
@@ -102,7 +101,7 @@
 }
 
 .tests-catalog-chip.active .tests-catalog-chip-label {
-  color: #5a7a4a;
+  color: #1a1d24;
 }
 
 .tests-catalog-grid {
@@ -129,13 +128,13 @@
   background: #fff;
   border-radius: 22px;
   padding: 22px 22px 20px;
-  border: 1px solid #e8ebe4;
-  box-shadow: 0 4px 22px rgba(46, 62, 48, 0.06);
+  border: 1px solid #dde4ec;
+  box-shadow: 0 4px 22px rgba(26, 29, 36, 0.06);
   transition: box-shadow 0.2s, transform 0.15s;
 }
 
 .tests-catalog-card:hover {
-  box-shadow: 0 10px 36px rgba(46, 62, 48, 0.1);
+  box-shadow: 0 10px 36px rgba(26, 29, 36, 0.1);
 }
 
 .tests-catalog-card-top {
@@ -184,8 +183,8 @@
   font-weight: 700;
   padding: 6px 12px;
   border-radius: 20px;
-  background: rgba(156, 175, 136, 0.18);
-  color: #5a6e52;
+  background: rgba(163, 198, 23, 0.2);
+  color: #5a7010;
   max-width: 48%;
   text-align: right;
   line-height: 1.25;
@@ -239,20 +238,20 @@
   font-family: inherit;
   font-size: 15px;
   font-weight: 700;
-  color: #9caf88;
+  color: #1a1d24;
   cursor: pointer;
   transition: color 0.2s, gap 0.2s;
 }
 
 .tests-catalog-card-cta:hover {
-  color: #7a9a6a;
+  color: #a3c617;
   gap: 10px;
 }
 
 .tests-catalog-empty {
   text-align: center;
   padding: 80px 24px;
-  color: #9aaa9c;
+  color: #7a8494;
   font-size: 15px;
 }
 
@@ -310,13 +309,18 @@
   transition: all 0.15s;
 }
 .q-option:hover { border-color: var(--primary); background: var(--primary-light); }
-.q-option.selected { border-color: var(--primary-dark); background: var(--primary); }
+.q-option.selected {
+  border-color: var(--primary-dark);
+  background: var(--primary);
+  color: #fff;
+}
 .q-option-dot {
   width: 18px; height: 18px; border-radius: 50%;
   border: 2px solid var(--text-light); flex-shrink: 0; transition: all 0.15s;
 }
 .q-option.selected .q-option-dot {
-  background: var(--text-dark); border-color: var(--text-dark);
+  background: #fff;
+  border-color: #fff;
 }
 
 .test-q-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
@@ -353,7 +357,7 @@
   margin-top: 8px;
   padding: 18px 20px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #faf9f6 0%, #f0f4ee 100%);
+  background: linear-gradient(135deg, #f4f7e8 0%, #f0f4f8 100%);
   border: 1px solid var(--border);
 }
 .result-interpret-title {

@@ -7,9 +7,9 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  background: #eeeae4;
+  background: linear-gradient(180deg, #e8eef5 0%, #f0f4f8 40%, #eef2f6 100%);
   font-family: 'Nunito', sans-serif;
-  color: #2d3a3a;
+  color: #1a1d24;
   overflow-x: hidden;
   box-sizing: border-box;
 }
@@ -20,19 +20,20 @@
   padding: 18px clamp(16px, 4vw, 60px);
   width: 100%;
   box-sizing: border-box;
-  background: #eeeae4;
+  background: rgba(240, 244, 248, 0.92);
   border-bottom: 1px solid rgba(0,0,0,0.06);
   position: sticky; top: 0; z-index: 100;
 }
 .land-logo { display: flex; align-items: center; gap: 12px; }
 .land-logo-icon {
   width: 44px; height: 44px; border-radius: 12px;
-  background: #5a8a8a; display: flex; align-items: center;
+  background: #a3c617; display: flex; align-items: center;
   justify-content: center; color: white;
+  box-shadow: 0 4px 14px rgba(163, 198, 23, 0.35);
 }
 .land-logo-name {
   display: block; font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 18px; font-weight: 700; color: #2d3a3a;
+  font-size: 18px; font-weight: 700; color: #1a1d24;
 }
 .land-logo-sub { display: block; font-size: 12px; color: #8a9090; }
 
@@ -46,13 +47,14 @@
 }
 .land-btn-ghost:hover { background: rgba(0,0,0,0.06); }
 
-.land-btn-teal {
-  background: #5a8a8a; color: white; border: none;
+.land-btn-primary {
+  background: #a3c617; color: #fff; border: none;
   padding: 11px 24px; border-radius: 30px;
   font-family: 'Nunito', sans-serif; font-size: 15px;
   font-weight: 700; cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(163, 198, 23, 0.3);
 }
-.land-btn-teal:hover { background: #4a7a7a; transform: translateY(-1px); }
+.land-btn-primary:hover { background: #8fb014; transform: translateY(-1px); }
 
 .land-btn-outline {
   background: white; color: #4a5a5a;
@@ -61,7 +63,7 @@
   font-size: 15px; font-weight: 700; cursor: pointer;
   transition: all 0.2s;
 }
-.land-btn-outline:hover { border-color: #5a8a8a; color: #5a8a8a; }
+.land-btn-outline:hover { border-color: #a3c617; color: #5a7010; }
 
 /* ── Hero ── */
 .land-hero {
@@ -77,9 +79,9 @@
 .hero-title {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 58px; font-weight: 800; line-height: 1.1;
-  color: #2d3a3a; margin-bottom: 24px;
+  color: #1a1d24; margin-bottom: 24px;
 }
-.hero-accent { color: #5a8a8a; }
+.hero-accent { color: #7a9014; }
 
 .hero-desc {
   font-size: 17px; color: #6a7a7a; line-height: 1.65;
@@ -94,40 +96,71 @@
 .hero-stat { display: flex; flex-direction: column; gap: 2px; }
 .stat-num {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 28px; font-weight: 800; color: #5a8a8a;
+  font-size: 28px; font-weight: 800; color: #a3c617;
 }
 .stat-label { font-size: 13px; color: #8a9090; }
 
-/* Chat card */
-.hero-chat-card {
-  background: white; border-radius: 24px; padding: 28px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+/* Hero visual — как на дашборде */
+.hero-visual-card {
+  position: relative;
+  border-radius: 28px;
+  overflow: hidden;
+  min-height: 320px;
+  box-shadow: 0 16px 48px rgba(26, 29, 36, 0.12);
+  border: 1px solid #dde4ec;
 }
-.chat-card-header {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+.hero-visual-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(232, 240, 200, 0.5) 0%, transparent 45%),
+    url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=900&q=80') center/cover no-repeat;
 }
-.chat-bot-avatar {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: #5a8a8a; display: flex; align-items: center;
-  justify-content: center; color: white;
+.hero-visual-char {
+  position: absolute;
+  left: 4%;
+  bottom: 0;
+  max-height: 78%;
+  width: auto;
+  object-fit: contain;
+  z-index: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 24px rgba(26, 29, 36, 0.15));
 }
-.chat-bot-name { font-size: 15px; font-weight: 700; color: #2d3a3a; }
-.chat-bot-status { font-size: 12px; color: #7ab070; font-weight: 600; }
-
-.chat-bubble {
-  background: #e8f0f0; border-radius: 16px; border-top-left-radius: 4px;
-  padding: 16px 18px; font-size: 15px; color: #3a4a4a;
-  line-height: 1.6; margin-bottom: 24px;
+.hero-visual-overlay {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 22px 22px 24px;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.92) 35%, #fff 100%);
+  z-index: 2;
 }
-
-.chat-emojis-label { font-size: 13px; font-weight: 700; color: #4a5a5a; margin-bottom: 12px; }
-.chat-emojis { display: flex; gap: 8px; }
-.chat-emoji { font-size: 26px; }
+.hero-visual-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #1a1d24;
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+.hero-visual-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #5a6578;
+  font-weight: 500;
+  max-width: 100%;
+}
 
 /* ── Sections common ── */
 .section-title {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 40px; font-weight: 800; color: #2d3a3a;
+  font-size: 40px; font-weight: 800; color: #1a1d24;
   text-align: center; margin-bottom: 10px;
 }
 .section-sub {
@@ -137,7 +170,7 @@
 /* ── Features ── */
 .land-features {
   padding: clamp(48px, 6vw, 80px) clamp(16px, 4vw, 48px);
-  background: #eeeae4;
+  background: transparent;
   width: 100%;
   margin: 0;
   box-sizing: border-box;
@@ -156,13 +189,13 @@
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 20px;
 }
-.feature-title { font-size: 17px; font-weight: 800; color: #2d3a3a; margin-bottom: 10px; }
+.feature-title { font-size: 17px; font-weight: 800; color: #1a1d24; margin-bottom: 10px; }
 .feature-desc { font-size: 14px; color: #6a7a7a; line-height: 1.6; }
 
 /* ── For whom ── */
 .land-for-whom {
   padding: clamp(48px, 6vw, 80px) clamp(16px, 4vw, 60px);
-  background: #f4f1eb;
+  background: rgba(255, 255, 255, 0.45);
   width: 100%;
   box-sizing: border-box;
 }
@@ -180,18 +213,18 @@
   box-shadow: 0 2px 20px rgba(0,0,0,0.05);
 }
 .whom-emoji { font-size: 48px; margin-bottom: 16px; display: block; }
-.whom-title { font-size: 26px; font-weight: 800; color: #2d3a3a; margin-bottom: 12px; }
+.whom-title { font-size: 26px; font-weight: 800; color: #1a1d24; margin-bottom: 12px; }
 .whom-desc { font-size: 15px; color: #6a7a7a; line-height: 1.6; margin-bottom: 24px; }
 .whom-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
 .whom-list li {
   display: flex; align-items: center; gap: 10px;
   font-size: 15px; font-weight: 600; color: #3a4a4a;
 }
-.whom-list li svg { color: #5a8a8a; flex-shrink: 0; }
+.whom-list li svg { color: #a3c617; flex-shrink: 0; }
 
 /* ── Trust banner ── */
 .land-trust {
-  background: #5a8a8a;
+  background: #1a1d24;
   padding: 28px clamp(16px, 4vw, 60px);
   width: 100%;
   box-sizing: border-box;
@@ -206,7 +239,7 @@
 /* ── CTA ── */
 .land-cta {
   padding: clamp(48px, 6vw, 80px) clamp(16px, 4vw, 60px);
-  background: #eeeae4;
+  background: rgba(240, 244, 248, 0.92);
   width: 100%;
   box-sizing: border-box;
   display: flex; justify-content: center;
@@ -219,14 +252,14 @@
 }
 .cta-title {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 38px; font-weight: 800; color: #2d3a3a; margin-bottom: 14px;
+  font-size: 38px; font-weight: 800; color: #1a1d24; margin-bottom: 14px;
 }
 .cta-sub { font-size: 16px; color: #6a7a7a; margin-bottom: 32px; line-height: 1.6; }
 .cta-btn { padding: 16px 40px; font-size: 17px; }
 
 /* ── Footer ── */
 .land-footer {
-  background: #eeeae4;
+  background: rgba(240, 244, 248, 0.92);
   padding: 36px clamp(16px, 4vw, 60px);
   width: 100%;
   box-sizing: border-box;

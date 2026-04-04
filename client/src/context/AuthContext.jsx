@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../utils/api';
+import {
+  readPendingOnboarding,
+  clearPendingOnboarding,
+} from '../utils/onboardingLocalStorage';
 
 const AuthContext = createContext(null);
 
@@ -20,9 +24,47 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      api.get('/users/me')
-        .then(res => { setUser(res.data); localStorage.setItem('user', JSON.stringify(res.data)); })
-        .catch(() => { localStorage.removeItem('token'); localStorage.removeItem('user'); setUser(null); })
+      api
+        .get('/users/me')
+        .then((res) => {
+          const server = res.data;
+          const pending = readPendingOnboarding(server.user_id);
+
+          if (server.onboarding_burnout_completed) {
+            clearPendingOnboarding(server.user_id);
+            setUser(server);
+            localStorage.setItem('user', JSON.stringify(server));
+            return;
+          }
+
+          let u = server;
+          if (pending) {
+            u = {
+              ...server,
+              onboarding_burnout_completed: true,
+              onboarding_burnout_percent: pending.percent ?? server.onboarding_burnout_percent,
+            };
+          }
+          setUser(u);
+          localStorage.setItem('user', JSON.stringify(u));
+
+          if (pending?.answers?.length === 10) {
+            api
+              .post('/users/onboarding-burnout', { answers: pending.answers })
+              .then((r) => {
+                clearPendingOnboarding(server.user_id);
+                const merged = { ...server, ...r.data.user };
+                setUser(merged);
+                localStorage.setItem('user', JSON.stringify(merged));
+              })
+              .catch(() => {});
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUser(null);
+        })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
