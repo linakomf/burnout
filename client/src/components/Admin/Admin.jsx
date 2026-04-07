@@ -169,29 +169,113 @@ export const AdminCategories = () => {
   );
 };
 
+const DEFAULT_OPTIONS = ['', '', '', '', ''];
+
+const emptyTestForm = () => ({
+  title: '',
+  description: '',
+  category_id: '',
+  scoring_type: 'likert_sum',
+  questions: [],
+});
+
 // ─── Admin Tests ───────────────────────────────────────────────────────────────
 export const AdminTests = () => {
   const [tests, setTests] = useState([]);
   const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ title: '', description: '', category_id: '', questions: [] });
+  const [editingId, setEditingId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [loadError, setLoadError] = useState('');
+  const [form, setForm] = useState(emptyTestForm);
+
+  const refreshTests = () =>
+    api.get('/tests').then((r) => setTests(r.data)).catch(() => {});
 
   useEffect(() => {
     Promise.all([api.get('/tests'), api.get('/categories')])
-      .then(([t, c]) => { setTests(t.data); setCategories(c.data); });
+      .then(([t, c]) => {
+        setTests(t.data);
+        setCategories(c.data);
+      })
+      .catch(() => {});
   }, []);
 
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(emptyTestForm());
+    setLoadError('');
+    setShowModal(true);
+  };
+
+  const mapQuestionsFromApi = (rows) =>
+    (rows || []).map((q) => {
+      let opts = q.options;
+      if (typeof opts === 'string') {
+        try {
+          opts = JSON.parse(opts);
+        } catch {
+          opts = [];
+        }
+      }
+      const arr = Array.isArray(opts) ? opts.map(String) : [];
+      const padded = [...arr, ...DEFAULT_OPTIONS].slice(0, 5);
+      return { question_text: q.question_text || '', options: padded };
+    });
+
+  const openEdit = async (testRow) => {
+    setLoadError('');
+    setEditingId(testRow.test_id);
+    setForm(emptyTestForm());
+    setEditLoading(true);
+    setShowModal(true);
+    try {
+      const { data } = await api.get(`/tests/${testRow.test_id}`);
+      setForm({
+        title: data.title || '',
+        description: data.description || '',
+        category_id: data.category_id != null ? String(data.category_id) : '',
+        scoring_type: data.scoring_type || 'likert_sum',
+        questions:
+          data.questions && data.questions.length > 0
+            ? mapQuestionsFromApi(data.questions)
+            : [{ question_text: '', options: [...DEFAULT_OPTIONS] }],
+      });
+    } catch {
+      setLoadError('Не удалось загрузить тест');
+      setForm(emptyTestForm());
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setForm(emptyTestForm());
+    setLoadError('');
+    setEditLoading(false);
+  };
+
   const addQuestion = () => {
-    setForm(f => ({
+    setForm((f) => ({
       ...f,
-      questions: [...f.questions, { question_text: '', options: ['','','','',''] }]
+      questions: [...f.questions, { question_text: '', options: [...DEFAULT_OPTIONS] }],
+    }));
+  };
+
+  const removeQuestion = (qi) => {
+    setForm((f) => ({
+      ...f,
+      questions: f.questions.filter((_, i) => i !== qi),
     }));
   };
 
   const updateQuestion = (i, field, val) => {
     const qs = [...form.questions];
     qs[i] = { ...qs[i], [field]: val };
-    setForm(f => ({ ...f, questions: qs }));
+    setForm((f) => ({ ...f, questions: qs }));
   };
 
   const updateOption = (qi, oi, val) => {
@@ -199,21 +283,63 @@ export const AdminTests = () => {
     const opts = [...qs[qi].options];
     opts[oi] = val;
     qs[qi] = { ...qs[qi], options: opts };
-    setForm(f => ({ ...f, questions: qs }));
+    setForm((f) => ({ ...f, questions: qs }));
   };
 
   const handleSave = async () => {
-    await api.post('/tests', form);
-    const res = await api.get('/tests');
-    setTests(res.data);
-    setShowModal(false);
-    setForm({ title: '', description: '', category_id: '', questions: [] });
+    setLoadError('');
+    if (!form.category_id) {
+      setLoadError('Выберите категорию');
+      return;
+    }
+    if (!form.title.trim()) {
+      setLoadError('Укажите название теста');
+      return;
+    }
+    if (form.questions.length === 0) {
+      setLoadError('Добавьте хотя бы один вопрос');
+      return;
+    }
+
+    const payload = {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      category_id: form.category_id,
+      scoring_type: form.scoring_type || 'likert_sum',
+      questions: form.questions.map((q) => ({
+        question_text: q.question_text,
+        options: q.options,
+      })),
+    };
+
+    setSaving(true);
+    try {
+      if (editingId != null) {
+        await api.put(`/tests/${editingId}`, payload);
+      } else {
+        await api.post('/tests', payload);
+      }
+      await refreshTests();
+      closeModal();
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Не удалось сохранить';
+      setLoadError(msg);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Удалить тест?')) return;
     await api.delete(`/tests/${id}`);
-    setTests(tests.filter(t => t.test_id !== id));
+    setTests(tests.filter((t) => t.test_id !== id));
+  };
+
+  const SCORING_LABELS = {
+    likert_sum: 'Общая шкала (сумма выбранных вариантов)',
+    gad7: 'GAD-7 (4 варианта 0–3)',
+    mbi_student: 'Выгорание MBI-студент (5 вариантов 0–4)',
+    daily5: 'Ежедневный чек-ин (5 вариантов 0–4)',
   };
 
   return (
@@ -221,9 +347,9 @@ export const AdminTests = () => {
       <div className="section-header">
         <div>
           <h1 className="page-title">Тесты</h1>
-          <p className="page-sub">Управление содержимым тестов</p>
+          <p className="page-sub">Создание и редактирование тестов — изменения сразу видны пользователям в разделе «Тесты»</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+        <button className="btn btn-primary" onClick={openCreate}>
           <Plus size={16} /> Создать тест
         </button>
       </div>
@@ -231,16 +357,35 @@ export const AdminTests = () => {
       <div className="card">
         <table className="admin-table">
           <thead>
-            <tr><th>Название</th><th>Категория</th><th>Дата</th><th>Действия</th></tr>
+            <tr>
+              <th>Название</th>
+              <th>Категория</th>
+              <th>Вопросов</th>
+              <th>Дата</th>
+              <th>Действия</th>
+            </tr>
           </thead>
           <tbody>
-            {tests.map(t => (
+            {tests.map((t) => (
               <tr key={t.test_id}>
                 <td style={{ fontWeight: 600 }}>{t.title}</td>
                 <td>{t.category_name}</td>
+                <td>{t.question_count != null ? t.question_count : '—'}</td>
                 <td>{new Date(t.created_at).toLocaleDateString('ru')}</td>
                 <td>
-                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(t.test_id)}>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => openEdit(t)}
+                    title="Редактировать"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleDelete(t.test_id)}
+                  >
                     <Trash2 size={14} />
                   </button>
                 </td>
@@ -251,44 +396,123 @@ export const AdminTests = () => {
       </div>
 
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-card admin-test-modal fade-in" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-card admin-test-modal fade-in" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Создать тест</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+              <h2>{editingId != null ? 'Редактировать тест' : 'Создать тест'}</h2>
+              <button type="button" className="modal-close" onClick={closeModal}>
+                <X size={18} />
+              </button>
             </div>
+
+            {loadError && (
+              <p className="admin-form-error" style={{ marginTop: 12, color: 'var(--danger, #c44)' }}>
+                {loadError}
+              </p>
+            )}
+
+            {editLoading && (
+              <p style={{ marginTop: 12, opacity: 0.8 }}>Загрузка теста…</p>
+            )}
 
             <div className="form-group" style={{ marginTop: 16 }}>
               <label>Название теста</label>
-              <input className="input" value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
+              <input
+                className="input"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                disabled={editLoading}
+              />
             </div>
             <div className="form-group" style={{ marginTop: 14 }}>
               <label>Описание</label>
-              <input className="input" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+              <input
+                className="input"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                disabled={editLoading}
+              />
             </div>
             <div className="form-group" style={{ marginTop: 14 }}>
               <label>Категория</label>
-              <select className="input" value={form.category_id} onChange={e => setForm({...form, category_id: e.target.value})}>
+              <select
+                className="input"
+                value={form.category_id}
+                onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+                disabled={editLoading}
+              >
                 <option value="">Выберите категорию</option>
-                {categories.map(c => <option key={c.category_id} value={c.category_id}>{c.name}</option>)}
+                {categories.map((c) => (
+                  <option key={c.category_id} value={c.category_id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group" style={{ marginTop: 14 }}>
+              <label>Тип подсчёта результата</label>
+              <select
+                className="input"
+                value={form.scoring_type}
+                onChange={(e) => setForm({ ...form, scoring_type: e.target.value })}
+                disabled={editLoading}
+              >
+                {Object.entries(SCORING_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className="questions-section">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 12,
+                }}
+              >
                 <h3 style={{ fontSize: 15, fontWeight: 700 }}>Вопросы ({form.questions.length})</h3>
-                <button className="btn btn-secondary btn-sm" onClick={addQuestion}><Plus size={14} /> Добавить вопрос</button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={addQuestion}
+                  disabled={editLoading}
+                >
+                  <Plus size={14} /> Добавить вопрос
+                </button>
               </div>
 
               {form.questions.map((q, qi) => (
                 <div key={qi} className="question-builder">
-                  <label>Вопрос {qi + 1}</label>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 6,
+                    }}
+                  >
+                    <label style={{ margin: 0 }}>Вопрос {qi + 1}</label>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => removeQuestion(qi)}
+                      title="Удалить вопрос"
+                      disabled={editLoading}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                   <input
                     className="input"
                     placeholder="Текст вопроса"
                     value={q.question_text}
-                    onChange={e => updateQuestion(qi, 'question_text', e.target.value)}
+                    onChange={(e) => updateQuestion(qi, 'question_text', e.target.value)}
                     style={{ marginBottom: 10 }}
+                    disabled={editLoading}
                   />
                   <div className="options-builder">
                     {q.options.map((opt, oi) => (
@@ -297,7 +521,8 @@ export const AdminTests = () => {
                         className="input"
                         placeholder={`Вариант ${oi + 1}`}
                         value={opt}
-                        onChange={e => updateOption(qi, oi, e.target.value)}
+                        onChange={(e) => updateOption(qi, oi, e.target.value)}
+                        disabled={editLoading}
                       />
                     ))}
                   </div>
@@ -306,8 +531,17 @@ export const AdminTests = () => {
             </div>
 
             <div className="modal-actions" style={{ marginTop: 24 }}>
-              <button className="btn btn-ghost" onClick={() => setShowModal(false)}>Отмена</button>
-              <button className="btn btn-primary" onClick={handleSave}><Save size={14} /> Создать</button>
+              <button type="button" className="btn btn-ghost" onClick={closeModal} disabled={saving || editLoading}>
+                Отмена
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleSave}
+                disabled={saving || editLoading}
+              >
+                <Save size={14} /> {saving ? 'Сохранение…' : editingId != null ? 'Сохранить' : 'Создать'}
+              </button>
             </div>
           </div>
         </div>
