@@ -61,7 +61,7 @@ const Landing = () => {
               <span className="stat-label">Конфиденциально</span>
             </div>
             <div className="hero-stat">
-              <span className="stat-num">0₽</span>
+              <span className="stat-num">0₸</span>
               <span className="stat-label">Бесплатно</span>
             </div>
           </div>

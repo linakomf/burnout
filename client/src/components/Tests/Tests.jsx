@@ -55,6 +55,8 @@ const ESTIMATED_QUESTIONS = {
 };
 
 function estimateQuestions(test) {
+  const qc = test.question_count;
+  if (qc != null && Number.isFinite(Number(qc))) return Number(qc);
   const id = test.test_id;
   if (ESTIMATED_QUESTIONS[id] != null) return ESTIMATED_QUESTIONS[id];
   return 10;
