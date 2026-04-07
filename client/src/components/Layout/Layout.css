@@ -7,7 +7,7 @@
   min-height: 100%;
   min-height: 100dvh;
   background: linear-gradient(180deg, #e8eef5 0%, #f0f4f8 40%, #eef2f6 100%);
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 [data-theme='dark'] .layout {
@@ -23,7 +23,6 @@
   padding: 20px 16px 24px;
   padding-left: var(--sidebar-width);
   box-sizing: border-box;
-  overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
