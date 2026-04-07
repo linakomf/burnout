@@ -9,7 +9,7 @@
   padding: clamp(16px, 4vw, 24px);
   position: relative;
   background: var(--bg);
-  overflow: hidden;
+  overflow-x: hidden;
   box-sizing: border-box;
 }
 

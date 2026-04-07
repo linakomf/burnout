@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Brain, Shield, Zap, Users, CheckCircle } from 'lucide-react';
 import './Landing.css';
 
+/** Файл: client/public/photos/character.png (или персонаж.png). PUBLIC_URL — для деплоя не в корень домена. */
+const publicPrefix = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
+const HERO_IMAGE_SRC = encodeURI(`${publicPrefix}/photos/character.png`);
+const HERO_IMAGE_SRC_ALT = encodeURI(`${publicPrefix}/photos/персонаж.png`);
+
 const Landing = () => {
   const navigate = useNavigate();
+  const [heroImgSrc, setHeroImgSrc] = useState(HERO_IMAGE_SRC);
+  const [heroImgFailed, setHeroImgFailed] = useState(false);
 
   return (
     <div className="landing">
@@ -63,12 +70,24 @@ const Landing = () => {
         <div className="hero-right">
           <div className="hero-visual-card">
             <div className="hero-visual-bg" aria-hidden />
-            <img
-              src="/photos/персонаж.png"
-              alt=""
-              className="hero-visual-char"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
+            {!heroImgFailed ? (
+              <img
+                src={heroImgSrc}
+                alt=""
+                className="hero-visual-char"
+                onError={() => {
+                  if (heroImgSrc === HERO_IMAGE_SRC) {
+                    setHeroImgSrc(HERO_IMAGE_SRC_ALT);
+                  } else {
+                    setHeroImgFailed(true);
+                  }
+                }}
+              />
+            ) : (
+              <div className="hero-visual-fallback" aria-hidden>
+                <Brain size={120} strokeWidth={1.05} />
+              </div>
+            )}
             <div className="hero-visual-overlay">
               <span className="hero-visual-badge">10 вопросов · персональный процент</span>
               <p className="hero-visual-text">

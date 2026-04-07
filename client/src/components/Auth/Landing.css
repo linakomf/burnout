@@ -67,19 +67,40 @@
 
 /* ── Hero ── */
 .land-hero {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: clamp(24px, 5vw, 60px); align-items: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(24px, 5vw, 60px);
+  align-items: center;
   padding: clamp(40px, 6vw, 80px) clamp(16px, 4vw, 48px);
   width: 100%;
   margin: 0;
   box-sizing: border-box;
-  flex: 1;
+  flex: 0 0 auto;
+}
+
+.hero-left {
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.hero-right {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
 }
 
 .hero-title {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 58px; font-weight: 800; line-height: 1.1;
-  color: #1a1d24; margin-bottom: 24px;
+  font-size: clamp(28px, 5.5vw, 58px);
+  font-weight: 800;
+  line-height: 1.12;
+  color: #1a1d24;
+  margin-bottom: 24px;
 }
 .hero-accent { color: #7a9014; }
 
@@ -92,7 +113,11 @@
 .hero-actions { display: flex; gap: 14px; margin-bottom: 48px; flex-wrap: wrap; }
 .hero-cta { padding: 14px 32px; font-size: 16px; }
 
-.hero-stats { display: flex; gap: 40px; }
+.hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(20px, 4vw, 40px);
+}
 .hero-stat { display: flex; flex-direction: column; gap: 2px; }
 .stat-num {
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -103,9 +128,14 @@
 /* Hero visual — как на дашборде */
 .hero-visual-card {
   position: relative;
+  width: 100%;
+  max-width: 580px;
+  margin-inline: auto;
   border-radius: 28px;
   overflow: hidden;
-  min-height: 320px;
+  min-height: clamp(280px, 38vw, 400px);
+  aspect-ratio: 5 / 4;
+  max-height: min(520px, 74vh);
   box-shadow: 0 16px 48px rgba(26, 29, 36, 0.12);
   border: 1px solid #dde4ec;
 }
@@ -116,25 +146,54 @@
     linear-gradient(135deg, rgba(232, 240, 200, 0.5) 0%, transparent 45%),
     url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=900&q=80') center/cover no-repeat;
 }
+/* Персонаж: максимально крупно в кадре, по центру снизу */
 .hero-visual-char {
   position: absolute;
-  left: 4%;
-  bottom: 0;
-  max-height: 78%;
+  left: 50%;
+  bottom: clamp(52px, 12%, 108px);
+  transform: translateX(-50%);
+  max-height: 98%;
+  max-width: 100%;
   width: auto;
+  height: auto;
   object-fit: contain;
-  z-index: 1;
+  object-position: center bottom;
+  z-index: 3;
   pointer-events: none;
-  filter: drop-shadow(0 8px 24px rgba(26, 29, 36, 0.15));
+  filter: drop-shadow(0 10px 28px rgba(26, 29, 36, 0.18));
+}
+
+.hero-visual-fallback {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(72px, 16%, 128px);
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(68%, 280px);
+  max-width: 280px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  color: #5a7010;
+  pointer-events: none;
 }
 .hero-visual-overlay {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  padding: 22px 22px 24px;
-  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.92) 35%, #fff 100%);
-  z-index: 2;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  padding: 14px 16px 16px;
+  max-width: calc(100% - 24px);
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(26, 29, 36, 0.1);
+  border: 1px solid rgba(221, 228, 236, 0.9);
+  z-index: 4;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .hero-visual-badge {
   display: inline-block;
@@ -273,8 +332,18 @@
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .land-nav { padding: 16px 24px; }
-  .land-hero { grid-template-columns: 1fr; padding: 48px 24px; gap: 40px; }
-  .hero-title { font-size: 40px; }
+  .land-hero {
+    grid-template-columns: 1fr;
+    padding: 48px 24px;
+    gap: 40px;
+    align-items: start;
+  }
+  .hero-visual-card {
+    max-width: none;
+    max-height: none;
+    aspect-ratio: 4 / 3;
+    min-height: 280px;
+  }
   .land-features { padding: 60px 24px; }
   .features-grid { grid-template-columns: 1fr 1fr; }
   .land-for-whom { padding: 60px 24px; }
@@ -286,6 +355,5 @@
 }
 @media (max-width: 600px) {
   .features-grid { grid-template-columns: 1fr; }
-  .hero-title { font-size: 32px; }
-  .hero-stats { gap: 24px; }
+  .hero-stats { gap: 20px; }
 }
