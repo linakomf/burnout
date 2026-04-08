@@ -187,3 +187,13 @@
   text-decoration: none;
 }
 .auth-switch a:hover { text-decoration: underline; }
+
+[data-theme='dark'] .auth-card {
+  background: color-mix(in srgb, var(--bg-card) 90%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+}
+[data-theme='dark'] .auth-error {
+  background: #3d2228;
+  color: #f0a0a8;
+}

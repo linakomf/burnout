@@ -32,6 +32,14 @@
 .role-chip.role-student { background: var(--primary-light); color: var(--primary-dark); }
 .role-chip.role-teacher { background: #fff3e0; color: #e65100; }
 .role-chip.role-admin { background: #fce4ec; color: #c62828; }
+[data-theme='dark'] .role-chip.role-teacher {
+  background: #3d3520;
+  color: #ffb74d;
+}
+[data-theme='dark'] .role-chip.role-admin {
+  background: #3d2228;
+  color: #f48fb1;
+}
 
 /* Categories grid */
 .categories-grid {

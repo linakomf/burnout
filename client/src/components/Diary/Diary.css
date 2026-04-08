@@ -38,11 +38,11 @@
 
 /* ── Cards ── */
 .diary-card {
-  background: white;
+  background: var(--bg-card);
   border-radius: 20px;
   padding: 18px;
-  box-shadow: 0 2px 16px rgba(26, 29, 36, 0.05);
-  border: 1px solid #dde4ec;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
   box-sizing: border-box;
 }
 
@@ -57,11 +57,12 @@
 }
 .cal-arrow {
   width: 26px; height: 26px; border-radius: 8px;
-  border: 1px solid #e8e8e8; background: #f8f8f8;
+  border: 1px solid var(--border);
+  background: var(--bg);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; color: var(--text-mid); transition: background 0.15s;
 }
-.cal-arrow:hover { background: #efefef; }
+.cal-arrow:hover { background: var(--primary-light); }
 
 .cal-weekdays-row {
   display: grid; grid-template-columns: repeat(7, 1fr);
@@ -96,7 +97,7 @@
 
 .cal-legend {
   display: flex; align-items: center; gap: 6px;
-  padding-top: 8px; border-top: 1px solid #f0f0f0;
+  padding-top: 8px; border-top: 1px solid var(--border);
 }
 .legend-label { font-size: 11px; color: var(--text-light); margin-right: 2px; }
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
@@ -109,8 +110,8 @@
 .history-title { font-size: 14px; font-weight: 700; color: var(--text-dark); }
 .history-count {
   font-size: 11px;
-  color: #fff;
-  background: #1a1d24;
+  color: var(--bg);
+  background: var(--text-dark);
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 600;
@@ -118,7 +119,7 @@
 .history-list { display: flex; flex-direction: column; gap: 12px; max-height: 280px; overflow-y: auto; }
 .history-empty { font-size: 13px; color: var(--text-light); text-align: center; padding: 20px 0; }
 
-.history-item { padding-bottom: 12px; border-bottom: 1px solid #f5f5f5; }
+.history-item { padding-bottom: 12px; border-bottom: 1px solid var(--border); }
 .history-item:last-child { border-bottom: none; padding-bottom: 0; }
 .history-item-top {
   display: flex; align-items: center; gap: 5px; margin-bottom: 4px;
@@ -164,15 +165,15 @@
 
 .chat-bubble-msg {
   padding: 12px 16px; border-radius: 18px;
-  font-size: 14px; line-height: 1.55; color: #2d3a3a;
+  font-size: 14px; line-height: 1.55; color: var(--text-dark);
 }
 .chat-bubble-msg.assistant {
-  background: #eef2f6;
+  background: color-mix(in srgb, var(--primary-light) 55%, var(--bg-card));
   border-bottom-left-radius: 4px;
 }
 .chat-bubble-msg.user {
-  background: #1a1d24;
-  color: #fff;
+  background: var(--text-dark);
+  color: var(--bg);
   border-bottom-right-radius: 4px;
 }
 
@@ -191,13 +192,13 @@
   30% { transform: translateY(-6px); }
 }
 
-.chat-time { font-size: 11px; color: #aaa; }
+.chat-time { font-size: 11px; color: var(--text-light); }
 
 /* Input area */
 .chat-input-row {
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border);
   padding: 14px 18px;
-  background: white;
+  background: var(--bg-card);
 }
 .chat-input-hint {
   font-size: 13px; color: var(--text-light); margin-bottom: 10px;
@@ -205,25 +206,27 @@
 .chat-input-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .chat-input {
   flex: 1; min-width: 0; padding: 10px 14px;
-  border: 1.5px solid #e8e8e8; border-radius: 20px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
   font-family: 'Nunito', sans-serif; font-size: 14px;
   outline: none; transition: border-color 0.2s;
   color: var(--text-dark);
+  background: var(--bg);
 }
-.chat-input:focus { border-color: #a3c617; }
+.chat-input:focus { border-color: var(--primary); }
 
 .chat-send-btn {
   display: flex; align-items: center; gap: 6px;
   padding: 10px 18px; border-radius: 20px; border: none;
-  background: #e8ecf2;
-  color: #7a8494;
+  background: color-mix(in srgb, var(--border) 65%, var(--bg-card));
+  color: var(--text-mid);
   font-family: 'Nunito', sans-serif; font-size: 14px;
   font-weight: 600; cursor: pointer; transition: all 0.2s;
   white-space: nowrap;
 }
 .chat-send-btn.active {
-  background: #a3c617;
-  color: #fff;
+  background: var(--primary);
+  color: var(--bg);
 }
 .chat-send-btn:disabled { opacity: 0.6; cursor: default; }
 
@@ -248,7 +251,10 @@
   font-size: 10px; color: var(--text-light); margin-bottom: 4px;
 }
 .emotion-track {
-  height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
 }
 .emotion-fill {
   height: 100%; border-radius: 3px;
@@ -263,7 +269,10 @@
 }
 .overall-card {
   display: flex; align-items: center; gap: 10px;
-  background: #f8f8f8; border-radius: 12px; padding: 12px;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
 }
 .overall-emoji { font-size: 24px; }
 .overall-mood-name { font-size: 14px; font-weight: 700; color: var(--text-dark); }
@@ -271,8 +280,8 @@
 
 /* ── Support card ── */
 .support-block {
-  background: linear-gradient(135deg, #f4f7e8 0%, #e8eef5 100%);
-  border: 1px solid #dde4ec;
+  background: linear-gradient(135deg, var(--primary-light) 0%, color-mix(in srgb, var(--bg) 88%, var(--border)) 100%);
+  border: 1px solid var(--border);
   text-align: right; position: relative; min-height: 120px;
 }
 .support-stars {
@@ -285,10 +294,17 @@
 }
 .support-character { font-size: 36px; }
 .support-text {
-  background: white; border-radius: 14px; border-bottom-right-radius: 4px;
-  padding: 10px 12px; font-size: 13px; font-weight: 600;
-  color: var(--text-dark); max-width: 130px; line-height: 1.4;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  background: var(--bg-card);
+  border-radius: 14px;
+  border-bottom-right-radius: 4px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  max-width: 130px;
+  line-height: 1.4;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
 }
 
 /* ── Responsive ── */

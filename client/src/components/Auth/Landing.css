@@ -9,7 +9,7 @@
   flex-direction: column;
   background: linear-gradient(180deg, #e8eef5 0%, #f0f4f8 40%, #eef2f6 100%);
   font-family: 'Nunito', sans-serif;
-  color: #1a1d24;
+  color: var(--text-dark);
   overflow-x: hidden;
   box-sizing: border-box;
 }
@@ -356,4 +356,43 @@
 @media (max-width: 600px) {
   .features-grid { grid-template-columns: 1fr; }
   .hero-stats { gap: 20px; }
+}
+
+/* Тёмная тема (лендинг под тем же data-theme, что и приложение) */
+[data-theme='dark'] .landing {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-card) 40%, var(--bg) 100%);
+  color: var(--text-dark);
+}
+[data-theme='dark'] .landing .land-nav {
+  background: color-mix(in srgb, var(--bg-card) 92%, transparent);
+  border-bottom-color: var(--border);
+}
+[data-theme='dark'] .landing .land-logo-name,
+[data-theme='dark'] .landing .hero-title,
+[data-theme='dark'] .landing .feature-title,
+[data-theme='dark'] .landing .whom-title,
+[data-theme='dark'] .landing .cta-title {
+  color: var(--text-dark);
+}
+[data-theme='dark'] .landing .land-logo-sub,
+[data-theme='dark'] .landing .hero-sub,
+[data-theme='dark'] .landing .feature-desc,
+[data-theme='dark'] .landing .whom-desc,
+[data-theme='dark'] .landing .cta-sub,
+[data-theme='dark'] .landing .footer-copy {
+  color: var(--text-mid);
+}
+[data-theme='dark'] .landing .land-cta,
+[data-theme='dark'] .landing .land-footer {
+  background: color-mix(in srgb, var(--bg-card) 70%, var(--bg));
+  border-top-color: var(--border);
+}
+[data-theme='dark'] .landing .cta-card {
+  background: var(--bg-card);
+  box-shadow: var(--shadow-md);
+}
+[data-theme='dark'] .landing .land-btn-outline {
+  background: var(--bg-card);
+  border-color: var(--border);
+  color: var(--text-mid);
 }
