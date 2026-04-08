@@ -440,3 +440,71 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Тёмная тема: читаемый текст и карточки ── */
+[data-theme='dark'] .practices-page .pr-hero {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--bg-card) 45%, var(--bg) 100%);
+}
+[data-theme='dark'] .practices-page .pr-hero-inner {
+  background: color-mix(in srgb, var(--bg-card) 92%, #000);
+}
+[data-theme='dark'] .practices-page .pr-hero-flower {
+  color: var(--primary);
+}
+[data-theme='dark'] .practices-page .pr-hero-quote {
+  color: var(--text-dark);
+}
+[data-theme='dark'] .practices-page .pr-hero-sub {
+  color: var(--text-mid);
+}
+[data-theme='dark'] .practices-page .pr-hint {
+  background: var(--bg-card);
+  border-color: var(--border);
+  color: var(--text-mid);
+  box-shadow: var(--shadow);
+}
+[data-theme='dark'] .practices-page .pr-filter {
+  background: var(--bg-card);
+  border-color: var(--border);
+  color: var(--text-mid);
+}
+[data-theme='dark'] .practices-page .pr-filter:hover {
+  border-color: var(--primary);
+}
+[data-theme='dark'] .practices-page .pr-filter.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--bg);
+}
+[data-theme='dark'] .practices-page .pr-card {
+  background: var(--bg-card);
+  border-color: var(--border);
+  color: var(--text-dark);
+  box-shadow: var(--shadow);
+}
+[data-theme='dark'] .practices-page .pr-card-title,
+[data-theme='dark'] .practices-page .pr-card-desc {
+  color: inherit;
+}
+[data-theme='dark'] .practices-page .pr-timer-done,
+[data-theme='dark'] .practices-page .pr-quick-hint,
+[data-theme='dark'] .practices-page .pr-affirm-list {
+  color: var(--text-mid);
+}
+[data-theme='dark'] .practices-page .pr-ground-step {
+  color: var(--text-dark);
+}
+[data-theme='dark'] .practices-page .pr-modal {
+  background: var(--bg-card);
+  box-shadow: var(--shadow-md);
+}
+[data-theme='dark'] .practices-page .pr-modal-close {
+  background: var(--bg);
+  color: var(--text-mid);
+}
+[data-theme='dark'] .practices-page .pr-modal-title {
+  color: var(--text-dark);
+}
+[data-theme='dark'] .practices-page .pr-modal-desc {
+  color: var(--text-mid);
+}

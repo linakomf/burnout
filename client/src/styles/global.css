@@ -151,6 +151,9 @@ body {
 }
 .btn-secondary { background: var(--secondary); color: var(--text-dark); }
 .btn-secondary:hover { background: #fbbf8a; transform: translateY(-1px); }
+[data-theme='dark'] .btn-secondary:hover {
+  background: color-mix(in srgb, var(--secondary) 75%, #fff);
+}
 .btn-accent { background: var(--accent); color: var(--text-dark); }
 .btn-ghost {
   background: transparent; color: var(--text-mid);
@@ -163,6 +166,14 @@ body {
 }
 .btn-danger { background: #fff0f0; color: #d04040; border: 1px solid #ffd0d0; }
 .btn-danger:hover { background: #ffe0e0; }
+[data-theme='dark'] .btn-danger {
+  background: #3d2224;
+  color: #f0a0a0;
+  border-color: #5a3034;
+}
+[data-theme='dark'] .btn-danger:hover {
+  background: #4a2a2c;
+}
 
 /* Inputs */
 .input {

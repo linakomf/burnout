@@ -392,7 +392,7 @@ const Dashboard = () => {
       {showOnboarding && (
         <div className="modal-overlay" role="dialog" aria-labelledby="onboard-title">
           <div className="modal-card fade-in">
-            <h2 id="onboard-title" style={{ margin: '0 0 12px', fontSize: 22, fontWeight: 800 }}>Добро пожаловать</h2>
+            <h2 id="onboard-title" style={{ margin: '0 0 12px', fontSize: 22, fontWeight: 800}}>Добро пожаловать</h2>
             <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--text-mid)', marginBottom: 20 }}>
               Начните с теста <strong>GAD-7</strong> (тревожность) и <strong>ежедневного чек-ина</strong> — так в разделе «Аналитика»
               появится динамика. Затем загляните в <strong>Практики</strong>: мы подберём упражнения под ваши последние результаты.

@@ -1,7 +1,7 @@
 .ai-fab {
   position: fixed; bottom: 28px; right: 28px; z-index: 300;
   display: flex; align-items: center; gap: 8px;
-  background: #1a1d24;
+  background: var(--sidebar-bg);
   color: #fff;
   border: none; border-radius: 28px; padding: 14px 20px;
   cursor: pointer; box-shadow: 0 8px 30px rgba(26, 29, 36, 0.28);
@@ -15,7 +15,8 @@
 .ai-chat-window {
   position: fixed; bottom: 90px; right: 28px; z-index: 299;
   width: 360px; height: 500px;
-  background: white; border-radius: 24px;
+  background: var(--bg-card);
+  border-radius: 24px;
   box-shadow: 0 20px 60px rgba(26,29,58,0.2);
   display: flex; flex-direction: column; overflow: hidden;
   border: 1px solid var(--border);
@@ -24,7 +25,7 @@
 .ai-chat-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 20px;
-  background: #1a1d24;
+  background: var(--sidebar-bg);
 }
 .ai-header-info { display: flex; align-items: center; gap: 10px; }
 .ai-avatar {
@@ -55,8 +56,8 @@
 }
 .ai-msg.assistant .ai-msg-avatar {
   background: rgba(163, 198, 23, 0.2);
-  border-color: #a3c617;
-  color: #5a7010;
+  border-color: var(--primary);
+  color: var(--primary-dark);
 }
 
 .ai-msg-bubble {
@@ -65,12 +66,12 @@
   background: var(--bg);
 }
 .ai-msg.assistant .ai-msg-bubble {
-  background: #eef2f6;
+  background: color-mix(in srgb, var(--primary-light) 50%, var(--bg-card));
   border-bottom-left-radius: 4px;
 }
 .ai-msg.user .ai-msg-bubble {
-  background: #1a1d24;
-  color: #fff;
+  background: var(--text-dark);
+  color: var(--bg);
   border-bottom-right-radius: 4px;
 }
 
@@ -94,21 +95,30 @@
   border-top: 1px solid var(--border);
 }
 .ai-input {
-  flex: 1; padding: 10px 14px; border: 1.5px solid var(--border);
-  border-radius: 20px; font-family: 'Nunito', sans-serif; font-size: 14px;
-  outline: none; transition: border-color 0.2s;
+  flex: 1;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  color: var(--text-dark);
+  background: var(--bg);
 }
 .ai-input:focus { border-color: var(--primary); }
 
 .ai-send {
   width: 38px; height: 38px; border-radius: 50%; border: none;
-  background: #e8ecf2; color: #7a8494; cursor: pointer;
+  background: color-mix(in srgb, var(--border) 70%, var(--bg-card));
+  color: var(--text-mid);
+  cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: background 0.2s, color 0.2s;
 }
 .ai-send.active {
-  background: #a3c617;
-  color: #fff;
+  background: var(--primary);
+  color: var(--bg);
 }
 .ai-send:disabled { opacity: 0.5; cursor: default; }
 

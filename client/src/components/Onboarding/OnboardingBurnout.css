@@ -45,7 +45,7 @@
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: clamp(22px, 4vw, 28px);
   font-weight: 800;
-  color: #1a1d24;
+  color: var(--text-dark);
   margin: 0 0 8px;
   line-height: 1.2;
 }
@@ -54,7 +54,7 @@
   margin: 0;
   font-size: 14px;
   line-height: 1.55;
-  color: #5a6578;
+  color: var(--text-mid);
   font-weight: 500;
 }
 
@@ -68,19 +68,19 @@
 .onb-progress-label {
   font-size: 14px;
   font-weight: 700;
-  color: #1a1d24;
+  color: var(--text-dark);
 }
 
 .onb-progress-pct {
   font-size: 13px;
   font-weight: 700;
-  color: #7a8494;
+  color: var(--text-light);
 }
 
 .onb-progress-track {
   height: 6px;
   border-radius: 6px;
-  background: #dde4ec;
+  background: var(--border);
   overflow: hidden;
   margin-bottom: 22px;
 }
@@ -93,10 +93,10 @@
 }
 
 .onb-question-card {
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 22px;
   padding: 24px 22px 22px;
-  border: 1px solid #dde4ec;
+  border: 1px solid var(--border);
   box-shadow: 0 8px 32px rgba(26, 29, 36, 0.07);
   margin-bottom: 20px;
 }
@@ -116,7 +116,7 @@
 .onb-q-text {
   font-size: 17px;
   font-weight: 700;
-  color: #1a1d24;
+  color: var(--text-dark);
   line-height: 1.45;
   margin: 0 0 20px;
 }
@@ -133,20 +133,20 @@
   gap: 12px;
   padding: 14px 16px;
   border-radius: 14px;
-  border: 1.5px solid #dde4ec;
-  background: #f8fafc;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
   font-family: inherit;
   font-size: 15px;
   font-weight: 600;
-  color: #1a1d24;
+  color: var(--text-dark);
   text-align: left;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
 .onb-option:hover {
-  border-color: #a3c617;
-  background: #fff;
+  border-color: var(--primary);
+  background: var(--bg-card);
 }
 
 .onb-option.selected {
@@ -167,7 +167,7 @@
 .onb-option.selected .onb-option-dot {
   border-color: #a3c617;
   background: #a3c617;
-  box-shadow: inset 0 0 0 3px #fff;
+  box-shadow: inset 0 0 0 3px var(--bg-card);
 }
 
 .onb-actions {
@@ -188,14 +188,14 @@
   font-family: inherit;
   font-size: 14px;
   font-weight: 700;
-  color: #5a6578;
+  color: var(--text-mid);
   cursor: pointer;
   border-radius: 10px;
 }
 
 .onb-back-btn:hover {
   background: rgba(26, 29, 36, 0.05);
-  color: #1a1d24;
+  color: var(--text-dark);
 }
 
 .onb-next-btn {
@@ -206,7 +206,7 @@
 .onb-foot-hint {
   text-align: center;
   font-size: 13px;
-  color: #7a8494;
+  color: var(--text-light);
   margin: 0;
   line-height: 1.5;
 }
@@ -245,22 +245,22 @@
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 26px;
   font-weight: 800;
-  color: #1a1d24;
+  color: var(--text-dark);
   margin: 0 0 6px;
 }
 
 .onb-result-sub {
   margin: 0;
   font-size: 14px;
-  color: #7a8494;
+  color: var(--text-light);
   font-weight: 500;
 }
 
 .onb-result-card {
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 22px;
   padding: 28px 24px 24px;
-  border: 1px solid #dde4ec;
+  border: 1px solid var(--border);
   box-shadow: 0 8px 32px rgba(26, 29, 36, 0.08);
   margin-bottom: 20px;
 }
@@ -296,8 +296,8 @@
   width: 4px;
   height: 22px;
   border-radius: 2px;
-  background: #fff;
-  box-shadow: 0 0 0 2px #1a1d24, 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 2px var(--text-dark), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .onb-score-row {
@@ -320,14 +320,14 @@
 .onb-score-pct {
   font-size: 28px;
   font-weight: 800;
-  color: #1a1d24;
+  color: var(--text-dark);
   letter-spacing: -0.02em;
 }
 
 .onb-score-label {
   font-size: 14px;
   font-weight: 600;
-  color: #7a8494;
+  color: var(--text-light);
 }
 
 .onb-level-title {
@@ -346,18 +346,18 @@
   margin: 0;
   font-size: 14px;
   line-height: 1.6;
-  color: #5a6578;
+  color: var(--text-mid);
 }
 
 .onb-offline-note {
   margin: 16px 0 0;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #f0f4f8;
-  border: 1px solid #dde4ec;
+  background: var(--bg);
+  border: 1px solid var(--border);
   font-size: 13px;
   line-height: 1.5;
-  color: #5a6578;
+  color: var(--text-mid);
   font-weight: 600;
 }
 
@@ -370,8 +370,8 @@
   padding: 16px 24px;
   border: none;
   border-radius: 16px;
-  background: #1a1d24;
-  color: #fff;
+  background: var(--text-dark);
+  color: var(--bg);
   font-family: inherit;
   font-size: 16px;
   font-weight: 700;
@@ -381,14 +381,23 @@
 }
 
 .onb-continue-btn:hover {
-  background: #2d313a;
+  opacity: 0.92;
   transform: translateY(-1px);
 }
 
 .onb-result-foot {
   text-align: center;
   font-size: 12px;
-  color: #7a8494;
+  color: var(--text-light);
   margin: 16px 0 0;
   line-height: 1.5;
+}
+
+[data-theme='dark'] .onb-page {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-card) 50%, var(--bg) 100%);
+}
+[data-theme='dark'] .onb-error-banner {
+  background: #3d3520;
+  border-color: #6b5a30;
+  color: #e8c96a;
 }
