@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
-  Home, BookOpen, Calendar, BarChart2, ChevronLeft, ChevronRight, Users, Tag, Brain, Flower2, User,
+  Home, Calendar, BarChart2, ChevronLeft, ChevronRight, Users, Tag, Brain, Flower2, User,
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -15,7 +15,7 @@ const Sidebar = () => {
   const studentLinks = [
     { path: '/dashboard', icon: <Home size={19} />, label: 'Главная' },
     { path: '/stats',     icon: <BarChart2 size={19} />, label: 'Аналитика' },
-    { path: '/tests',     icon: <BookOpen size={19} />, label: 'Тесты' },
+    { path: '/tests',     icon: <Brain size={19} />, label: 'Тесты' },
     { path: '/practices', icon: <Flower2 size={19} />, label: 'Практики' },
     { path: '/diary',     icon: <Calendar size={19} />, label: 'ИИ Дневник' },
     { path: '/profile',   icon: <User size={19} />, label: 'Профиль' },
@@ -25,7 +25,7 @@ const Sidebar = () => {
     { path: '/admin',            icon: <Home size={19} />,    label: 'Обзор' },
     { path: '/admin/users',      icon: <Users size={19} />,   label: 'Пользователи' },
     { path: '/admin/categories', icon: <Tag size={19} />,     label: 'Категории' },
-    { path: '/admin/tests',      icon: <BookOpen size={19} />,label: 'Тесты' },
+    { path: '/admin/tests',      icon: <Brain size={19} />, label: 'Тесты' },
     { path: '/profile',          icon: <User size={19} />,    label: 'Профиль' },
   ];
 

@@ -5,12 +5,22 @@ const fs = require('fs');
 require('dotenv').config();
 const { ensurePracticeSchema } = require('./ensurePracticeSchema');
 const { ensureOnboardingSchema } = require('./ensureOnboardingSchema');
+const { ensureTestSchema } = require('./ensureTestSchema');
+const { ensureTestCatalog } = require('./ensureTestCatalog');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+app.use('/api', (req, res, next) => {
+  const sendJson = res.json.bind(res);
+  res.json = (body) => {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    return sendJson(body);
+  };
+  next();
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -35,6 +45,8 @@ app.get('/api/health', (req, res) => {
 Promise.resolve()
   .then(() => ensurePracticeSchema())
   .then(() => ensureOnboardingSchema())
+  .then(() => ensureTestSchema())
+  .then(() => ensureTestCatalog())
   .finally(() => {
     app.listen(PORT, () => {
       console.log(`🚀 Server running at http://localhost:${PORT}`);

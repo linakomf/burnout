@@ -18,8 +18,13 @@ const pool = new Pool({
   password: String(parsed.password ?? process.env.PGPASSWORD ?? ''),
 });
 
-pool.on('connect', () => {
-  console.log('✅ Connected to PostgreSQL database');
+let pgLogOnce = false;
+pool.on('connect', (client) => {
+  client.query("SET client_encoding TO 'UTF8'").catch(() => {});
+  if (!pgLogOnce) {
+    pgLogOnce = true;
+    console.log('✅ Connected to PostgreSQL database');
+  }
 });
 
 pool.on('error', (err) => {

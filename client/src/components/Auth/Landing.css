@@ -48,6 +48,9 @@
 .land-btn-ghost:hover { background: rgba(0,0,0,0.06); }
 
 .land-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: #a3c617; color: #fff; border: none;
   padding: 11px 24px; border-radius: 30px;
   font-family: 'Nunito', sans-serif; font-size: 15px;
