@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 const { computeTestResult } = require('../scoring');
+const { applyCanonicalToTestRow, applyCanonicalToTestRows } = require('../testCanonical');
 
 // GET /api/tests - get tests relevant to user role
 router.get('/', authMiddleware, async (req, res) => {
@@ -13,11 +14,12 @@ router.get('/', authMiddleware, async (req, res) => {
        (SELECT COUNT(*)::int FROM questions q WHERE q.test_id = t.test_id) AS question_count
        FROM tests t 
        LEFT JOIN categories c ON t.category_id = c.category_id
-       WHERE c.target_role = 'all' OR c.target_role = $1
+       WHERE t.test_id <> 1
+         AND (c.target_role = 'all' OR c.target_role = $1)
        ORDER BY t.created_at DESC`,
       [role]
     );
-    res.json(result.rows);
+    res.json(applyCanonicalToTestRows(result.rows));
   } catch (err) {
     res.status(500).json({ message: 'Ошибка сервера' });
   }
@@ -35,7 +37,16 @@ router.get('/results/my', authMiddleware, async (req, res) => {
        ORDER BY tr.created_at DESC`,
       [req.user.user_id]
     );
-    res.json(result.rows);
+    res.json(
+      result.rows.map((row) => {
+        const fixed = applyCanonicalToTestRow({
+          test_id: row.test_id,
+          title: row.title,
+          description: row.description,
+        });
+        return { ...row, title: fixed.title, description: fixed.description };
+      })
+    );
   } catch (err) {
     res.status(500).json({ message: 'Ошибка сервера' });
   }
@@ -43,6 +54,10 @@ router.get('/results/my', authMiddleware, async (req, res) => {
 
 // GET /api/tests/:id - get test with questions
 router.get('/:id', authMiddleware, async (req, res) => {
+  const tid = parseInt(req.params.id, 10);
+  if (Number.isFinite(tid) && tid === 1) {
+    return res.status(404).json({ message: 'Тест не найден' });
+  }
   try {
     const testResult = await pool.query(
       `SELECT t.*, c.name as category_name FROM tests t 
@@ -57,7 +72,10 @@ router.get('/:id', authMiddleware, async (req, res) => {
       [req.params.id]
     );
 
-    res.json({ ...testResult.rows[0], questions: questionsResult.rows });
+    res.json({
+      ...applyCanonicalToTestRow(testResult.rows[0]),
+      questions: questionsResult.rows,
+    });
   } catch (err) {
     res.status(500).json({ message: 'Ошибка сервера' });
   }
@@ -68,6 +86,10 @@ router.post('/:id/submit', authMiddleware, async (req, res) => {
   const { answers } = req.body; // { questionId: answerIndex }
   const userId = req.user.user_id;
   const testId = req.params.id;
+  const tid = parseInt(testId, 10);
+  if (Number.isFinite(tid) && tid === 1) {
+    return res.status(404).json({ message: 'Тест не найден' });
+  }
 
   try {
     const testRow = await pool.query('SELECT * FROM tests WHERE test_id=$1', [testId]);
@@ -252,7 +274,10 @@ router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
       'SELECT * FROM questions WHERE test_id = $1 ORDER BY order_num',
       [testId]
     );
-    res.json({ ...testResult.rows[0], questions: questionsResult.rows });
+    res.json({
+      ...applyCanonicalToTestRow(testResult.rows[0]),
+      questions: questionsResult.rows,
+    });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error(err);

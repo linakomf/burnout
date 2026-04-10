@@ -76,7 +76,8 @@ const App = () => {
       <AuthProvider>
         <div className="app-routes-outlet">
         <Routes>
-          <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
+          {/* Главная — всегда лендинг; в кабинет — по кнопке или прямым маршрутам */}
+          <Route path="/" element={<Landing />} />
 
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />

@@ -455,7 +455,7 @@ const Stats = () => {
 
   const insights = useMemo(() => {
     const sourceParts = [
-      testsCount > 0 ? `результаты тестов (${testsCount})` : null,
+      testsCount > 0 ? `тесты (${testsCount})` : null,
       entriesCount > 0
         ? `дневник (${entriesCount}${diaryNotesCount ? `, из них ${diaryNotesCount} с заметкой` : ''})`
         : null,

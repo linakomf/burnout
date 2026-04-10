@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Shield, Zap, Users, CheckCircle } from 'lucide-react';
+import { Brain, Shield, Zap, Users, CheckCircle, LayoutDashboard } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import './Landing.css';
 
 /** Файл: client/public/photos/character.png (или персонаж.png). PUBLIC_URL — для деплоя не в корень домена. */
@@ -10,8 +11,16 @@ const HERO_IMAGE_SRC_ALT = encodeURI(`${publicPrefix}/photos/персонаж.pn
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [heroImgSrc, setHeroImgSrc] = useState(HERO_IMAGE_SRC);
   const [heroImgFailed, setHeroImgFailed] = useState(false);
+
+  const goToApp = () => {
+    if (!user) return;
+    if (user.role === 'admin') navigate('/admin');
+    else if (!user.onboarding_burnout_completed) navigate('/onboarding/burnout');
+    else navigate('/dashboard');
+  };
 
   return (
     <div className="landing">
@@ -26,8 +35,21 @@ const Landing = () => {
           </div>
         </div>
         <div className="land-nav-actions">
-          <button className="land-btn-ghost" onClick={() => navigate('/login')}>Вход</button>
-          <button className="land-btn-primary" onClick={() => navigate('/register')}>Регистрация</button>
+          {user ? (
+            <button type="button" className="land-btn-primary" onClick={goToApp}>
+              <LayoutDashboard size={18} aria-hidden />
+              В кабинет
+            </button>
+          ) : (
+            <>
+              <button type="button" className="land-btn-ghost" onClick={() => navigate('/login')}>
+                Вход
+              </button>
+              <button type="button" className="land-btn-primary" onClick={() => navigate('/register')}>
+                Регистрация
+              </button>
+            </>
+          )}
         </div>
       </nav>
 
