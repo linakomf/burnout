@@ -1,0 +1,401 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+
+.landing {
+  flex: 1;
+  min-height: 100%;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #e8eef5 0%, #f0f4f8 40%, #eef2f6 100%);
+  font-family: 'Nunito', sans-serif;
+  color: var(--text-dark);
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* ── Navbar ── */
+.land-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px clamp(16px, 4vw, 60px);
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(240, 244, 248, 0.92);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  position: sticky; top: 0; z-index: 100;
+}
+.land-logo { display: flex; align-items: center; gap: 12px; }
+.land-logo-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: #a3c617; display: flex; align-items: center;
+  justify-content: center; color: white;
+  box-shadow: 0 4px 14px rgba(163, 198, 23, 0.35);
+}
+.land-logo-name {
+  display: block; font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 18px; font-weight: 700; color: #1a1d24;
+}
+.land-logo-sub { display: block; font-size: 12px; color: #8a9090; }
+
+.land-nav-actions { display: flex; align-items: center; gap: 12px; }
+
+.land-btn-ghost {
+  background: none; border: none; padding: 10px 20px;
+  font-family: 'Nunito', sans-serif; font-size: 15px;
+  font-weight: 600; color: #4a5a5a; cursor: pointer;
+  border-radius: 10px; transition: background 0.2s;
+}
+.land-btn-ghost:hover { background: rgba(0,0,0,0.06); }
+
+.land-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #a3c617; color: #fff; border: none;
+  padding: 11px 24px; border-radius: 30px;
+  font-family: 'Nunito', sans-serif; font-size: 15px;
+  font-weight: 700; cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(163, 198, 23, 0.3);
+}
+.land-btn-primary:hover { background: #8fb014; transform: translateY(-1px); }
+
+.land-btn-outline {
+  background: white; color: #4a5a5a;
+  border: 1.5px solid #ccc; padding: 12px 28px;
+  border-radius: 30px; font-family: 'Nunito', sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s;
+}
+.land-btn-outline:hover { border-color: #a3c617; color: #5a7010; }
+
+/* ── Hero ── */
+.land-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(24px, 5vw, 60px);
+  align-items: center;
+  padding: clamp(40px, 6vw, 80px) clamp(16px, 4vw, 48px);
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+.hero-left {
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.hero-right {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.hero-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(28px, 5.5vw, 58px);
+  font-weight: 800;
+  line-height: 1.12;
+  color: #1a1d24;
+  margin-bottom: 24px;
+}
+.hero-accent { color: #7a9014; }
+
+.hero-desc {
+  font-size: 17px; color: #6a7a7a; line-height: 1.65;
+  margin-bottom: 36px;
+  width: 100%;
+}
+
+.hero-actions { display: flex; gap: 14px; margin-bottom: 48px; flex-wrap: wrap; }
+.hero-cta { padding: 14px 32px; font-size: 16px; }
+
+.hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(20px, 4vw, 40px);
+}
+.hero-stat { display: flex; flex-direction: column; gap: 2px; }
+.stat-num {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 28px; font-weight: 800; color: #a3c617;
+}
+.stat-label { font-size: 13px; color: #8a9090; }
+
+/* Hero visual — как на дашборде */
+.hero-visual-card {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  margin-inline: auto;
+  border-radius: 28px;
+  overflow: hidden;
+  min-height: clamp(280px, 38vw, 400px);
+  aspect-ratio: 5 / 4;
+  max-height: min(520px, 74vh);
+  box-shadow: 0 16px 48px rgba(26, 29, 36, 0.12);
+  border: 1px solid #dde4ec;
+}
+.hero-visual-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(232, 240, 200, 0.5) 0%, transparent 45%),
+    url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=900&q=80') center/cover no-repeat;
+}
+/* Персонаж: максимально крупно в кадре, по центру снизу */
+.hero-visual-char {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(52px, 12%, 108px);
+  transform: translateX(-50%);
+  max-height: 98%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: center bottom;
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 28px rgba(26, 29, 36, 0.18));
+}
+
+.hero-visual-fallback {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(72px, 16%, 128px);
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(68%, 280px);
+  max-width: 280px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  color: #5a7010;
+  pointer-events: none;
+}
+.hero-visual-overlay {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  padding: 14px 16px 16px;
+  max-width: calc(100% - 24px);
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(26, 29, 36, 0.1);
+  border: 1px solid rgba(221, 228, 236, 0.9);
+  z-index: 4;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.hero-visual-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #1a1d24;
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+.hero-visual-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #5a6578;
+  font-weight: 500;
+  max-width: 100%;
+}
+
+/* ── Sections common ── */
+.section-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 40px; font-weight: 800; color: #1a1d24;
+  text-align: center; margin-bottom: 10px;
+}
+.section-sub {
+  font-size: 16px; color: #8a9090; text-align: center; margin-bottom: 48px;
+}
+
+/* ── Features ── */
+.land-features {
+  padding: clamp(48px, 6vw, 80px) clamp(16px, 4vw, 48px);
+  background: transparent;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(16px, 2vw, 24px);
+}
+.feature-card {
+  background: white; border-radius: 20px; padding: 28px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+}
+.feature-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+}
+.feature-title { font-size: 17px; font-weight: 800; color: #1a1d24; margin-bottom: 10px; }
+.feature-desc { font-size: 14px; color: #6a7a7a; line-height: 1.6; }
+
+/* ── For whom ── */
+.land-for-whom {
+  padding: clamp(48px, 6vw, 80px) clamp(16px, 4vw, 60px);
+  background: rgba(255, 255, 255, 0.45);
+  width: 100%;
+  box-sizing: border-box;
+}
+.land-for-whom .section-title,
+.land-for-whom .section-sub { width: 100%; margin-left: 0; margin-right: 0; }
+
+.whom-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+}
+.whom-card {
+  background: white; border-radius: 24px; padding: 36px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+}
+.whom-emoji { font-size: 48px; margin-bottom: 16px; display: block; }
+.whom-title { font-size: 26px; font-weight: 800; color: #1a1d24; margin-bottom: 12px; }
+.whom-desc { font-size: 15px; color: #6a7a7a; line-height: 1.6; margin-bottom: 24px; }
+.whom-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.whom-list li {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 15px; font-weight: 600; color: #3a4a4a;
+}
+.whom-list li svg { color: #a3c617; flex-shrink: 0; }
+
+/* ── Trust banner ── */
+.land-trust {
+  background: #1a1d24;
+  padding: 28px clamp(16px, 4vw, 60px);
+  width: 100%;
+  box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(24px, 6vw, 80px); flex-wrap: wrap;
+}
+.trust-item {
+  display: flex; align-items: center; gap: 12px;
+  color: white; font-size: 16px; font-weight: 600;
+}
+
+/* ── CTA ── */
+.land-cta {
+  padding: clamp(48px, 6vw, 80px) clamp(16px, 4vw, 60px);
+  background: rgba(240, 244, 248, 0.92);
+  width: 100%;
+  box-sizing: border-box;
+  display: flex; justify-content: center;
+}
+.cta-card {
+  background: white; border-radius: 28px; padding: clamp(32px, 5vw, 60px);
+  text-align: center; width: 100%;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.07);
+  box-sizing: border-box;
+}
+.cta-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 38px; font-weight: 800; color: #1a1d24; margin-bottom: 14px;
+}
+.cta-sub { font-size: 16px; color: #6a7a7a; margin-bottom: 32px; line-height: 1.6; }
+.cta-btn { padding: 16px 40px; font-size: 17px; }
+
+/* ── Footer ── */
+.land-footer {
+  background: rgba(240, 244, 248, 0.92);
+  padding: 36px clamp(16px, 4vw, 60px);
+  width: 100%;
+  box-sizing: border-box;
+  border-top: 1px solid rgba(0,0,0,0.07);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  margin-top: auto;
+}
+.footer-logo { display: flex; align-items: center; gap: 10px; }
+.footer-copy { font-size: 13px; color: #8a9090; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .land-nav { padding: 16px 24px; }
+  .land-hero {
+    grid-template-columns: 1fr;
+    padding: 48px 24px;
+    gap: 40px;
+    align-items: start;
+  }
+  .hero-visual-card {
+    max-width: none;
+    max-height: none;
+    aspect-ratio: 4 / 3;
+    min-height: 280px;
+  }
+  .land-features { padding: 60px 24px; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .land-for-whom { padding: 60px 24px; }
+  .whom-grid { grid-template-columns: 1fr; }
+  .land-trust { padding: 24px; gap: 30px; flex-direction: column; }
+  .land-cta { padding: 48px 24px; }
+  .cta-card { padding: 36px 24px; }
+  .cta-title { font-size: 28px; }
+}
+@media (max-width: 600px) {
+  .features-grid { grid-template-columns: 1fr; }
+  .hero-stats { gap: 20px; }
+}
+
+/* Тёмная тема (лендинг под тем же data-theme, что и приложение) */
+[data-theme='dark'] .landing {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-card) 40%, var(--bg) 100%);
+  color: var(--text-dark);
+}
+[data-theme='dark'] .landing .land-nav {
+  background: color-mix(in srgb, var(--bg-card) 92%, transparent);
+  border-bottom-color: var(--border);
+}
+[data-theme='dark'] .landing .land-logo-name,
+[data-theme='dark'] .landing .hero-title,
+[data-theme='dark'] .landing .feature-title,
+[data-theme='dark'] .landing .whom-title,
+[data-theme='dark'] .landing .cta-title {
+  color: var(--text-dark);
+}
+[data-theme='dark'] .landing .land-logo-sub,
+[data-theme='dark'] .landing .hero-sub,
+[data-theme='dark'] .landing .feature-desc,
+[data-theme='dark'] .landing .whom-desc,
+[data-theme='dark'] .landing .cta-sub,
+[data-theme='dark'] .landing .footer-copy {
+  color: var(--text-mid);
+}
+[data-theme='dark'] .landing .land-cta,
+[data-theme='dark'] .landing .land-footer {
+  background: color-mix(in srgb, var(--bg-card) 70%, var(--bg));
+  border-top-color: var(--border);
+}
+[data-theme='dark'] .landing .cta-card {
+  background: var(--bg-card);
+  box-shadow: var(--shadow-md);
+}
+[data-theme='dark'] .landing .land-btn-outline {
+  background: var(--bg-card);
+  border-color: var(--border);
+  color: var(--text-mid);
+}

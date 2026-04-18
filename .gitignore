@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build
+client/build/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Uploads (local dev)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Logs & OS
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp

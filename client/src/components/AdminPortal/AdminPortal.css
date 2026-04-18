@@ -1,0 +1,267 @@
+.admin-portal-root {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0f1419 0%, #1a2332 45%, #121820 100%);
+  color: #e8eaed;
+  font-family: 'Plus Jakarta Sans', 'Nunito', system-ui, sans-serif;
+}
+
+.admin-portal-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.admin-portal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.admin-portal-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-portal-brand h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.admin-portal-brand p {
+  font-size: 0.9rem;
+  color: #8b9aab;
+  max-width: 520px;
+  line-height: 1.5;
+}
+
+.admin-portal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-portal-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.admin-portal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-portal-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.admin-portal-btn-primary {
+  background: linear-gradient(135deg, #5b8def 0%, #7c5cff 100%);
+  color: #fff;
+}
+
+.admin-portal-btn-ghost {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e8eaed;
+}
+
+.admin-portal-login-card {
+  max-width: 400px;
+  margin: 48px auto;
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+}
+
+.admin-portal-login-card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.admin-portal-login-card .hint {
+  font-size: 0.8rem;
+  color: #6b7c8f;
+  margin-bottom: 22px;
+  line-height: 1.45;
+}
+
+.admin-portal-field {
+  margin-bottom: 16px;
+}
+
+.admin-portal-field label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8b9aab;
+  margin-bottom: 8px;
+}
+
+.admin-portal-field input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.admin-portal-field input:focus {
+  outline: none;
+  border-color: #7c5cff;
+  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.2);
+}
+
+.admin-portal-error {
+  color: #ff8a8a;
+  font-size: 0.875rem;
+  margin-bottom: 14px;
+}
+
+.admin-portal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.admin-portal-stat {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.admin-portal-stat .val {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.admin-portal-stat .lbl {
+  font-size: 0.8rem;
+  color: #8b9aab;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.admin-portal-section {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.admin-portal-section h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.admin-portal-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-portal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.admin-portal-table th {
+  text-align: left;
+  padding: 10px 12px;
+  color: #8b9aab;
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-portal-table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #d1d6de;
+}
+
+.admin-portal-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-portal-chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.admin-portal-chip.student {
+  background: rgba(91, 141, 239, 0.2);
+  color: #9dbefc;
+}
+
+.admin-portal-chip.teacher {
+  background: rgba(255, 183, 77, 0.2);
+  color: #ffcc80;
+}
+
+.admin-portal-chip.admin {
+  background: rgba(236, 64, 122, 0.2);
+  color: #f48fb1;
+}
+
+.admin-portal-chart {
+  height: 280px;
+  width: 100%;
+}
+
+.admin-portal-loading {
+  text-align: center;
+  padding: 48px;
+  color: #8b9aab;
+}
+
+.admin-portal-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .admin-portal-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes admin-portal-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.admin-portal-spin {
+  animation: admin-portal-spin 0.8s linear infinite;
+}

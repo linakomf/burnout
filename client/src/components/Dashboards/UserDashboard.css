@@ -1,0 +1,229 @@
+/* Кабинет пользователя — светлый фон, зелёный акцент (--primary проекта) */
+
+.ud-root {
+  min-height: 100vh;
+  background: #f0f4f8;
+  color: #1a1d24;
+  font-family: 'Plus Jakarta Sans', 'Nunito', system-ui, sans-serif;
+}
+
+.ud-bar {
+  background: #fff;
+  border-bottom: 1px solid #dde4ec;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.ud-bar-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ud-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 1rem;
+  color: #1a1d24;
+}
+
+.ud-brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #a3c617 0%, #7a9014 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1d24;
+}
+
+.ud-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ud-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.ud-btn:active {
+  transform: scale(0.98);
+}
+
+.ud-btn-primary {
+  background: linear-gradient(135deg, #a3c617 0%, #8fb014 100%);
+  color: #1a1d24;
+  box-shadow: 0 2px 8px rgba(163, 198, 23, 0.35);
+}
+
+.ud-btn-primary:hover {
+  opacity: 0.95;
+}
+
+.ud-btn-ghost {
+  background: #fff;
+  border: 1px solid #dde4ec;
+  color: #5a6578;
+}
+
+.ud-btn-ghost:hover {
+  background: #f7f9fc;
+}
+
+.ud-main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+}
+
+.ud-hero {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 26px;
+  border: 1px solid #dde4ec;
+  box-shadow: 0 4px 20px rgba(26, 29, 36, 0.06);
+  margin-bottom: 22px;
+}
+
+.ud-hero h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  color: #1a1d24;
+}
+
+.ud-hero p {
+  color: #5a6578;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  margin-bottom: 20px;
+}
+
+.ud-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  margin-bottom: 18px;
+}
+
+.ud-status.low {
+  background: rgba(163, 198, 23, 0.18);
+  color: #4a5a0a;
+  border: 1px solid rgba(122, 144, 20, 0.25);
+}
+
+.ud-status.medium {
+  background: #fff8e6;
+  color: #8a6d1a;
+  border: 1px solid #f5e0a8;
+}
+
+.ud-status.high {
+  background: #fdecef;
+  color: #9b1c3f;
+  border: 1px solid #f5c2d4;
+}
+
+.ud-status.unknown {
+  background: #f0f4f8;
+  color: #5a6578;
+  border: 1px solid #dde4ec;
+}
+
+.ud-section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px 24px;
+  border: 1px solid #dde4ec;
+  box-shadow: 0 4px 20px rgba(26, 29, 36, 0.04);
+  margin-bottom: 20px;
+}
+
+.ud-section h2 {
+  font-size: 1rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: #1a1d24;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ud-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #dde4ec;
+}
+
+.ud-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.ud-table th {
+  text-align: left;
+  padding: 10px 12px;
+  background: #f7f9fc;
+  color: #7a8494;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #dde4ec;
+}
+
+.ud-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eef2f6;
+  color: #1a1d24;
+}
+
+.ud-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ud-empty {
+  text-align: center;
+  padding: 28px;
+  color: #7a8494;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.ud-link-row {
+  margin-top: 16px;
+  font-size: 0.8125rem;
+}
+
+.ud-link-row a {
+  color: #7a9014;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ud-link-row a:hover {
+  text-decoration: underline;
+}
