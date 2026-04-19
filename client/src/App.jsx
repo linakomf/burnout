@@ -29,7 +29,7 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
     </div>
   );
   if (!user) return <Navigate to="/" replace />;
-  if (adminOnly && user.role !== 'admin') return <Navigate to="/user-dashboard" replace />;
+  if (adminOnly && user.role !== 'admin') return <Navigate to="/dashboard" replace />;
   return children;
 };
 
@@ -41,7 +41,7 @@ function RequireAdminDashboard({ children }) {
     </div>
   );
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role !== 'admin') return <Navigate to="/user-dashboard" replace />;
+  if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;
   return children;
 }
 
@@ -67,7 +67,7 @@ const PublicRoute = ({ children }) => {
   );
   if (user) {
     if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
-    return <Navigate to="/user-dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return children;
 };
@@ -111,9 +111,7 @@ const App = () => {
           <Route path="/admin-dashboard" element={
             <RequireAdminDashboard><AdminDashboard /></RequireAdminDashboard>
           } />
-          <Route path="/user-dashboard" element={
-            <RequireUserDashboard><UserDashboard /></RequireUserDashboard>
-          } />
+          <Route path="/user-dashboard" element={<Navigate to="/dashboard" replace />} />
 
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
