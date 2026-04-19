@@ -13,8 +13,12 @@ import Profile from './components/Profile/Profile';
 import Diary from './components/Diary/Diary';
 import Practices from './components/Practices/Practices';
 import { AdminOverview, AdminUsers, AdminCategories, AdminTests } from './components/Admin/Admin';
+import AdminPortal from './components/AdminPortal/AdminPortal';
+import UserDashboard from './components/Dashboards/UserDashboard';
+import AdminDashboard from './components/Dashboards/AdminDashboard';
 import AIChat from './components/AI/AIChat';
 import OnboardingBurnout from './components/Onboarding/OnboardingBurnout';
+import Personalization from './components/Personalization/Personalization';
 import './styles/global.css';
 
 const PrivateRoute = ({ children, adminOnly = false }) => {
@@ -29,6 +33,30 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
   return children;
 };
 
+function RequireAdminDashboard({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return (
+    <div className="app-loading-fullscreen">
+      <div className="loading-spinner" />
+    </div>
+  );
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
+function RequireUserDashboard({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return (
+    <div className="app-loading-fullscreen">
+      <div className="loading-spinner" />
+    </div>
+  );
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
+  return children;
+}
+
 /** Публичные страницы: вошедший студент/преподаватель без теста → онбординг; остальные → кабинет */
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -38,8 +66,7 @@ const PublicRoute = ({ children }) => {
     </div>
   );
   if (user) {
-    if (user.role === 'admin') return <Navigate to="/admin" replace />;
-    if (!user.onboarding_burnout_completed) return <Navigate to="/onboarding/burnout" replace />;
+    if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
     return <Navigate to="/dashboard" replace />;
   }
   return children;
@@ -79,6 +106,13 @@ const App = () => {
           {/* Главная — всегда лендинг; в кабинет — по кнопке или прямым маршрутам */}
           <Route path="/" element={<Landing />} />
 
+          <Route path="/admin-portal" element={<AdminPortal />} />
+
+          <Route path="/admin-dashboard" element={
+            <RequireAdminDashboard><AdminDashboard /></RequireAdminDashboard>
+          } />
+          <Route path="/user-dashboard" element={<Navigate to="/dashboard" replace />} />
+
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
@@ -90,6 +124,13 @@ const App = () => {
             <PrivateRoute>
               <RequireOnboardingDone>
                 <UserLayout><Dashboard /></UserLayout>
+              </RequireOnboardingDone>
+            </PrivateRoute>
+          } />
+          <Route path="/personalization" element={
+            <PrivateRoute>
+              <RequireOnboardingDone>
+                <UserLayout><Personalization /></UserLayout>
               </RequireOnboardingDone>
             </PrivateRoute>
           } />

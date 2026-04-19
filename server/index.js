@@ -36,6 +36,7 @@ app.use('/api/tests', require('./routes/tests'));
 app.use('/api/diary', require('./routes/diary'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/practices', require('./routes/practices'));
+app.use('/api/ai', require('./routes/ai'));
 
 // Health check
 app.get('/api/health', (req, res) => {
