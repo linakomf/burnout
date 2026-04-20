@@ -1,4 +1,3 @@
-/** Локальный каталог, если API /practices недоступен (дубль server/practicesCatalog.js) */
 export const PRACTICES_STATIC = [
   {
     key: 'breath_478',

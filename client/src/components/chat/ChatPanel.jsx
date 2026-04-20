@@ -1,17 +1,6 @@
 import React from 'react';
 import { Send } from 'lucide-react';
 
-/**
- * Пример UI чата с хуком useChat (см. Diary.jsx).
- * @param {object} props
- * @param {{ name?: string }} [props.user]
- * @param {Array<{ role: string, content: string, time?: string }>} props.messages
- * @param {string} props.input
- * @param {(v: string) => void} props.setInput
- * @param {() => void} props.sendMessage
- * @param {boolean} props.loading
- * @param {React.RefObject} props.messagesEndRef
- */
 const ChatPanel = ({ user, messages, input, setInput, sendMessage, loading, messagesEndRef }) => {
   const firstName = user?.name?.split(' ')[0];
 

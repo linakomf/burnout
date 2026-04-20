@@ -1,6 +1,5 @@
 const key = (userId) => `burnout_onb_${userId}`;
 
-/** Локальный черновик, если API недоступен — потом синхронизируем */
 export function savePendingOnboarding(userId, { percent, rawScore, answers }) {
   if (userId == null) return;
   try {
@@ -9,7 +8,6 @@ export function savePendingOnboarding(userId, { percent, rawScore, answers }) {
       JSON.stringify({ percent, rawScore, answers, savedAt: Date.now() })
     );
   } catch {
-    /* quota / private mode */
   }
 }
 
@@ -31,6 +29,5 @@ export function clearPendingOnboarding(userId) {
   try {
     localStorage.removeItem(key(userId));
   } catch {
-    /* ignore */
   }
 }

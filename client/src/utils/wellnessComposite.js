@@ -1,19 +1,10 @@
-/**
- * Композитные показатели: первичный тест выгорания, каталог тестов, дневник.
- */
-
 const LEVEL_STRESS = { Низкий: 30, Средний: 60, Высокий: 85 };
 
-/** Стресс из последнего результата каталога тестов (по уровню) */
 export function stressFromCatalogLevel(level) {
   if (!level) return null;
   return LEVEL_STRESS[level] ?? 40;
 }
 
-/**
- * Итоговый стресс для карточек: онбординг (якорь) + тесты.
- * @param {{ onboardingPercent: number | null, lastTestStress: number | null, periodTestStress: number | null }} p
- */
 export function compositeStressPct({ onboardingPercent, lastTestStress, periodTestStress }) {
   const fromTests = periodTestStress != null ? periodTestStress : lastTestStress;
   if (onboardingPercent != null && fromTests != null) {
@@ -24,7 +15,6 @@ export function compositeStressPct({ onboardingPercent, lastTestStress, periodTe
   return null;
 }
 
-/** Настроение %: дневник + согласование со стрессом */
 export function compositeMoodPct({ diaryAvgMoodPct, stressPct, fallbackWhenNoDiary }) {
   const fromStress =
     stressPct != null
@@ -44,13 +34,11 @@ export function compositeEnergyPct(moodPct, stressPct) {
   return Math.min(100, Math.max(0, Math.round(m * 0.45 + (100 - s) * 0.55)));
 }
 
-/** Оценка настроения в % из процента выгорания онбординга (день прохождения) */
 export function moodPercentFromOnboardingBurnout(onboardingPercent) {
   if (onboardingPercent == null || Number.isNaN(onboardingPercent)) return null;
   return Math.max(5, Math.min(100, Math.round(100 - onboardingPercent * 0.88)));
 }
 
-/** Тревожность: якорь онбординга + тесты за период */
 export function compositeAnxietyPct({ onboardingPercent, periodAnxietyFromTests }) {
   if (onboardingPercent != null && periodAnxietyFromTests != null) {
     return Math.min(

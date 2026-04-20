@@ -3,11 +3,6 @@ import { format } from 'date-fns';
 import { getPsychologistReply } from '../services/ai';
 import { analyzeEmotions, deriveOverallMood } from '../services/emotion';
 
-/**
- * @param {object} opts
- * @param {string} opts.userFirstName
- * @param {(text: string) => void | Promise<void>} [opts.onUserMessageSent]
- */
 export function useChat({ userFirstName = 'друг', onUserMessageSent } = {}) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');

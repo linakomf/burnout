@@ -4,7 +4,6 @@ import { Brain, Shield, Zap, Users, CheckCircle, LayoutDashboard } from 'lucide-
 import { useAuth } from '../../context/AuthContext';
 import './Landing.css';
 
-/** Файл: client/public/photos/character.png (или персонаж.png). PUBLIC_URL — для деплоя не в корень домена. */
 const publicPrefix = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
 const HERO_IMAGE_SRC = encodeURI(`${publicPrefix}/photos/character.png`);
 const HERO_IMAGE_SRC_ALT = encodeURI(`${publicPrefix}/photos/персонаж.png`);
@@ -25,7 +24,6 @@ const Landing = () => {
   return (
     <div className="landing">
 
-      {/* ── Navbar ── */}
       <nav className="land-nav">
         <div className="land-logo">
           <div className="land-logo-icon"><Brain size={22} /></div>
@@ -53,7 +51,6 @@ const Landing = () => {
         </div>
       </nav>
 
-      {/* ── Hero ── */}
       <section className="land-hero">
         <div className="hero-left">
           <h1 className="hero-title">
@@ -120,7 +117,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ── Features ── */}
       <section className="land-features" id="features">
         <h2 className="section-title">Почему Burnout?</h2>
         <p className="section-sub">Единый стиль, понятные шаги и забота о ресурсе, а не только о баллах</p>
@@ -142,7 +138,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ── For whom ── */}
       <section className="land-for-whom">
         <h2 className="section-title">Для кого подходит?</h2>
         <p className="section-sub">Burnout создан специально для академической среды</p>
@@ -170,14 +165,12 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ── Trust banner ── */}
       <section className="land-trust">
         <div className="trust-item"><Shield size={22} /> Полная конфиденциальность</div>
         <div className="trust-item"><Zap size={22} /> Быстрый доступ без очередей</div>
         <div className="trust-item"><Users size={22} /> Понимание академической среды</div>
       </section>
 
-      {/* ── CTA ── */}
       <section className="land-cta">
         <div className="cta-card">
           <h2 className="cta-title">Начни заботиться о себе уже сегодня</h2>
@@ -188,7 +181,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ── Footer ── */}
       <footer className="land-footer">
         <div className="footer-logo">
           <div className="land-logo-icon"><Brain size={20} /></div>

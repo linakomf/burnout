@@ -44,7 +44,6 @@ const Dashboard = () => {
     try {
       if (!localStorage.getItem(ONBOARD_KEY)) setShowOnboarding(true);
     } catch {
-      /* private mode */
     }
   }, [loading]);
 
@@ -52,7 +51,6 @@ const Dashboard = () => {
     try {
       localStorage.setItem(ONBOARD_KEY, '1');
     } catch {
-      /* ignore */
     }
     setShowOnboarding(false);
     if (goTests) navigate('/tests');
@@ -180,7 +178,6 @@ const Dashboard = () => {
   return (
     <div className="dashboard-new fade-in">
 
-      {/* Header */}
       <div className="dash-header">
         <h1 className="dash-greeting">
           {greetingTime()}, {(user?.name?.split(' ')[0] || 'друг').toUpperCase()}!
@@ -190,13 +187,11 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* Tabs */}
       <div className="dash-tabs">
         <button className={`dash-tab ${activeTab === 'today' ? 'active' : ''}`} onClick={() => setActiveTab('today')}>Сегодня</button>
         <button className={`dash-tab ${activeTab === 'week' ? 'active' : ''}`} onClick={() => setActiveTab('week')}>За неделю</button>
       </div>
 
-      {/* Week strip */}
       <div className="week-strip">
         {weekDays.map((day, i) => {
           const isToday = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
@@ -215,7 +210,6 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Hero banner */}
       <div className="hero-banner hero-banner--mock">
         <div className="hero-left">
           <img
@@ -269,7 +263,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Tip card */}
       <div className="tip-card">
         <h2 className="tip-title">💡 {tip.title.toUpperCase()}</h2>
         <p className="tip-body">{tip.text}</p>
@@ -297,7 +290,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Recommendations */}
       <div className="recs-section">
         <h2 className="recs-title">🌿 Рекомендации дня</h2>
         <div className="recs-list">

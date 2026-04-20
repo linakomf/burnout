@@ -1,7 +1,3 @@
-/**
- * Гарантирует корректные UTF-8 названия тестов и наличие вопросов (полноценные опросники).
- * Исправляет «кракозябры», если данные когда-то были загружены в неверной кодировке.
- */
 const pool = require('./db');
 const { BY_ID, META_FOR_ENSURE } = require('./testCanonical');
 
@@ -22,7 +18,6 @@ function optsJson(arr) {
   return JSON.stringify(arr);
 }
 
-/** category_id: студенты 2, преподаватели 3, общие 1 */
 const TEST_CATEGORY_ID = {
   2: 2,
   3: 2,
@@ -32,7 +27,6 @@ const TEST_CATEGORY_ID = {
   7: 1,
 };
 
-/** Если строк в `tests` нет (чистая/урезанная БД), INSERT вопросов падает по FK — сначала создаём тесты */
 async function ensureCoreTestsExist() {
   for (const { id, scoring_type } of META_FOR_ENSURE) {
     const row = BY_ID[id];
@@ -51,7 +45,6 @@ async function ensureCoreTestsExist() {
   }
 }
 
-/** Вопросы для тестов 2–5, если в БД их ещё нет (или дозаполнение ниже) */
 const EXTRA_QUESTION_SEEDS = [
   {
     testId: 2,
@@ -136,7 +129,6 @@ const EXTRA_QUESTION_SEEDS = [
   },
 ];
 
-/** Доводим число вопросов до полного списка из сида (частично пустые БД) */
 async function ensureQuestionsUpToSeed(testId) {
   const block = EXTRA_QUESTION_SEEDS.find((b) => b.testId === testId);
   if (!block) return;
@@ -171,7 +163,6 @@ async function ensureQuestionsUpToSeed(testId) {
 
 async function ensureTestCatalog() {
   try {
-    // PSS (test_id=1) убран из каталога: в части БД название/описание отображались с битой кодировкой
     const removed = await pool.query('DELETE FROM tests WHERE test_id = 1');
     if (removed.rowCount > 0) {
       console.log('✅ Удалён тест PSS (test_id=1) из каталога');
@@ -192,7 +183,6 @@ async function ensureTestCatalog() {
 
     await ensureCoreTestsExist();
 
-    /* Тест перегрузки (10 вопросов) — для всех ролей, иначе студенты не видят его в /api/tests */
     await pool.query(`UPDATE tests SET category_id = $1 WHERE test_id = 5`, [1]);
 
     for (const t of TEST_META) {

@@ -60,9 +60,6 @@ async function getServerPsychologistReply(messages) {
   return res?.data?.reply?.trim() || null;
 }
 
-/**
- * Ответ ассистента: приоритет — backend AI, fallback — локальная заглушка.
- */
 export async function getPsychologistReply(messagesForApi) {
   try {
     const text = await getServerPsychologistReply(messagesForApi);

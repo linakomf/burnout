@@ -12,7 +12,6 @@ function portalCredentials() {
   };
 }
 
-// POST /api/admin-portal/login  { login, password }
 router.post('/login', (req, res) => {
   const body = req.body || {};
   const login = body.login == null ? '' : String(body.login).trim();
@@ -28,7 +27,6 @@ router.post('/login', (req, res) => {
   res.json({ token });
 });
 
-// GET /api/admin-portal/stats
 router.get('/stats', portalAdminMiddleware, async (req, res) => {
   try {
     const [

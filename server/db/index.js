@@ -14,7 +14,6 @@ if (!connectionString) {
 const parsed = parse(connectionString);
 const pool = new Pool({
   ...parsed,
-  // SCRAM в node-pg требует строку; без DATABASE_URL или без пароля в URL получался null → ошибка SASL
   password: String(parsed.password ?? process.env.PGPASSWORD ?? ''),
 });
 

@@ -4,7 +4,6 @@ import { Users, Tag, BookOpen, Plus, Trash2, Edit2, X, Save } from 'lucide-react
 import api from '../../utils/api';
 import './Admin.css';
 
-// ─── Admin Users ───────────────────────────────────────────────────────────────
 export const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +67,6 @@ export const AdminUsers = () => {
   );
 };
 
-// ─── Admin Categories ──────────────────────────────────────────────────────────
 export const AdminCategories = () => {
   const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -179,7 +177,6 @@ const emptyTestForm = () => ({
   questions: [],
 });
 
-// ─── Admin Tests ───────────────────────────────────────────────────────────────
 export const AdminTests = () => {
   const [tests, setTests] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -550,7 +547,6 @@ export const AdminTests = () => {
   );
 };
 
-// ─── Admin Overview ────────────────────────────────────────────────────────────
 export const AdminOverview = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState({ users: 0, tests: 0, categories: 0 });

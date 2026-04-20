@@ -46,7 +46,6 @@ const Profile = () => {
     try {
       localStorage.setItem(NOTIF_KEY, notifOn ? '1' : '0');
     } catch {
-      /* ignore */
     }
   }, [notifOn]);
 

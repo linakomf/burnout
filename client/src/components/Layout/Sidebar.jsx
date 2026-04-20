@@ -35,13 +35,11 @@ const Sidebar = () => {
 
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${lightStudentShell ? 'sidebar--light-mock' : ''}`}>
-      {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-icon"><Brain size={20} /></div>
         {!collapsed && <span className="logo-text">Burnout</span>}
       </div>
 
-      {/* Nav links */}
       <nav className="sidebar-nav">
         {links.map((link) => (
           <button
@@ -56,9 +54,7 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      {/* Bottom */}
       <div className="sidebar-bottom">
-        {/* User mini */}
         <div className="user-mini" onClick={() => navigate('/profile')}>
           <div className="user-avatar">
             {user?.avatar ? (
@@ -78,7 +74,6 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Collapse toggle */}
       <button className="collapse-btn" onClick={() => setCollapsed(!collapsed)}>
         {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>

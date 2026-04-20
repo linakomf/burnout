@@ -1,9 +1,5 @@
 const pool = require('./db');
 
-/**
- * Учётная запись для входа через /login → панель /admin (данные в PostgreSQL).
- * Значения можно переопределить в server/.env
- */
 async function ensureDefaultAdmin() {
   if (String(process.env.SKIP_DEFAULT_ADMIN || '').trim() === '1') {
     return;

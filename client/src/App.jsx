@@ -14,7 +14,6 @@ import Diary from './components/Diary/Diary';
 import Practices from './components/Practices/Practices';
 import { AdminOverview, AdminUsers, AdminCategories, AdminTests } from './components/Admin/Admin';
 import AdminPortal from './components/AdminPortal/AdminPortal';
-import UserDashboard from './components/Dashboards/UserDashboard';
 import AdminDashboard from './components/Dashboards/AdminDashboard';
 import AIChat from './components/AI/AIChat';
 import OnboardingBurnout from './components/Onboarding/OnboardingBurnout';
@@ -45,19 +44,6 @@ function RequireAdminDashboard({ children }) {
   return children;
 }
 
-function RequireUserDashboard({ children }) {
-  const { user, loading } = useAuth();
-  if (loading) return (
-    <div className="app-loading-fullscreen">
-      <div className="loading-spinner" />
-    </div>
-  );
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
-  return children;
-}
-
-/** Публичные страницы: вошедший студент/преподаватель без теста → онбординг; остальные → кабинет */
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return (
@@ -72,7 +58,6 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-/** Доступ к основному приложению только после первичного теста выгорания */
 function RequireOnboardingDone({ children }) {
   const { user } = useAuth();
   if (user && user.role !== 'admin' && !user.onboarding_burnout_completed) {
@@ -103,7 +88,6 @@ const App = () => {
       <AuthProvider>
         <div className="app-routes-outlet">
         <Routes>
-          {/* Главная — всегда лендинг; в кабинет — по кнопке или прямым маршрутам */}
           <Route path="/" element={<Landing />} />
 
           <Route path="/admin-portal" element={<AdminPortal />} />

@@ -3,7 +3,6 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
 
-// POST /api/auth/register
 router.post('/register', async (req, res) => {
   const { name, email, password, role, age } = req.body;
 
@@ -58,7 +57,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// POST /api/auth/login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 

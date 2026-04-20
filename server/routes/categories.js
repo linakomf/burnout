@@ -3,13 +3,11 @@ const router = express.Router();
 const pool = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 
-// GET /api/categories
 router.get('/', authMiddleware, async (req, res) => {
   const result = await pool.query('SELECT * FROM categories ORDER BY category_id');
   res.json(result.rows);
 });
 
-// POST /api/categories (admin)
 router.post('/', authMiddleware, adminOnly, async (req, res) => {
   const { name, description, target_role } = req.body;
   const result = await pool.query(
@@ -19,7 +17,6 @@ router.post('/', authMiddleware, adminOnly, async (req, res) => {
   res.status(201).json(result.rows[0]);
 });
 
-// PUT /api/categories/:id (admin)
 router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
   const { name, description, target_role } = req.body;
   const result = await pool.query(
@@ -29,7 +26,6 @@ router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
   res.json(result.rows[0]);
 });
 
-// DELETE /api/categories/:id (admin)
 router.delete('/:id', authMiddleware, adminOnly, async (req, res) => {
   await pool.query('DELETE FROM categories WHERE category_id=$1', [req.params.id]);
   res.json({ message: 'Категория удалена' });

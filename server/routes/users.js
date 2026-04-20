@@ -8,7 +8,6 @@ const path = require('path');
 
 const uploadsAbs = path.join(__dirname, '..', 'uploads');
 
-// Multer setup for avatar uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsAbs),
   filename: (req, file, cb) => {
@@ -25,7 +24,6 @@ const upload = multer({
   },
 });
 
-// GET /api/users/me
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
@@ -43,7 +41,6 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /api/users/me - update profile
 router.put('/me', authMiddleware, async (req, res) => {
   const { name, email, age, currentPassword, newPassword } = req.body;
   const userId = req.user.user_id;
@@ -76,7 +73,6 @@ router.put('/me', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/users/onboarding-burnout — первичный тест выгорания (10 вопросов)
 router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
   if (req.user.role === 'admin') {
     return res.status(400).json({ message: 'Для администратора не требуется' });
@@ -124,7 +120,6 @@ router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/users/avatar
 router.post('/avatar', authMiddleware, upload.single('avatar'), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'Файл не загружен' });
   const avatarUrl = `/uploads/${req.file.filename}`;
@@ -132,7 +127,6 @@ router.post('/avatar', authMiddleware, upload.single('avatar'), async (req, res)
   res.json({ avatar: avatarUrl });
 });
 
-// GET /api/users/all (admin only)
 router.get('/all', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Нет доступа' });
   const result = await pool.query(
@@ -141,7 +135,6 @@ router.get('/all', authMiddleware, async (req, res) => {
   res.json(result.rows);
 });
 
-// DELETE /api/users/:id (admin only)
 router.delete('/:id', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Нет доступа' });
   await pool.query('DELETE FROM users WHERE user_id=$1', [req.params.id]);

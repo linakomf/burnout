@@ -1,8 +1,3 @@
-/**
- * Первичный скрининг выгорания: 10 вопросов, 4 варианта (0–3 балла).
- * Итог: сумма 0–30 → процент выгорания = round(sum / 30 * 100).
- */
-
 export const ONBOARDING_OPTIONS = [
   'Почти никогда',
   'Иногда',
@@ -36,7 +31,6 @@ export const TEACHER_BURNOUT_QUESTIONS = [
   'Как часто вы думаете о смене работы или уходе из профессии из-за усталости?',
 ];
 
-/** Сумма ответов (каждый 0..3) → процент 0..100 */
 export function computeBurnoutPercentFromAnswers(answers) {
   if (!Array.isArray(answers) || answers.length !== 10) return null;
   const sum = answers.reduce((s, v) => s + (Number(v) >= 0 && Number(v) <= 3 ? Number(v) : 0), 0);
