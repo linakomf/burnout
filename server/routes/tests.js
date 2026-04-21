@@ -5,6 +5,52 @@ const { authMiddleware, adminOnly } = require('../middleware/auth');
 const { computeTestResult } = require('../scoring');
 const { applyCanonicalToTestRow, applyCanonicalToTestRows } = require('../testCanonical');
 
+const RESERVED_TEST_ID = 1;
+
+function isReservedTestId(rawId) {
+  const tid = parseInt(rawId, 10);
+  return Number.isFinite(tid) && tid === RESERVED_TEST_ID;
+}
+
+function normalizeScoringType(scoring_type) {
+  return typeof scoring_type === 'string' && scoring_type.trim() ? scoring_type.trim() : 'likert_sum';
+}
+
+function normalizeText(value) {
+  return value != null ? String(value).trim() : '';
+}
+
+async function fetchTestWithQuestions(testId) {
+  const testResult = await pool.query(
+    `SELECT t.*, c.name as category_name FROM tests t 
+     LEFT JOIN categories c ON t.category_id = c.category_id
+     WHERE t.test_id = $1`,
+    [testId]
+  );
+  if (!testResult.rows.length) return null;
+
+  const questionsResult = await pool.query(
+    'SELECT * FROM questions WHERE test_id = $1 ORDER BY order_num',
+    [testId]
+  );
+
+  return {
+    test: testResult.rows[0],
+    questions: questionsResult.rows,
+  };
+}
+
+function mapCanonicalResultRows(rows) {
+  return rows.map((row) => {
+    const fixed = applyCanonicalToTestRow({
+      test_id: row.test_id,
+      title: row.title,
+      description: row.description,
+    });
+    return { ...row, title: fixed.title, description: fixed.description };
+  });
+}
+
 // GET /api/tests - get tests relevant to user role
 router.get('/', authMiddleware, async (req, res) => {
   const role = req.user.role;
@@ -26,7 +72,6 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// Статический путь должен быть ДО /:id, иначе Express принимает "results" за id
 router.get('/results/my', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
@@ -38,44 +83,23 @@ router.get('/results/my', authMiddleware, async (req, res) => {
        ORDER BY tr.created_at DESC`,
       [req.user.user_id]
     );
-    res.json(
-      result.rows.map((row) => {
-        const fixed = applyCanonicalToTestRow({
-          test_id: row.test_id,
-          title: row.title,
-          description: row.description,
-        });
-        return { ...row, title: fixed.title, description: fixed.description };
-      })
-    );
+    res.json(mapCanonicalResultRows(result.rows));
   } catch (err) {
     res.status(500).json({ message: 'Ошибка сервера' });
   }
 });
 
-// GET /api/tests/:id - get test with questions
 router.get('/:id', authMiddleware, async (req, res) => {
-  const tid = parseInt(req.params.id, 10);
-  if (Number.isFinite(tid) && tid === 1) {
+  if (isReservedTestId(req.params.id)) {
     return res.status(404).json({ message: 'Тест не найден' });
   }
   try {
-    const testResult = await pool.query(
-      `SELECT t.*, c.name as category_name FROM tests t 
-       LEFT JOIN categories c ON t.category_id = c.category_id
-       WHERE t.test_id = $1`,
-      [req.params.id]
-    );
-    if (testResult.rows.length === 0) return res.status(404).json({ message: 'Тест не найден' });
-
-    const questionsResult = await pool.query(
-      'SELECT * FROM questions WHERE test_id = $1 ORDER BY order_num',
-      [req.params.id]
-    );
+    const payload = await fetchTestWithQuestions(req.params.id);
+    if (!payload) return res.status(404).json({ message: 'Тест не найден' });
 
     res.json({
-      ...applyCanonicalToTestRow(testResult.rows[0]),
-      questions: questionsResult.rows,
+      ...applyCanonicalToTestRow(payload.test),
+      questions: payload.questions,
     });
   } catch (err) {
     res.status(500).json({ message: 'Ошибка сервера' });
@@ -87,8 +111,7 @@ router.post('/:id/submit', authMiddleware, async (req, res) => {
   const { answers } = req.body; // { questionId: answerIndex }
   const userId = req.user.user_id;
   const testId = req.params.id;
-  const tid = parseInt(testId, 10);
-  if (Number.isFinite(tid) && tid === 1) {
+  if (isReservedTestId(testId)) {
     return res.status(404).json({ message: 'Тест не найден' });
   }
 
@@ -148,11 +171,40 @@ function normalizeQuestionPayload(q) {
   return { question_text: text, options: filtered };
 }
 
+// Маленький helper: валидация вопросов в одном месте, чтобы не дублировать в POST/PUT.
+function validateAndNormalizeQuestions(questions) {
+  const normalized = [];
+  if (questions && questions.length > 0) {
+    for (let i = 0; i < questions.length; i++) {
+      const q = normalizeQuestionPayload(questions[i]);
+      if (!q.question_text) continue;
+      if (q.options.length === 0) {
+        return { ok: false, message: `Вопрос ${i + 1}: добавьте хотя бы один вариант ответа` };
+      }
+      normalized.push(q);
+    }
+  }
+  if (normalized.length === 0) {
+    return { ok: false, message: 'Добавьте хотя бы один вопрос с текстом и вариантами' };
+  }
+  return { ok: true, normalized };
+}
+
+async function insertQuestions(client, testId, normalizedQuestions) {
+  for (let i = 0; i < normalizedQuestions.length; i++) {
+    const q = normalizedQuestions[i];
+    await client.query(
+      'INSERT INTO questions (test_id, question_text, options, order_num) VALUES ($1,$2,$3,$4)',
+      [testId, q.question_text, JSON.stringify(q.options), i + 1]
+    );
+  }
+}
+
 // POST /api/tests - create test (admin)
 router.post('/', authMiddleware, adminOnly, async (req, res) => {
   const { title, description, category_id, questions, scoring_type } = req.body;
   const catId = normalizeCategoryId(category_id);
-  const scoring = typeof scoring_type === 'string' && scoring_type.trim() ? scoring_type.trim() : 'likert_sum';
+  const scoring = normalizeScoringType(scoring_type);
 
   if (!title || !String(title).trim()) {
     return res.status(400).json({ message: 'Укажите название теста' });
@@ -166,30 +218,16 @@ router.post('/', authMiddleware, adminOnly, async (req, res) => {
     await client.query('BEGIN');
     const testResult = await client.query(
       'INSERT INTO tests (title, description, category_id, scoring_type) VALUES ($1,$2,$3,$4) RETURNING *',
-      [String(title).trim(), description != null ? String(description).trim() : '', catId, scoring]
+      [normalizeText(title), normalizeText(description), catId, scoring]
     );
     const testId = testResult.rows[0].test_id;
 
-    let inserted = 0;
-    if (questions && questions.length > 0) {
-      for (let i = 0; i < questions.length; i++) {
-        const q = normalizeQuestionPayload(questions[i]);
-        if (!q.question_text) continue;
-        if (q.options.length === 0) {
-          await client.query('ROLLBACK');
-          return res.status(400).json({ message: `Вопрос ${i + 1}: добавьте хотя бы один вариант ответа` });
-        }
-        await client.query(
-          'INSERT INTO questions (test_id, question_text, options, order_num) VALUES ($1,$2,$3,$4)',
-          [testId, q.question_text, JSON.stringify(q.options), inserted + 1]
-        );
-        inserted += 1;
-      }
-    }
-    if (inserted === 0) {
+    const validation = validateAndNormalizeQuestions(questions);
+    if (!validation.ok) {
       await client.query('ROLLBACK');
-      return res.status(400).json({ message: 'Добавьте хотя бы один вопрос с текстом и вариантами' });
+      return res.status(400).json({ message: validation.message });
     }
+    await insertQuestions(client, testId, validation.normalized);
 
     await client.query('COMMIT');
     res.status(201).json(testResult.rows[0]);
@@ -219,8 +257,7 @@ router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
     return res.status(400).json({ message: 'Выберите категорию' });
   }
 
-  const scoring =
-    typeof scoring_type === 'string' && scoring_type.trim() ? scoring_type.trim() : 'likert_sum';
+  const scoring = normalizeScoringType(scoring_type);
 
   const client = await pool.connect();
   try {
@@ -234,50 +271,26 @@ router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
 
     await client.query(
       'UPDATE tests SET title=$1, description=$2, category_id=$3, scoring_type=$4 WHERE test_id=$5',
-      [String(title).trim(), description != null ? String(description).trim() : '', catId, scoring, testId]
+      [normalizeText(title), normalizeText(description), catId, scoring, testId]
     );
 
     if (Array.isArray(questions)) {
-      const normalized = [];
-      for (let i = 0; i < questions.length; i++) {
-        const q = normalizeQuestionPayload(questions[i]);
-        if (!q.question_text) continue;
-        if (q.options.length === 0) {
-          await client.query('ROLLBACK');
-          return res.status(400).json({ message: `Вопрос ${i + 1}: добавьте хотя бы один вариант ответа` });
-        }
-        normalized.push(q);
-      }
-      if (normalized.length === 0) {
+      const validation = validateAndNormalizeQuestions(questions);
+      if (!validation.ok) {
         await client.query('ROLLBACK');
-        return res.status(400).json({ message: 'Добавьте хотя бы один вопрос с текстом и вариантами' });
+        return res.status(400).json({ message: validation.message });
       }
 
       await client.query('DELETE FROM questions WHERE test_id=$1', [testId]);
-      for (let i = 0; i < normalized.length; i++) {
-        const q = normalized[i];
-        await client.query(
-          'INSERT INTO questions (test_id, question_text, options, order_num) VALUES ($1,$2,$3,$4)',
-          [testId, q.question_text, JSON.stringify(q.options), i + 1]
-        );
-      }
+      await insertQuestions(client, testId, validation.normalized);
     }
 
     await client.query('COMMIT');
 
-    const testResult = await pool.query(
-      `SELECT t.*, c.name as category_name FROM tests t 
-       LEFT JOIN categories c ON t.category_id = c.category_id
-       WHERE t.test_id = $1`,
-      [testId]
-    );
-    const questionsResult = await pool.query(
-      'SELECT * FROM questions WHERE test_id = $1 ORDER BY order_num',
-      [testId]
-    );
+    const payload = await fetchTestWithQuestions(testId);
     res.json({
-      ...applyCanonicalToTestRow(testResult.rows[0]),
-      questions: questionsResult.rows,
+      ...applyCanonicalToTestRow(payload.test),
+      questions: payload.questions,
     });
   } catch (err) {
     await client.query('ROLLBACK');

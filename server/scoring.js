@@ -15,15 +15,24 @@ function sumAnswerPoints(questions, answers, pointsPerOption) {
   return raw;
 }
 
-/** GAD-7: 7 вопросов, 0–3, сумма 0–21 */
-function scoreGad7(questions, answers) {
+function buildUniformPointsMap(questions, values) {
   const pts = {};
   for (const q of questions) {
-    pts[q.question_id] = [0, 1, 2, 3];
+    pts[q.question_id] = values;
   }
+  return pts;
+}
+
+function clampPercent(value) {
+  return Math.min(100, Math.max(0, Math.round(value)));
+}
+
+/** GAD-7: 7 вопросов, 0–3, сумма 0–21 */
+function scoreGad7(questions, answers) {
+  const pts = buildUniformPointsMap(questions, [0, 1, 2, 3]);
   const sum = sumAnswerPoints(questions, answers, pts);
   const max = 21;
-  const percentage = Math.round((sum / max) * 100);
+  const percentage = clampPercent((sum / max) * 100);
   let level;
   if (sum <= 4) level = 'Низкая тревожность';
   else if (sum <= 9) level = 'Средняя тревожность';
@@ -65,13 +74,10 @@ function scoreGad7(questions, answers) {
 
 /** MBI-студент: 5 вариантов 0–4, сумма по 9 вопросам, max 36 */
 function scoreMbiStudent(questions, answers) {
-  const pts = {};
-  for (const q of questions) {
-    pts[q.question_id] = [0, 1, 2, 3, 4];
-  }
+  const pts = buildUniformPointsMap(questions, [0, 1, 2, 3, 4]);
   const sum = sumAnswerPoints(questions, answers, pts);
   const max = questions.length * 4;
-  const percentage = max ? Math.round((sum / max) * 100) : 0;
+  const percentage = max ? clampPercent((sum / max) * 100) : 0;
   let level;
   if (percentage < 40) level = 'Нет признаков выгорания';
   else if (percentage < 68) level = 'Риск выгорания';
@@ -105,13 +111,10 @@ function scoreMbiStudent(questions, answers) {
 
 /** Быстрый ежедневный: 5 вопросов, 0–4 */
 function scoreDaily5(questions, answers) {
-  const pts = {};
-  for (const q of questions) {
-    pts[q.question_id] = [0, 1, 2, 3, 4];
-  }
+  const pts = buildUniformPointsMap(questions, [0, 1, 2, 3, 4]);
   const sum = sumAnswerPoints(questions, answers, pts);
   const max = questions.length * 4;
-  const percentage = max ? Math.round((sum / max) * 100) : 0;
+  const percentage = max ? clampPercent((sum / max) * 100) : 0;
   let level;
   if (percentage < 35) level = 'Состояние стабильное';
   else if (percentage < 65) level = 'Повышенная нагрузка';
@@ -160,7 +163,7 @@ function scoreLikertSum(questions, answers) {
     const idx = answers[q.question_id];
     if (idx !== undefined && idx !== null) sum += Number(idx) || 0;
   }
-  const percentage = max ? Math.round((sum / max) * 100) : 0;
+  const percentage = max ? clampPercent((sum / max) * 100) : 0;
   let level;
   if (percentage <= 33) level = 'Низкий';
   else if (percentage <= 66) level = 'Средний';

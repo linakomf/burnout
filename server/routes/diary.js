@@ -3,6 +3,15 @@ const router = express.Router();
 const pool = require('../db');
 const { authMiddleware } = require('../middleware/auth');
 
+function serverError(res) {
+  return res.status(500).json({ message: 'Ошибка сервера' });
+}
+
+function parseEntryId(rawId) {
+  const id = parseInt(rawId, 10);
+  return Number.isFinite(id) ? id : null;
+}
+
 // GET /api/diary - get user's diary entries
 router.get('/', authMiddleware, async (req, res) => {
   try {
@@ -12,7 +21,7 @@ router.get('/', authMiddleware, async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ message: 'Ошибка сервера' });
+    serverError(res);
   }
 });
 
@@ -25,7 +34,7 @@ router.get('/date/:date', authMiddleware, async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ message: 'Ошибка сервера' });
+    serverError(res);
   }
 });
 
@@ -42,7 +51,7 @@ router.get('/mood-stats', authMiddleware, async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ message: 'Ошибка сервера' });
+    serverError(res);
   }
 });
 
@@ -58,29 +67,37 @@ router.post('/', authMiddleware, async (req, res) => {
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ message: 'Ошибка сервера' });
+    serverError(res);
   }
 });
 
 // PUT /api/diary/:id - update entry
 router.put('/:id', authMiddleware, async (req, res) => {
   const { mood, mood_score, note } = req.body;
+  const entryId = parseEntryId(req.params.id);
+  if (entryId == null) return res.status(400).json({ message: 'Некорректный ID записи' });
   try {
     const result = await pool.query(
       'UPDATE diary_entries SET mood=$1, mood_score=$2, note=$3 WHERE entry_id=$4 AND user_id=$5 RETURNING *',
-      [mood, mood_score, note, req.params.id, req.user.user_id]
+      [mood, mood_score, note, entryId, req.user.user_id]
     );
     if (result.rows.length === 0) return res.status(404).json({ message: 'Запись не найдена' });
     res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ message: 'Ошибка сервера' });
+    serverError(res);
   }
 });
 
 // DELETE /api/diary/:id
 router.delete('/:id', authMiddleware, async (req, res) => {
-  await pool.query('DELETE FROM diary_entries WHERE entry_id=$1 AND user_id=$2', [req.params.id, req.user.user_id]);
-  res.json({ message: 'Запись удалена' });
+  const entryId = parseEntryId(req.params.id);
+  if (entryId == null) return res.status(400).json({ message: 'Некорректный ID записи' });
+  try {
+    await pool.query('DELETE FROM diary_entries WHERE entry_id=$1 AND user_id=$2', [entryId, req.user.user_id]);
+    res.json({ message: 'Запись удалена' });
+  } catch (err) {
+    serverError(res);
+  }
 });
 
 module.exports = router;

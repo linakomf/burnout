@@ -9,6 +9,10 @@ const MAX_HISTORY = 20;
 const MAX_INPUT_CHARS = Number(process.env.AI_MAX_INPUT_CHARS || 2000);
 const OPENAI_TIMEOUT_MS = Number(process.env.OPENAI_TIMEOUT_MS || 15000);
 const SESSION_TTL_MS = Number(process.env.AI_SESSION_TTL_MS || 1000 * 60 * 60 * 24);
+const OFF_TOPIC_REPLY =
+  'Я работаю только с темами ментального здоровья: выгорание, тревога, стресс, грусть, сон и эмоциональная поддержка. Опишите, пожалуйста, что вы чувствуете, и я помогу.';
+const CRISIS_REPLY =
+  'Спасибо, что честно написали об этом. Такие мысли нельзя оставлять без живой помощи — пожалуйста, срочно обратитесь к психологу/психотерапевту или в экстренную службу вашей страны и сообщите близкому человеку, что вам сейчас нужна поддержка. Наше приложение рядом для сопровождения, но в такой ситуации очная помощь обязательна и приоритетна.';
 
 const sessionMemory = new Map();
 
@@ -287,6 +291,23 @@ function sanitizeMessages(rawMessages) {
     .slice(-MAX_HISTORY);
 }
 
+function getLastUserMessage(messages) {
+  return [...messages].reverse().find((m) => m.role === 'user') || null;
+}
+
+function buildCombinedSessionSummary(userId, messages) {
+  const existingSummary = sessionMemory.get(userId)?.summary || '';
+  const heuristicSummary = buildSessionSummary(messages);
+  return [existingSummary, heuristicSummary].filter(Boolean).join(' ');
+}
+
+function saveSessionSummary(userId, messages, reply) {
+  sessionMemory.set(userId, {
+    summary: buildSessionSummary([...messages, { role: 'assistant', content: reply }]),
+    updatedAt: Date.now(),
+  });
+}
+
 async function getOpenAIReply(messages, sessionSummary = '') {
   const key = process.env.OPENAI_API_KEY?.trim();
   if (!key) return null;
@@ -338,7 +359,7 @@ router.post('/chat', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Передайте непустую историю сообщений.' });
     }
 
-    const lastUser = [...messages].reverse().find((m) => m.role === 'user');
+    const lastUser = getLastUserMessage(messages);
     if (!lastUser) {
       return res.status(400).json({ message: 'Не найдено сообщение пользователя.' });
     }
@@ -349,24 +370,20 @@ router.post('/chat', authMiddleware, async (req, res) => {
 
     if (!isMentalHealthContext(messages)) {
       return res.json({
-        reply:
-          'Я работаю только с темами ментального здоровья: выгорание, тревога, стресс, грусть, сон и эмоциональная поддержка. Опишите, пожалуйста, что вы чувствуете, и я помогу.',
+        reply: OFF_TOPIC_REPLY,
         source: 'guardrail',
       });
     }
 
     if (CRISIS_RE.test(lastUser.content)) {
       return res.json({
-        reply:
-          'Спасибо, что честно написали об этом. Такие мысли нельзя оставлять без живой помощи — пожалуйста, срочно обратитесь к психологу/психотерапевту или в экстренную службу вашей страны и сообщите близкому человеку, что вам сейчас нужна поддержка. Наше приложение рядом для сопровождения, но в такой ситуации очная помощь обязательна и приоритетна.',
+        reply: CRISIS_REPLY,
         source: 'crisis',
       });
     }
 
     const userId = req.user?.user_id || 'anon';
-    const existingSummary = sessionMemory.get(userId)?.summary || '';
-    const heuristicSummary = buildSessionSummary(messages);
-    const sessionSummary = [existingSummary, heuristicSummary].filter(Boolean).join(' ');
+    const sessionSummary = buildCombinedSessionSummary(userId, messages);
 
     const reply = await getOpenAIReply(messages, sessionSummary);
     if (!reply) {
@@ -376,10 +393,7 @@ router.post('/chat', authMiddleware, async (req, res) => {
       });
     }
 
-    sessionMemory.set(userId, {
-      summary: buildSessionSummary([...messages, { role: 'assistant', content: reply }]),
-      updatedAt: Date.now(),
-    });
+    saveSessionSummary(userId, messages, reply);
 
     return res.json({ reply, source: 'openai', model: DEFAULT_MODEL });
   } catch (err) {

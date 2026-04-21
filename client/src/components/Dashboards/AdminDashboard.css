@@ -44,7 +44,7 @@
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #a3c617 0%, #7a9014 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -125,7 +125,7 @@
 
 .ad-kpi-note {
   font-size: 0.7rem;
-  color: #a3c617;
+  color: var(--primary);
   font-weight: 700;
   margin-top: 6px;
 }

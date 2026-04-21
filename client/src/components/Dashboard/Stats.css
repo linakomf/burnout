@@ -67,9 +67,9 @@
 }
 
 .analytics-segment-btn.active {
-  background: var(--text-dark);
-  color: var(--bg);
-  box-shadow: 0 4px 14px rgba(26, 29, 36, 0.2);
+  background: var(--button-main-bg);
+  color: var(--button-main-text);
+  box-shadow: 0 8px 20px rgba(178, 154, 223, 0.24);
 }
 
 /* KPI */
@@ -93,7 +93,7 @@
 }
 
 .analytics-kpi-card {
-  background: var(--bg-card);
+  background: linear-gradient(135deg, #ffdcbc 0%, #f6d7bf 48%, #fce7d6 100%);
   border-radius: 22px;
   padding: 20px 22px;
   border: 1px solid var(--border);
@@ -117,23 +117,23 @@
 }
 
 .analytics-kpi-icon--mood {
-  background: rgba(163, 198, 23, 0.18);
-  color: #6a8010;
+  background: rgba(255, 191, 125, 0.28);
+  color: #b85f28;
 }
 
 .analytics-kpi-icon--stress {
-  background: rgba(255, 179, 71, 0.2);
-  color: #c97d3a;
+  background: rgba(255, 163, 132, 0.24);
+  color: #c86647;
 }
 
 .analytics-kpi-icon--anxiety {
-  background: rgba(157, 139, 255, 0.18);
-  color: #6b5bb5;
+  background: rgba(176, 168, 255, 0.24);
+  color: #6f67c8;
 }
 
 .analytics-kpi-icon--energy {
-  background: rgba(199, 91, 138, 0.12);
-  color: #b04a78;
+  background: rgba(170, 188, 255, 0.24);
+  color: #5f78d3;
 }
 
 .analytics-kpi-label {
@@ -162,8 +162,8 @@
 }
 
 .analytics-kpi-delta.pos {
-  background: rgba(163, 198, 23, 0.2);
-  color: #5a7010;
+  background: color-mix(in srgb, var(--primary) 16%, var(--bg-card));
+  color: var(--primary-dark);
 }
 
 .analytics-kpi-delta.neg {
@@ -253,15 +253,15 @@
 }
 
 .analytics-insight--good {
-  background: linear-gradient(145deg, var(--primary-light) 0%, var(--bg-card) 100%);
+  background: linear-gradient(145deg, #ffe6cd 0%, #fff4e8 100%);
 }
 
 .analytics-insight--warn {
-  background: linear-gradient(145deg, color-mix(in srgb, var(--secondary) 40%, var(--bg-card)) 0%, var(--bg-card) 100%);
+  background: linear-gradient(145deg, #e8ddff 0%, #f2ecff 100%);
 }
 
 .analytics-insight--tip {
-  background: linear-gradient(145deg, color-mix(in srgb, var(--bg) 70%, var(--border)) 0%, var(--bg-card) 100%);
+  background: linear-gradient(145deg, #dceeff 0%, #eef6ff 100%);
 }
 
 .analytics-insight-icon {
@@ -446,7 +446,7 @@
 
 .analytics-summary-check {
   flex-shrink: 0;
-  color: #a3c617;
+  color: #5f78d3;
   margin-top: 2px;
 }
 
@@ -458,7 +458,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #e8a87c;
+  background: #8b8fd3;
   flex-shrink: 0;
 }
 

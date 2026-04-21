@@ -143,7 +143,7 @@
   transform: translateX(20px);
 }
 .profile-switch input:focus-visible + .profile-switch-slider {
-  box-shadow: 0 0 0 3px rgba(163, 198, 23, 0.35);
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.28);
 }
 
 [data-theme='dark'] .profile-switch-slider {

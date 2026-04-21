@@ -8,18 +8,34 @@ import { setAppRoleFromUser, clearAppRole } from '../utils/appRole';
 
 const AuthContext = createContext(null);
 
+function readStoredUser() {
+  try {
+    const saved = localStorage.getItem('user');
+    if (!saved) return null;
+    return JSON.parse(saved);
+  } catch {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    return null;
+  }
+}
+
+function persistUser(user) {
+  localStorage.setItem('user', JSON.stringify(user));
+}
+
+function persistSession(token, user) {
+  localStorage.setItem('token', token);
+  persistUser(user);
+}
+
+function clearSessionStorage() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+}
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem('user');
-      if (!saved) return null;
-      return JSON.parse(saved);
-    } catch {
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      return null;
-    }
-  });
+  const [user, setUser] = useState(() => readStoredUser());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,7 +51,7 @@ export const AuthProvider = ({ children }) => {
           const server = res.data;
           if (server.role === 'admin') {
             setUser(server);
-            localStorage.setItem('user', JSON.stringify(server));
+            persistUser(server);
             return;
           }
           const pending = readPendingOnboarding(server.user_id);
@@ -43,7 +59,7 @@ export const AuthProvider = ({ children }) => {
           if (server.onboarding_burnout_completed) {
             clearPendingOnboarding(server.user_id);
             setUser(server);
-            localStorage.setItem('user', JSON.stringify(server));
+            persistUser(server);
             return;
           }
 
@@ -56,7 +72,7 @@ export const AuthProvider = ({ children }) => {
             };
           }
           setUser(u);
-          localStorage.setItem('user', JSON.stringify(u));
+          persistUser(u);
 
           if (pending?.answers?.length === 10) {
             api
@@ -65,14 +81,13 @@ export const AuthProvider = ({ children }) => {
                 clearPendingOnboarding(server.user_id);
                 const merged = { ...server, ...r.data.user };
                 setUser(merged);
-                localStorage.setItem('user', JSON.stringify(merged));
+                persistUser(merged);
               })
               .catch(() => {});
           }
         })
         .catch(() => {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          clearSessionStorage();
           clearAppRole();
           setUser(null);
         })
@@ -84,33 +99,29 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
-    localStorage.setItem('token', res.data.token);
-    localStorage.setItem('user', JSON.stringify(res.data.user));
+    persistSession(res.data.token, res.data.user);
     setUser(res.data.user);
     return res.data.user;
   };
 
   const register = async (data) => {
     const res = await api.post('/auth/register', data);
-    localStorage.setItem('token', res.data.token);
-    localStorage.setItem('user', JSON.stringify(res.data.user));
+    persistSession(res.data.token, res.data.user);
     setUser(res.data.user);
     return res.data.user;
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    clearSessionStorage();
     clearAppRole();
     setUser(null);
   };
 
-  /** Слияние с актуальным состоянием (без устаревшего closure) — важно для daily_personalization и профиля */
   const updateUser = useCallback((newData) => {
     setUser((prev) => {
       const merged = { ...(prev || {}), ...newData };
       try {
-        localStorage.setItem('user', JSON.stringify(merged));
+        persistUser(merged);
       } catch {
         /* private mode */
       }
@@ -125,7 +136,7 @@ export const AuthProvider = ({ children }) => {
       const server = res.data;
       setUser(server);
       try {
-        localStorage.setItem('user', JSON.stringify(server));
+        persistUser(server);
       } catch {
         /* ignore */
       }
@@ -134,8 +145,7 @@ export const AuthProvider = ({ children }) => {
       const s = e.response?.status;
       if (s === 404 || s === 401) {
         try {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          clearSessionStorage();
           clearAppRole();
         } catch {
           /* ignore */

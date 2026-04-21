@@ -38,7 +38,7 @@ const Sidebar = () => {
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-icon"><Brain size={20} /></div>
-        {!collapsed && <span className="logo-text">Burnout</span>}
+        {!collapsed && <span className="logo-text">bornout</span>}
       </div>
 
       {/* Nav links */}
