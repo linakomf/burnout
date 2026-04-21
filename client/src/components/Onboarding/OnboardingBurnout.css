@@ -32,13 +32,13 @@
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: #a3c617;
+  background: var(--primary);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(163, 198, 23, 0.35);
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.28);
 }
 
 .onb-title {
@@ -88,7 +88,7 @@
 .onb-progress-fill {
   height: 100%;
   border-radius: 6px;
-  background: #a3c617;
+  background: var(--primary);
   transition: width 0.35s ease;
 }
 
@@ -150,9 +150,9 @@
 }
 
 .onb-option.selected {
-  border-color: #a3c617;
-  background: rgba(163, 198, 23, 0.12);
-  box-shadow: 0 2px 12px rgba(163, 198, 23, 0.2);
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--bg-card));
+  box-shadow: 0 2px 12px rgba(17, 24, 39, 0.18);
 }
 
 .onb-option-dot {
@@ -165,8 +165,8 @@
 }
 
 .onb-option.selected .onb-option-dot {
-  border-color: #a3c617;
-  background: #a3c617;
+  border-color: var(--primary);
+  background: var(--primary);
   box-shadow: inset 0 0 0 3px var(--bg-card);
 }
 
@@ -281,7 +281,7 @@
   border-radius: 999px;
   background: linear-gradient(
     90deg,
-    #a3c617 0%,
+    #536581 0%,
     #d4e88a 28%,
     #ffb347 55%,
     #f97316 78%,
@@ -370,18 +370,18 @@
   padding: 16px 24px;
   border: none;
   border-radius: 16px;
-  background: var(--text-dark);
-  color: var(--bg);
+  background: var(--button-main-bg);
+  color: var(--button-main-text);
   font-family: inherit;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s, transform 0.15s;
-  box-shadow: 0 6px 24px rgba(26, 29, 36, 0.2);
+  box-shadow: 0 8px 22px rgba(178, 154, 223, 0.24);
 }
 
 .onb-continue-btn:hover {
-  opacity: 0.92;
+  background: var(--button-main-bg-hover);
   transform: translateY(-1px);
 }
 

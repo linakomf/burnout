@@ -15,11 +15,44 @@ import { buildDailyTip, buildDailyRecommendations } from '../../utils/dailyPerso
 import './Dashboard.css';
 
 const ONBOARD_KEY = 'burnout_onboarding_v1';
+const ONBOARD_MOOD_OPTIONS = [
+  { id: 'great', emoji: '😊', label: 'Отлично' },
+  { id: 'good', emoji: '🙂', label: 'Хорошо' },
+  { id: 'normal', emoji: '😐', label: 'Нормально' },
+  { id: 'sad', emoji: '😔', label: 'Грустно' },
+  { id: 'anxious', emoji: '😰', label: 'Тревожно' },
+];
+
+function getWeekDays(baseDate) {
+  const weekStart = startOfWeek(baseDate, { weekStartsOn: 1 });
+  return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+}
+
+function isSameCalendarDay(a, b) {
+  return format(a, 'yyyy-MM-dd') === format(b, 'yyyy-MM-dd');
+}
+
+function readShouldShowOnboarding(forceOnboarding) {
+  try {
+    return forceOnboarding || !localStorage.getItem(ONBOARD_KEY);
+  } catch {
+    return forceOnboarding;
+  }
+}
+
+function saveOnboardingSeen() {
+  try {
+    localStorage.setItem(ONBOARD_KEY, '1');
+  } catch {
+    /* ignore */
+  }
+}
 
 const Dashboard = () => {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const today = new Date();
+  const forceOnboarding = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('onboarding') === '1';
 
   const [activeTab, setActiveTab] = useState('today');
   const [selectedDay, setSelectedDay] = useState(today);
@@ -29,9 +62,9 @@ const Dashboard = () => {
   const [expandedRecIndex, setExpandedRecIndex] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [selectedMoodOnboard, setSelectedMoodOnboard] = useState('');
 
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const weekDays = getWeekDays(today);
 
   useEffect(() => {
     api.get('/tests/results/my')
@@ -46,19 +79,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (loading) return;
-    try {
-      if (!localStorage.getItem(ONBOARD_KEY)) setShowOnboarding(true);
-    } catch {
-      /* private mode */
-    }
-  }, [loading]);
+    if (readShouldShowOnboarding(forceOnboarding)) setShowOnboarding(true);
+  }, [forceOnboarding, loading]);
 
   const dismissOnboarding = (goTests) => {
-    try {
-      localStorage.setItem(ONBOARD_KEY, '1');
-    } catch {
-      /* ignore */
-    }
+    saveOnboardingSeen();
     setShowOnboarding(false);
     if (goTests) navigate('/tests');
   };
@@ -171,8 +196,8 @@ const Dashboard = () => {
       {/* Week strip */}
       <div className="week-strip">
         {weekDays.map((day, i) => {
-          const isToday = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
-          const isSelected = format(day, 'yyyy-MM-dd') === format(selectedDay, 'yyyy-MM-dd');
+          const isToday = isSameCalendarDay(day, today);
+          const isSelected = isSameCalendarDay(day, selectedDay);
           return (
             <button
               key={i}
@@ -188,13 +213,18 @@ const Dashboard = () => {
       </div>
 
       {/* Hero banner */}
-      <div className="hero-banner hero-banner--mock">
+      <div
+        className="hero-banner hero-banner--mock"
+        style={{
+          '--hero-hills-image': "url('/diploma-hills-v3.jpg')",
+        }}
+      >
         <div className="hero-left">
           <img
             src="/photos/персонаж.png"
             alt="Персонаж"
             className="hero-character"
-            onError={e => { e.target.style.opacity = 0; }}
+            onError={(e) => { e.target.style.opacity = 0; }}
           />
         </div>
 
@@ -368,19 +398,56 @@ const Dashboard = () => {
 
       {showOnboarding && (
         <div className="modal-overlay" role="dialog" aria-labelledby="onboard-title">
-          <div className="modal-card fade-in">
-            <h2 id="onboard-title" style={{ margin: '0 0 12px', fontSize: 22, fontWeight: 800}}>Добро пожаловать</h2>
-            <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--text-mid)', marginBottom: 20 }}>
-              Загляните в раздел <strong>Тесты</strong> (например GAD-7) и ведите <strong>ежедневный чек-ин</strong> — так в разделе «Аналитика»
-              появится динамика. Затем загляните в <strong>Практики</strong>: мы подберём упражнения под ваши последние результаты.
-              В разделе «ИИ Дневник» можно записывать состояние и получать мягкую поддержку (не диагноз).
+          <div className="modal-card fade-in onboard-mood-modal">
+            <button
+              type="button"
+              className="onboard-mood-close"
+              aria-label="Закрыть"
+              onClick={() => dismissOnboarding(false)}
+            >
+              <X size={18} />
+            </button>
+            <div className="onboard-mood-flower" aria-hidden>🌸</div>
+            <h2 id="onboard-title" className="onboard-mood-title">Как ты себя чувствуешь сегодня?</h2>
+            <p className="onboard-mood-sub">
+              Отметь своё настроение, чтобы мы могли лучше заботиться о тебе
             </p>
-            <div className="modal-actions" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+            <div className="onboard-mood-options">
+              {ONBOARD_MOOD_OPTIONS.map((mood) => (
+                <button
+                  key={mood.id}
+                  type="button"
+                  className={`onboard-mood-btn ${selectedMoodOnboard === mood.id ? 'selected' : ''}`}
+                  onClick={() => {
+                    setSelectedMoodOnboard(mood.id);
+                    dismissOnboarding(false);
+                  }}
+                >
+                  <span className="onboard-mood-emoji" aria-hidden>{mood.emoji}</span>
+                  <span className="onboard-mood-label">{mood.label}</span>
+                </button>
+              ))}
+            </div>
+            <div className="onboard-mood-actions">
               <button type="button" className="btn btn-ghost" onClick={() => dismissOnboarding(false)}>
-                Позже
+                Пропустить
               </button>
-              <button type="button" className="btn btn-primary" onClick={() => dismissOnboarding(true)}>
+              <button type="button" className="btn btn-primary" onClick={() => { dismissOnboarding(false); navigate('/tests'); }}>
                 Перейти к тестам
+              </button>
+            </div>
+            <div className="onboard-mood-links">
+              <button type="button" className="onboard-link-btn" onClick={() => { dismissOnboarding(false); navigate('/stats'); }}>
+                Аналитика
+              </button>
+              <button type="button" className="onboard-link-btn" onClick={() => { dismissOnboarding(false); navigate('/tests'); }}>
+                Тесты
+              </button>
+              <button type="button" className="onboard-link-btn" onClick={() => { dismissOnboarding(false); navigate('/practices'); }}>
+                Практики
+              </button>
+              <button type="button" className="onboard-link-btn" onClick={() => { dismissOnboarding(false); navigate('/diary'); }}>
+                ИИ Дневник
               </button>
             </div>
           </div>

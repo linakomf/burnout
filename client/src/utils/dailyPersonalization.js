@@ -206,7 +206,7 @@ const PRACTICE_META = {
   },
 };
 
-/** Три рекомендации дня: сочетание предпочтений и уровня стресса */
+/** Три рекомендации дня*/
 export function buildDailyRecommendations(stressVal, likes) {
   const keys = [];
   const seen = new Set();

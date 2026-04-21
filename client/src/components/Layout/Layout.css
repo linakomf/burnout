@@ -6,7 +6,7 @@
   min-width: 0;
   min-height: 100%;
   min-height: 100dvh;
-  background: linear-gradient(180deg, #e8eef5 0%, #f0f4f8 40%, #eef2f6 100%);
+  background: linear-gradient(180deg, #f3f5fb 0%, #f7f8fc 40%, #f1f4fb 100%);
   overflow-x: hidden;
 }
 

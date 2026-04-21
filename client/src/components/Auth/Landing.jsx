@@ -1,19 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Brain, Shield, Zap, Users, CheckCircle, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Landing.css';
 
-/** Файл: client/public/photos/character.png (или персонаж.png). PUBLIC_URL — для деплоя не в корень домена. */
-const publicPrefix = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
-const HERO_IMAGE_SRC = encodeURI(`${publicPrefix}/photos/character.png`);
-const HERO_IMAGE_SRC_ALT = encodeURI(`${publicPrefix}/photos/персонаж.png`);
-
 const Landing = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [heroImgSrc, setHeroImgSrc] = useState(HERO_IMAGE_SRC);
-  const [heroImgFailed, setHeroImgFailed] = useState(false);
 
   const goToApp = () => {
     if (!user) return;
@@ -31,12 +24,12 @@ const Landing = () => {
           <div className="land-logo-icon"><Brain size={22} /></div>
           <div>
             <span className="land-logo-name">Burnout</span>
-            <span className="land-logo-sub">Забота о ментальном здоровье в учёбе</span>
+            <span className="land-logo-sub">Академическая версия</span>
           </div>
         </div>
         <div className="land-nav-actions">
           {user ? (
-            <button type="button" className="land-btn-primary" onClick={goToApp}>
+            <button type="button" className="land-btn-primary land-btn-primary--dark" onClick={goToApp}>
               <LayoutDashboard size={18} aria-hidden />
               В кабинет
             </button>
@@ -45,7 +38,7 @@ const Landing = () => {
               <button type="button" className="land-btn-ghost" onClick={() => navigate('/login')}>
                 Вход
               </button>
-              <button type="button" className="land-btn-primary" onClick={() => navigate('/register')}>
+              <button type="button" className="land-btn-primary land-btn-primary--dark" onClick={() => navigate('/register')}>
                 Регистрация
               </button>
             </>
@@ -66,7 +59,7 @@ const Landing = () => {
             После регистрации вы пройдёте тест из 10 вопросов — и получите оценку уровня выгорания в процентах.
           </p>
           <div className="hero-actions">
-            <button className="land-btn-primary hero-cta" onClick={() => navigate('/register')}>
+            <button className="land-btn-primary land-btn-primary--warm hero-cta" onClick={() => navigate('/register')}>
               Начать бесплатно →
             </button>
             <button className="land-btn-outline" onClick={() => { document.getElementById('features').scrollIntoView({ behavior: 'smooth' }); }}>
@@ -83,8 +76,8 @@ const Landing = () => {
               <span className="stat-label">Конфиденциально</span>
             </div>
             <div className="hero-stat">
-              <span className="stat-num">0₸</span>
-              <span className="stat-label">Бесплатно</span>
+              <span className="stat-num">01</span>
+              <span className="stat-label">С первого дня</span>
             </div>
           </div>
         </div>
@@ -92,28 +85,10 @@ const Landing = () => {
         <div className="hero-right">
           <div className="hero-visual-card">
             <div className="hero-visual-bg" aria-hidden />
-            {!heroImgFailed ? (
-              <img
-                src={heroImgSrc}
-                alt=""
-                className="hero-visual-char"
-                onError={() => {
-                  if (heroImgSrc === HERO_IMAGE_SRC) {
-                    setHeroImgSrc(HERO_IMAGE_SRC_ALT);
-                  } else {
-                    setHeroImgFailed(true);
-                  }
-                }}
-              />
-            ) : (
-              <div className="hero-visual-fallback" aria-hidden>
-                <Brain size={120} strokeWidth={1.05} />
-              </div>
-            )}
             <div className="hero-visual-overlay">
-              <span className="hero-visual-badge">10 вопросов · персональный процент</span>
+              <span className="hero-visual-badge">Как вы себя чувствуете сегодня?</span>
               <p className="hero-visual-text">
-                Разные формулировки для студентов и преподавателей — честные ответы помогут точнее оценить состояние.
+                10 вопросов, понятный процент выгорания и персональные рекомендации.
               </p>
             </div>
           </div>
@@ -126,14 +101,14 @@ const Landing = () => {
         <p className="section-sub">Единый стиль, понятные шаги и забота о ресурсе, а не только о баллах</p>
         <div className="features-grid">
           {[
-            { color: '#a3c617', icon: <Brain size={24} />, title: 'Старт с теста', desc: 'Сразу после регистрации — 10 вопросов и процент выгорания, чтобы знать отправную точку' },
-            { color: '#9d8bff', icon: '♡', title: 'Настроение и дневник', desc: 'Календарь, записи и мягкая поддержка в привычном интерфейсе' },
-            { color: '#ffb347', icon: '↗', title: 'Аналитика', desc: 'Графики и динамика по вашим данным — без лишнего шума' },
-            { color: '#5b9bd5', icon: '✦', title: 'Практики', desc: 'Дыхание, микропаузы и упражнения под ваш ритм' },
+            { bg: '#f9f2d8', fg: '#8b6c27', icon: '⚡', title: 'Старт с теста', desc: 'Сразу после регистрации — 10 вопросов и процент выгорания, чтобы знать отправную точку' },
+            { bg: '#f1e8ff', fg: '#7a56bd', icon: '💜', title: 'Настроение и дневник', desc: 'Календарь, записи и мягкая поддержка в привычном интерфейсе' },
+            { bg: '#fcefdc', fg: '#b6762a', icon: '⚡', title: 'Аналитика', desc: 'Графики и динамика по вашим данным — без лишнего шума' },
+            { bg: '#e9f1ff', fg: '#4f76ba', icon: '✦', title: 'Практики', desc: 'Дыхание, микропаузы и упражнения под ваш ритм' },
           ].map((f, i) => (
             <div key={i} className="feature-card">
-              <div className="feature-icon" style={{ background: f.color }}>
-                {typeof f.icon === 'string' ? <span style={{ fontSize: 22, color: 'white' }}>{f.icon}</span> : <span style={{ color: 'white' }}>{f.icon}</span>}
+              <div className="feature-icon" style={{ background: f.bg, color: f.fg }}>
+                <span style={{ fontSize: 18 }}>{f.icon}</span>
               </div>
               <h3 className="feature-title">{f.title}</h3>
               <p className="feature-desc">{f.desc}</p>
@@ -182,7 +157,7 @@ const Landing = () => {
         <div className="cta-card">
           <h2 className="cta-title">Начни заботиться о себе уже сегодня</h2>
           <p className="cta-sub">Регистрация займёт меньше минуты. Без кредитных карт, без скрытых платежей.</p>
-          <button className="land-btn-primary cta-btn" onClick={() => navigate('/register')}>
+          <button className="land-btn-primary land-btn-primary--warm cta-btn" onClick={() => navigate('/register')}>
             Создать аккаунт бесплатно →
           </button>
         </div>

@@ -84,7 +84,7 @@
   font-size: 12px; color: var(--text-mid); font-weight: 500;
 }
 .cal-cell.today {
-  background: #a3c617;
+  background: var(--primary);
   color: #fff;
   font-weight: 700;
 }
@@ -149,13 +149,13 @@
 
 .chat-avatar-ai {
   width: 32px; height: 32px; border-radius: 50%;
-  background: rgba(163, 198, 23, 0.2);
+  background: color-mix(in srgb, var(--primary) 20%, var(--bg-card));
   display: flex; align-items: center;
   justify-content: center; font-size: 16px; flex-shrink: 0;
 }
 .chat-avatar-user {
   width: 32px; height: 32px; border-radius: 50%;
-  background: #a3c617; display: flex; align-items: center;
+  background: var(--primary); display: flex; align-items: center;
   justify-content: center; font-size: 13px; font-weight: 700;
   color: white; flex-shrink: 0;
 }
@@ -183,7 +183,7 @@
 }
 .chat-bubble-msg.typing span {
   width: 7px; height: 7px; border-radius: 50%;
-  background: #a3c617; animation: typingBounce 1.2s infinite;
+  background: var(--primary); animation: typingBounce 1.2s infinite;
 }
 .chat-bubble-msg.typing span:nth-child(2) { animation-delay: 0.2s; }
 .chat-bubble-msg.typing span:nth-child(3) { animation-delay: 0.4s; }

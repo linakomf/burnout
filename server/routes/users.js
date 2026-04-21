@@ -10,6 +10,49 @@ const multer = require('multer');
 const path = require('path');
 
 const uploadsAbs = path.join(__dirname, '..', 'uploads');
+const PERSONALIZATION_ALLOWED = new Set([
+  'breathing',
+  'movement',
+  'quiet',
+  'music',
+  'creative',
+  'social',
+  'nature',
+  'structure',
+]);
+
+function parseUserId(value) {
+  const userId = parseInt(String(value), 10);
+  return Number.isFinite(userId) ? userId : null;
+}
+
+function mapUserRow(row) {
+  const { daily_personalization_json, ...rest } = row;
+  const daily_personalization = normalizeDailyPersonalization(row.daily_personalization_json);
+  return {
+    ...rest,
+    daily_personalization,
+  };
+}
+
+function buildSaveErrorMessage(err) {
+  return err.code === '42703' || /column/i.test(err.message)
+    ? 'База не обновлена. Перезапустите сервер приложения.'
+    : 'Ошибка сервера при сохранении';
+}
+
+function validateDailyLikes(likes) {
+  if (!Array.isArray(likes) || likes.length === 0) {
+    return 'Выберите хотя бы один вариант';
+  }
+  if (likes.length > 8 || new Set(likes).size !== likes.length) {
+    return 'Некорректный набор отметок';
+  }
+  if (!likes.every((id) => PERSONALIZATION_ALLOWED.has(String(id)))) {
+    return 'Неизвестный вариант';
+  }
+  return null;
+}
 
 // Multer setup for avatar uploads
 const storage = multer.diskStorage({
@@ -42,10 +85,7 @@ router.get('/me', authMiddleware, async (req, res) => {
       [req.user.user_id]
     );
     if (result.rows.length === 0) return res.status(404).json({ message: 'Пользователь не найден' });
-    const row = result.rows[0];
-    const daily_personalization = normalizeDailyPersonalization(row.daily_personalization_json);
-    delete row.daily_personalization_json;
-    res.json({ ...row, daily_personalization });
+    res.json(mapUserRow(result.rows[0]));
   } catch (err) {
     const dbMessage = dbErrorToMessage(err);
     if (dbMessage) return res.status(500).json({ message: dbMessage });
@@ -62,6 +102,7 @@ router.put('/me', authMiddleware, async (req, res) => {
     await runPersonalizationMigration();
     const userResult = await pool.query('SELECT * FROM users WHERE user_id = $1', [userId]);
     const user = userResult.rows[0];
+    if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
 
     let updatedPassword = user.password;
 
@@ -81,10 +122,7 @@ router.put('/me', authMiddleware, async (req, res) => {
       [name || user.name, email || user.email, age || user.age, updatedPassword, userId]
     );
 
-    const row = result.rows[0];
-    const daily_personalization = normalizeDailyPersonalization(row.daily_personalization_json);
-    delete row.daily_personalization_json;
-    res.json({ ...row, daily_personalization });
+    res.json(mapUserRow(result.rows[0]));
   } catch (err) {
     console.error(err);
     const dbMessage = dbErrorToMessage(err);
@@ -98,8 +136,8 @@ router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
   if (req.user.role === 'admin') {
     return res.status(400).json({ message: 'Для администратора не требуется' });
   }
-  const userId = parseInt(req.user.user_id, 10);
-  if (!Number.isFinite(userId)) {
+  const userId = parseUserId(req.user.user_id);
+  if (userId == null) {
     return res.status(400).json({ message: 'Некорректная сессия — войдите снова' });
   }
 
@@ -132,48 +170,24 @@ router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
     if (!result.rows[0]) {
       return res.status(404).json({ message: 'Пользователь не найден' });
     }
-    const row = result.rows[0];
-    const daily_personalization = normalizeDailyPersonalization(row.daily_personalization_json);
-    delete row.daily_personalization_json;
-    res.json({ percent, rawScore: sum, user: { ...row, daily_personalization } });
+    res.json({ percent, rawScore: sum, user: mapUserRow(result.rows[0]) });
   } catch (err) {
     console.error('[onboarding-burnout]', err);
-    res.status(500).json({
-      message: err.code === '42703' || /column/i.test(err.message)
-        ? 'База не обновлена. Перезапустите сервер приложения.'
-        : 'Ошибка сервера при сохранении',
-    });
+    res.status(500).json({ message: buildSaveErrorMessage(err) });
   }
 });
 
 /** Предпочтения для советов и рекомендаций на главной (мини-тест «что вам помогает») */
 router.post('/daily-personalization', authMiddleware, async (req, res) => {
   const rawId = req.user.user_id ?? req.user.sub ?? req.user.id;
-  const userId = parseInt(String(rawId), 10);
-  if (!Number.isFinite(userId)) {
+  const userId = parseUserId(rawId);
+  if (userId == null) {
     return res.status(400).json({ message: 'Некорректная сессия — войдите снова' });
   }
 
-  const ALLOWED = new Set([
-    'breathing',
-    'movement',
-    'quiet',
-    'music',
-    'creative',
-    'social',
-    'nature',
-    'structure',
-  ]);
   const { likes } = req.body;
-  if (!Array.isArray(likes) || likes.length === 0) {
-    return res.status(400).json({ message: 'Выберите хотя бы один вариант' });
-  }
-  if (likes.length > 8 || new Set(likes).size !== likes.length) {
-    return res.status(400).json({ message: 'Некорректный набор отметок' });
-  }
-  if (!likes.every((id) => ALLOWED.has(String(id)))) {
-    return res.status(400).json({ message: 'Неизвестный вариант' });
-  }
+  const likesError = validateDailyLikes(likes);
+  if (likesError) return res.status(400).json({ message: likesError });
 
   try {
     await runPersonalizationMigration();
@@ -190,18 +204,10 @@ router.post('/daily-personalization', authMiddleware, async (req, res) => {
       [JSON.stringify(payload), userId]
     );
     if (!result.rows[0]) return res.status(404).json({ message: 'Пользователь не найден' });
-    const row = result.rows[0];
-    const daily_personalization = normalizeDailyPersonalization(row.daily_personalization_json);
-    delete row.daily_personalization_json;
-    res.json({ user: { ...row, daily_personalization } });
+    res.json({ user: mapUserRow(result.rows[0]) });
   } catch (err) {
     console.error('[daily-personalization]', err.code, err.message);
-    res.status(500).json({
-      message:
-        err.code === '42703' || /column/i.test(err.message)
-          ? 'База не обновлена. Перезапустите сервер приложения.'
-          : 'Ошибка сервера при сохранении',
-    });
+    res.status(500).json({ message: buildSaveErrorMessage(err) });
   }
 });
 

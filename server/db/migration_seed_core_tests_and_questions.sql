@@ -1,7 +1,4 @@
--- Ручной запуск в psql, если вопросы не подтянулись через ensureTestCatalog:
--- psql $DATABASE_URL -f migration_seed_core_tests_and_questions.sql
 
--- Тест 2: MBI студенты (9 вопросов)
 INSERT INTO tests (test_id, title, description, category_id, scoring_type)
 VALUES (
   2,

@@ -143,6 +143,126 @@ function deltaToneClass(trend, goodWhenUp) {
   return feelsGood ? 'pos' : 'neg';
 }
 
+// Собираем одну строку-объяснение: на каких данных основана сводка.
+function buildSourceLead({ testsCount, entriesCount, diaryNotesCount, onboardingPct }) {
+  const sourceParts = [
+    testsCount > 0 ? `тесты (${testsCount})` : null,
+    entriesCount > 0
+      ? `дневник (${entriesCount}${diaryNotesCount ? `, из них ${diaryNotesCount} с заметкой` : ''})`
+      : null,
+    onboardingPct != null ? 'первичный скрининг выгорания' : null,
+  ].filter(Boolean);
+
+  return sourceParts.length > 0
+    ? `Сводка строится по: ${sourceParts.join(', ')}. Она обновляется после каждого теста и активности. `
+    : '';
+}
+
+// Карточки-инсайты: выделила в helper, чтобы в компоненте было легче читать.
+function buildInsights({
+  avgMoodPct,
+  moodTrend,
+  anxietyPct,
+  anxietyTrend,
+  stressPct,
+  testsCount,
+  entriesCount,
+  diaryNotesCount,
+  onboardingPct,
+}) {
+  const sourceLead = buildSourceLead({ testsCount, entriesCount, diaryNotesCount, onboardingPct });
+  const out = [];
+
+  if (avgMoodPct >= 55 && moodTrend.up !== false) {
+    out.push({
+      kind: 'good',
+      title: 'Отличный прогресс!',
+      text:
+        sourceLead +
+        (moodTrend.text && moodTrend.text !== '—'
+          ? `Настроение в динамике: ${moodTrend.text} к прошлому периоду. Продолжайте в том же духе.`
+          : 'Вы регулярно отмечаете состояние в дневнике — это основа осознанности.'),
+      icon: Sparkles,
+    });
+  } else if (avgMoodPct > 0) {
+    out.push({
+      kind: 'good',
+      title: 'Есть опора',
+      text:
+        sourceLead +
+        'Записи в дневнике помогают замечать закономерности. Даже небольшие шаги — это вклад в благополучие.',
+      icon: Sparkles,
+    });
+  } else {
+    out.push({
+      kind: 'good',
+      title: 'С чистого листа',
+      text:
+        sourceLead +
+        'Добавьте пару записей в ИИ-дневнике и пройдите тест из каталога — графики и обобщение станут точнее.',
+      icon: Sparkles,
+    });
+  }
+
+  if (anxietyPct >= 65 || (anxietyTrend.up === true && anxietyPct >= 45)) {
+    out.push({
+      kind: 'warn',
+      title: 'Обратите внимание',
+      text:
+        'По совокупности тестов, скрининга и дневника заметна повышенная нагрузка. Попробуйте короткие паузы и дыхание; при необходимости обсудите это со специалистом.',
+      icon: AlertCircle,
+    });
+  } else {
+    out.push({
+      kind: 'warn',
+      title: 'Наблюдение',
+      text:
+        stressPct >= 60
+          ? 'Уровень стресса выше комфортного. Полезны прогулки, сон и делегирование задач.'
+          : 'Следите за балансом нагрузки и отдыха — это снижает риск накопительной усталости.',
+      icon: AlertCircle,
+    });
+  }
+
+  out.push({
+    kind: 'tip',
+    title: 'Рекомендация',
+    text:
+      'Попробуйте дыхательную практику 4–6 перед важными делами или раздел «Практики». Ответы и заметки в ИИ-дневнике тоже учитываются в общей картине активности.',
+    icon: Lightbulb,
+  });
+
+  return out;
+}
+
+// Чек-лист "что получилось хорошо" — отдельно, чтобы не раздувать JSX-блок.
+function buildWeekGood({
+  entriesCount,
+  diaryNotesCount,
+  avgMoodPct,
+  testsCount,
+  moodTrend,
+  onboardingPct,
+  onboardingCompleted,
+}) {
+  const lines = [];
+  if (entriesCount >= 3) lines.push('Регулярные записи в дневнике');
+  if (diaryNotesCount >= 2) lines.push('Заметки в дневнике — материал для осмысленной поддержки ИИ');
+  if (avgMoodPct >= 50) lines.push('Стабильное или улучшающееся настроение (с учётом тестов и дневника)');
+  if (testsCount > 0) lines.push(`Пройдено тестов за период: ${testsCount}`);
+  if (onboardingPct != null && onboardingCompleted) {
+    lines.push('В аналитике учтён первичный скрининг выгорания');
+  }
+  if (moodTrend.up === false && moodTrend.text !== '—') {
+    lines.push(`Настроение: ${moodTrend.text} к прошлому отрезку`);
+  }
+  if (!lines.length) {
+    lines.push('Начните с одной короткой записи в дневнике');
+    lines.push('Пройдите тест из каталога — появится персональная динамика');
+  }
+  return lines;
+}
+
 const Stats = () => {
   const { user } = useAuth();
   const onboardingPct = user?.onboarding_burnout_percent ?? null;
@@ -453,117 +573,53 @@ const Stats = () => {
     [diaryInPeriod]
   );
 
-  const insights = useMemo(() => {
-    const sourceParts = [
-      testsCount > 0 ? `тесты (${testsCount})` : null,
-      entriesCount > 0
-        ? `дневник (${entriesCount}${diaryNotesCount ? `, из них ${diaryNotesCount} с заметкой` : ''})`
-        : null,
-      onboardingPct != null ? 'первичный скрининг выгорания' : null,
-    ].filter(Boolean);
-    const sourceLead =
-      sourceParts.length > 0
-        ? `Сводка строится по: ${sourceParts.join(', ')}. Она обновляется после каждого теста и активности. `
-        : '';
+  const insights = useMemo(
+    () =>
+      buildInsights({
+        avgMoodPct,
+        moodTrend,
+        anxietyPct,
+        anxietyTrend,
+        stressPct,
+        testsCount,
+        entriesCount,
+        diaryNotesCount,
+        onboardingPct,
+      }),
+    [
+      avgMoodPct,
+      moodTrend,
+      anxietyPct,
+      anxietyTrend,
+      stressPct,
+      testsCount,
+      entriesCount,
+      diaryNotesCount,
+      onboardingPct,
+    ]
+  );
 
-    const out = [];
-    if (avgMoodPct >= 55 && moodTrend.up !== false) {
-      out.push({
-        kind: 'good',
-        title: 'Отличный прогресс!',
-        text:
-          sourceLead +
-          (moodTrend.text && moodTrend.text !== '—'
-            ? `Настроение в динамике: ${moodTrend.text} к прошлому периоду. Продолжайте в том же духе.`
-            : 'Вы регулярно отмечаете состояние в дневнике — это основа осознанности.'),
-        icon: Sparkles,
-      });
-    } else if (avgMoodPct > 0) {
-      out.push({
-        kind: 'good',
-        title: 'Есть опора',
-        text:
-          sourceLead +
-          'Записи в дневнике помогают замечать закономерности. Даже небольшие шаги — это вклад в благополучие.',
-        icon: Sparkles,
-      });
-    } else {
-      out.push({
-        kind: 'good',
-        title: 'С чистого листа',
-        text:
-          sourceLead +
-          'Добавьте пару записей в ИИ-дневнике и пройдите тест из каталога — графики и обобщение станут точнее.',
-        icon: Sparkles,
-      });
-    }
-
-    if (anxietyPct >= 65 || (anxietyTrend.up === true && anxietyPct >= 45)) {
-      out.push({
-        kind: 'warn',
-        title: 'Обратите внимание',
-        text:
-          'По совокупности тестов, скрининга и дневника заметна повышенная нагрузка. Попробуйте короткие паузы и дыхание; при необходимости обсудите это со специалистом.',
-        icon: AlertCircle,
-      });
-    } else {
-      out.push({
-        kind: 'warn',
-        title: 'Наблюдение',
-        text:
-          stressPct >= 60
-            ? 'Уровень стресса выше комфортного. Полезны прогулки, сон и делегирование задач.'
-            : 'Следите за балансом нагрузки и отдыха — это снижает риск накопительной усталости.',
-        icon: AlertCircle,
-      });
-    }
-
-    out.push({
-      kind: 'tip',
-      title: 'Рекомендация',
-      text:
-        'Попробуйте дыхательную практику 4–6 перед важными делами или раздел «Практики». Ответы и заметки в ИИ-дневнике тоже учитываются в общей картине активности.',
-      icon: Lightbulb,
-    });
-    return out;
-  }, [
-    avgMoodPct,
-    moodTrend,
-    anxietyPct,
-    anxietyTrend,
-    stressPct,
-    testsCount,
-    entriesCount,
-    diaryNotesCount,
-    onboardingPct,
-  ]);
-
-  const weekGood = useMemo(() => {
-    const lines = [];
-    if (entriesCount >= 3) lines.push('Регулярные записи в дневнике');
-    if (diaryNotesCount >= 2) lines.push('Заметки в дневнике — материал для осмысленной поддержки ИИ');
-    if (avgMoodPct >= 50) lines.push('Стабильное или улучшающееся настроение (с учётом тестов и дневника)');
-    if (testsCount > 0) lines.push(`Пройдено тестов за период: ${testsCount}`);
-    if (onboardingPct != null && user?.onboarding_burnout_completed) {
-      lines.push('В аналитике учтён первичный скрининг выгорания');
-    }
-    if (moodTrend.up === false && moodTrend.text !== '—') {
-      lines.push(`Настроение: ${moodTrend.text} к прошлому отрезку`);
-    }
-    if (!lines.length) {
-      lines.push('Начните с одной короткой записи в дневнике');
-      lines.push('Пройдите тест из каталога — появится персональная динамика');
-    }
-    return lines;
-  }, [
-    entriesCount,
-    diaryNotesCount,
-    avgMoodPct,
-    testsCount,
-    moodTrend,
-    onboardingPct,
-    user?.onboarding_burnout_completed,
-  ]);
+  const weekGood = useMemo(
+    () =>
+      buildWeekGood({
+        entriesCount,
+        diaryNotesCount,
+        avgMoodPct,
+        testsCount,
+        moodTrend,
+        onboardingPct,
+        onboardingCompleted: user?.onboarding_burnout_completed,
+      }),
+    [
+      entriesCount,
+      diaryNotesCount,
+      avgMoodPct,
+      testsCount,
+      moodTrend,
+      onboardingPct,
+      user?.onboarding_burnout_completed,
+    ]
+  );
 
   const weekGoals = [
     'Увеличить число прогулок до 5 в неделю',

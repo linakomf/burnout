@@ -1,11 +1,7 @@
--- ============================================
--- BURNOUT DETECTION APP - DATABASE SCHEMA
--- ============================================
 
 CREATE DATABASE IF NOT EXISTS burnout_db;
 \c burnout_db;
 
--- Users table
 CREATE TABLE IF NOT EXISTS users (
     user_id SERIAL PRIMARY KEY,
     name VARCHAR(45) NOT NULL,
@@ -17,12 +13,6 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Первичный тест выгорания (добавляется также через ensureOnboardingSchema при старте сервера):
--- ALTER TABLE users ADD COLUMN onboarding_burnout_completed BOOLEAN DEFAULT FALSE;
--- ALTER TABLE users ADD COLUMN onboarding_burnout_percent INT;
--- ALTER TABLE users ADD COLUMN onboarding_burnout_completed_at TIMESTAMP;
-
--- Admin table
 CREATE TABLE IF NOT EXISTS admin (
     admin_id SERIAL PRIMARY KEY,
     name VARCHAR(45) NOT NULL,
@@ -31,7 +21,7 @@ CREATE TABLE IF NOT EXISTS admin (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Categories table
+
 CREATE TABLE IF NOT EXISTS categories (
     category_id SERIAL PRIMARY KEY,
     name VARCHAR(45) NOT NULL,
@@ -39,7 +29,6 @@ CREATE TABLE IF NOT EXISTS categories (
     target_role VARCHAR(45) DEFAULT 'all' CHECK (target_role IN ('student', 'teacher', 'all'))
 );
 
--- Tests table
 CREATE TABLE IF NOT EXISTS tests (
     test_id SERIAL PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
@@ -49,7 +38,6 @@ CREATE TABLE IF NOT EXISTS tests (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Questions table
 CREATE TABLE IF NOT EXISTS questions (
     question_id SERIAL PRIMARY KEY,
     test_id INT REFERENCES tests(test_id) ON DELETE CASCADE,
@@ -57,8 +45,6 @@ CREATE TABLE IF NOT EXISTS questions (
     options JSONB,
     order_num INT DEFAULT 0
 );
-
--- Test Results table
 CREATE TABLE IF NOT EXISTS test_results (
     result_id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
@@ -69,7 +55,6 @@ CREATE TABLE IF NOT EXISTS test_results (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Diary Entries table
 CREATE TABLE IF NOT EXISTS diary_entries (
     entry_id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
@@ -79,17 +64,12 @@ CREATE TABLE IF NOT EXISTS diary_entries (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================
--- SEED DATA
--- ============================================
 
--- Insert categories
 INSERT INTO categories (name, description, target_role) VALUES
 ('Базовые тесты', 'Общие тесты для всех пользователей', 'all'),
 ('Для студентов', 'Тесты на выгорание для студентов', 'student'),
 ('Для преподавателей', 'Тесты на профессиональное выгорание', 'teacher');
 
--- Insert tests (test_id 2-7; в текстах обычный дефис - вместо длинного тире)
 INSERT INTO tests (test_id, title, description, category_id, scoring_type) VALUES
 (2, 'MBI - Опросник выгорания Маслах (студенты)', 'Адаптированная версия для студентов: эмоциональное истощение, деперсонализация, эффективность', 2, 'mbi_student'),
 (3, 'Тест на академическую усталость', 'Оценка усталости от учебы и мотивации', 2, 'likert_sum'),

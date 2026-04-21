@@ -20,7 +20,9 @@ import { IlluHealing, IlluDiscovery, IlluInsight } from './TestsPathsArt';
 import { mergeTestRu } from '../../config/testDisplayRu';
 import './Tests.css';
 
-/** Подбор теста по приоритету id (если роль скрыла часть тестов) */
+const EMPTY_FILTER_COUNTS = { all: 0, stress: 0, anxiety: 0, mood: 0, esteem: 0, other: 0 };
+
+/**  тест по приоритету id (если роль скрыла часть тестов) */
 function pickTest(tests, preferIds) {
   if (!tests?.length) return null;
   for (const id of preferIds) {
@@ -109,6 +111,35 @@ function parseQuestionOptions(raw) {
   return [];
 }
 
+function buildFilterCounts(enriched) {
+  return enriched.reduce((acc, t) => {
+    acc.all += 1;
+    acc[t.bucket] = (acc[t.bucket] || 0) + 1;
+    return acc;
+  }, { ...EMPTY_FILTER_COUNTS });
+}
+
+function toEnrichedTests(tests) {
+  return tests.map((t) => ({
+    ...t,
+    bucket: getTestBucket(t),
+  }));
+}
+
+function buildScoreLabel(result) {
+  if (result.scale === 'gad7') return `балл GAD-7: ${result.result.score} / ${result.maxScore ?? 21}`;
+  if (result.scale === 'daily5') return `индекс дня: ${result.percentage}%`;
+  if (result.scale === 'mbi_student') return `индекс: ${result.percentage}%`;
+  return 'интенсивность по шкале';
+}
+
+function shouldShowCrisisHint(level, rawLevel) {
+  return (
+    /высокая тревож|выраженное выгорание|сильн|нужен отдых и поддержк/i.test(level || '') ||
+    rawLevel === 'Высокий'
+  );
+}
+
 // ─── Tests List ────────────────────────────────────────────────────────────────
 export const TestsList = () => {
   const [tests, setTests] = useState([]);
@@ -124,19 +155,8 @@ export const TestsList = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const enriched = tests.map((t) => ({
-    ...t,
-    bucket: getTestBucket(t),
-  }));
-
-  const filterCounts = enriched.reduce(
-    (acc, t) => {
-      acc.all += 1;
-      acc[t.bucket] = (acc[t.bucket] || 0) + 1;
-      return acc;
-    },
-    { all: 0, stress: 0, anxiety: 0, mood: 0, esteem: 0, other: 0 }
-  );
+  const enriched = toEnrichedTests(tests);
+  const filterCounts = buildFilterCounts(enriched);
 
   const filtered =
     filter === 'all'
@@ -396,18 +416,8 @@ export const TakeTest = () => {
     const level = result.level || result.result.level;
     const color = resultAccentColor(level);
     const interp = result.interpretation;
-    const scoreLabel =
-      result.scale === 'gad7'
-        ? `балл GAD-7: ${result.result.score} / ${result.maxScore ?? 21}`
-        : result.scale === 'daily5'
-          ? `индекс дня: ${result.percentage}%`
-          : result.scale === 'mbi_student'
-            ? `индекс: ${result.percentage}%`
-            : 'интенсивность по шкале';
-
-    const showCrisisHint =
-      /высокая тревож|выраженное выгорание|сильн|нужен отдых и поддержк/i.test(level || '') ||
-      result.result.level === 'Высокий';
+    const scoreLabel = buildScoreLabel(result);
+    const showCrisisHint = shouldShowCrisisHint(level, result.result.level);
 
     return (
       <div className="take-test fade-in">

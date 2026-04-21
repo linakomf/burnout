@@ -3,25 +3,25 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  /* Единая тема макета Mental Health: лайм + светло-серый фон */
-  --primary: #a3c617;
-  --primary-dark: #7a9014;
-  --primary-light: #eef4d5;
-  --secondary: #FDCDAC;
-  --accent: #d4e88a;
-  --accent-green: #a3c617;
-  --ink: #1a1d24;
+  /* Новая пастельная гамма из макетов: cream + lilac + peach + graphite */
+  --primary: #111827;
+  --primary-dark: #070b14;
+  --primary-light: #eceffd;
+  --secondary: #ffd9bc;
+  --accent: #ddd8ff;
+  --accent-green: #f6c768;
+  --ink: #111827;
 
-  --bg: #f0f4f8;
+  --bg: #f6f7fb;
   --bg-card: #ffffff;
-  --sidebar-bg: #2c3e2d;
-  --sidebar-hover: #3a5238;
-  --sidebar-active: #a3c617;
+  --sidebar-bg: #f2f4f8;
+  --sidebar-hover: #e7ebf3;
+  --sidebar-active: #111827;
 
   --text-dark: #1a1d24;
-  --text-mid: #5a6578;
-  --text-light: #7a8494;
-  --border: #dde4ec;
+  --text-mid: #586273;
+  --text-light: #7b8596;
+  --border: #e2e7f0;
 
   --shadow: 0 4px 20px rgba(26, 29, 36, 0.06);
   --shadow-md: 0 8px 32px rgba(26, 29, 36, 0.1);
@@ -29,30 +29,49 @@
   --radius-sm: 10px;
   --sidebar-width: 220px;
   --sidebar-collapsed: 68px;
+  --font-brand-heading: 'Nunito', 'Plus Jakarta Sans', sans-serif;
+  --button-main-bg: linear-gradient(90deg, #f6c79f 0%, #d9cdfc 100%);
+  --button-main-bg-hover: linear-gradient(90deg, #f3bf94 0%, #d3c4fb 100%);
+  --button-main-text: #2a3142;
 }
 
 [data-theme='dark'] {
-  --primary: #c4d94a;
-  --primary-dark: #a3b832;
-  --primary-light: #2a3318;
-  --secondary: #5c4a3a;
-  --accent: #3d4a28;
-  --accent-green: #c4d94a;
-  --ink: #e8ece9;
+  --primary: #111827;
+  --primary-dark: #070b14;
+  --primary-light: #2a3142;
+  --secondary: #7a5f4e;
+  --accent: #3a3f63;
+  --accent-green: #f6c768;
+  --ink: #edf1ff;
 
-  --bg: #121816;
-  --bg-card: #1a221e;
-  --sidebar-bg: #0f1412;
-  --sidebar-hover: #1c2822;
-  --sidebar-active: #a3c617;
+  --bg: #0f131c;
+  --bg-card: #171d2b;
+  --sidebar-bg: #101622;
+  --sidebar-hover: #1a2335;
+  --sidebar-active: #111827;
 
-  --text-dark: #e8ece9;
-  --text-mid: #9aaa9c;
-  --text-light: #6b786e;
-  --border: #2d3830;
+  --text-dark: #edf1ff;
+  --text-mid: #b3bdd7;
+  --text-light: #8793b2;
+  --border: #2b3449;
 
   --shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --button-main-bg: linear-gradient(90deg, #f6c79f 0%, #d9cdfc 100%);
+  --button-main-bg-hover: linear-gradient(90deg, #f3bf94 0%, #d3c4fb 100%);
+  --button-main-text: #2a3142;
+}
+
+h1,
+h2,
+.page-title,
+.dash-greeting,
+.tests-paths-title,
+.tip-title,
+.recs-title,
+.onboard-mood-title,
+.onboard-guide-title {
+  font-family: var(--font-brand-heading), 'Nunito', serif;
 }
 
 /* html, body, #root — в index.css */
@@ -143,11 +162,17 @@ body {
   font-weight: 600; cursor: pointer; border: none;
   transition: all 0.2s ease;
 }
-.btn-primary { background: var(--primary); color: white; }
+.btn-primary {
+  background: var(--button-main-bg);
+  color: var(--button-main-text);
+  border: 1px solid #e8dbf6;
+  box-shadow: 0 8px 22px rgba(178, 154, 223, 0.25);
+}
 .btn-primary:hover {
-  background: var(--primary-dark);
+  background: var(--button-main-bg-hover);
+  color: #242b3b;
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(163, 198, 23, 0.35);
+  box-shadow: 0 10px 24px rgba(178, 154, 223, 0.3);
 }
 .btn-secondary { background: var(--secondary); color: var(--text-dark); }
 .btn-secondary:hover { background: #fbbf8a; transform: translateY(-1px); }
@@ -188,7 +213,7 @@ body {
 }
 .input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(163, 198, 23, 0.2);
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.12);
   background: #fff;
 }
 [data-theme='dark'] .input {
