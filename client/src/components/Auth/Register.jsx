@@ -21,7 +21,7 @@ const Register = () => {
     setLoading(true);
     try {
       await register(form);
-      navigate('/user-dashboard', { replace: true });
+      navigate('/onboarding/burnout', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Ошибка регистрации');
     } finally {

@@ -14,7 +14,6 @@ function staticPracticesPayload() {
   };
 }
 
-/** Список практик + персональный порядок + статистика */
 router.get('/', authMiddleware, async (req, res) => {
   const userId = req.user.user_id;
   try {
@@ -48,7 +47,6 @@ router.get('/', authMiddleware, async (req, res) => {
       );
       stats.minutesTotal = Math.round((mins.rows[0]?.s || 0) / 60);
     } catch {
-      /* таблицы ещё не созданы */
     }
 
     const favKeys = new Set();
@@ -59,7 +57,6 @@ router.get('/', authMiddleware, async (req, res) => {
       );
       fk.rows.forEach((r) => favKeys.add(r.practice_key));
     } catch {
-      /* нет таблицы */
     }
 
     res.json({
@@ -73,7 +70,6 @@ router.get('/', authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error('[practices GET]', err);
-    /* Всегда отдаём рабочий каталог, чтобы страница не «висела» */
     const payload = staticPracticesPayload();
     payload.personalizedHint =
       'Не удалось загрузить персонализацию. Практики доступны; при следующем входе статистика обновится.';

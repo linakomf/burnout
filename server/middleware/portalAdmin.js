@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 
-/** JWT выдаётся только маршрутом POST /api/admin-portal/login (отдельно от обычных пользователей). */
 function portalAdminMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];

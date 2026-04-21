@@ -20,7 +20,6 @@ import { IlluHealing, IlluDiscovery, IlluInsight } from './TestsPathsArt';
 import { mergeTestRu } from '../../config/testDisplayRu';
 import './Tests.css';
 
-/** Подбор теста по приоритету id (если роль скрыла часть тестов) */
 function pickTest(tests, preferIds) {
   if (!tests?.length) return null;
   for (const id of preferIds) {
@@ -57,7 +56,6 @@ const TEST_PATHS = [
   },
 ];
 
-/** Визуальный акцент карточки (совпадает с путями heal / discover / insight) */
 export function bucketToAccent(bucket) {
   if (bucket === 'stress') return 'heal';
   if (bucket === 'anxiety') return 'discover';
@@ -75,7 +73,6 @@ const TEST_FILTER_CHIPS = [
   { id: 'other', label: 'Другое', Icon: MoreHorizontal },
 ];
 
-/** Тематическая группа для оформления карточки (психология / самочувствие) */
 export function getTestBucket(test) {
   const s = `${test.title || ''} ${test.category_name || ''} ${test.description || ''}`.toLowerCase();
   if (/gad-7|\bgad\b|тревог|тревож|паник|беспокой|социальн/i.test(s)) return 'anxiety';
@@ -109,7 +106,6 @@ function parseQuestionOptions(raw) {
   return [];
 }
 
-// ─── Tests List ────────────────────────────────────────────────────────────────
 export const TestsList = () => {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -285,13 +281,12 @@ export const TestsList = () => {
   );
 };
 
-// ─── Take Test ─────────────────────────────────────────────────────────────────
 export const TakeTest = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [test, setTest] = useState(null);
   const [answers, setAnswers] = useState({});
-  const [step, setStep] = useState(0); // 0=intro, 1-N=questions, N+1=result
+  const [step, setStep] = useState(0);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -347,7 +342,6 @@ export const TakeTest = () => {
     step > 0 && step <= nQ ? (step / nQ) * 100 : 0;
   const allAnswered = questions.every(q => answers[q.question_id] !== undefined);
 
-  // INTRO
   if (step === 0) {
     return (
       <div className="take-test take-test--intro fade-in">
@@ -391,7 +385,6 @@ export const TakeTest = () => {
     );
   }
 
-  // RESULT
   if (step === questions.length + 1 && result) {
     const level = result.level || result.result.level;
     const color = resultAccentColor(level);
@@ -451,7 +444,6 @@ export const TakeTest = () => {
     );
   }
 
-  // QUESTIONS
   const opts = parseQuestionOptions(currentQ?.options);
 
   return (

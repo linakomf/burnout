@@ -1,6 +1,5 @@
 const pool = require('./db');
 
-/** Создаёт таблицы практик, если миграцию ещё не запускали */
 async function ensurePracticeSchema() {
   try {
     await pool.query(`

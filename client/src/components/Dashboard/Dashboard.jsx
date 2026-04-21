@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { format, addDays, startOfWeek } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Bell, Clock, Circle, Sparkles, X, Compass, ChevronRight } from 'lucide-react';
+import { Bell, Brain, Clock, Circle, Wind, Sparkles, X } from 'lucide-react';
 import api from '../../utils/api';
 import {
   stressFromCatalogLevel,
@@ -11,13 +11,12 @@ import {
   compositeMoodPct,
   compositeEnergyPct,
 } from '../../utils/wellnessComposite';
-import { buildDailyTip, buildDailyRecommendations } from '../../utils/dailyPersonalization';
 import './Dashboard.css';
 
 const ONBOARD_KEY = 'burnout_onboarding_v1';
 
 const Dashboard = () => {
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const today = new Date();
 
@@ -41,15 +40,10 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    refreshUser().catch(() => {});
-  }, [refreshUser]);
-
-  useEffect(() => {
     if (loading) return;
     try {
       if (!localStorage.getItem(ONBOARD_KEY)) setShowOnboarding(true);
     } catch {
-      /* private mode */
     }
   }, [loading]);
 
@@ -57,7 +51,6 @@ const Dashboard = () => {
     try {
       localStorage.setItem(ONBOARD_KEY, '1');
     } catch {
-      /* ignore */
     }
     setShowOnboarding(false);
     if (goTests) navigate('/tests');
@@ -92,16 +85,39 @@ const Dashboard = () => {
     return 'ДОБРЫЙ ВЕЧЕР';
   };
 
-  const personalizationLikes = user?.daily_personalization?.likes;
-  const tip = useMemo(
-    () => buildDailyTip(stressVal, personalizationLikes),
-    [stressVal, personalizationLikes]
-  );
-
-  const recommendations = useMemo(
-    () => buildDailyRecommendations(stressVal, personalizationLikes),
-    [stressVal, personalizationLikes]
-  );
+  const tip = useMemo(() => {
+    if (stressVal >= 70) {
+      return {
+        title: 'Совет дня: позаботьтесь о себе',
+        text: 'Уровень стресса повышен. Сделайте паузу, выйдите на свежий воздух и уделите время дыхательным упражнениям.',
+        activities: [
+          { icon: '🧘', label: 'Медитация', time: '15 мин' },
+          { icon: '🚶', label: 'Прогулка', time: '30 мин' },
+          { icon: '😴', label: 'Отдых', time: '20 мин' },
+        ],
+      };
+    }
+    if (stressVal >= 40) {
+      return {
+        title: 'Совет дня: поддержите баланс',
+        text: 'Включите любимую музыку и уделите несколько минут себе. Это поможет переключиться и немного расслабиться.',
+        activities: [
+          { icon: '🏃', label: 'Легкая активность', time: '30 мин' },
+          { icon: '🎨', label: 'Хобби', time: '30 мин' },
+          { icon: '🧘', label: 'Релаксация', time: '30 мин' },
+        ],
+      };
+    }
+    return {
+      title: 'Совет дня: отличное состояние!',
+      text: 'Вы в хорошей форме! Поддерживайте режим дня и не забывайте про регулярную физическую активность.',
+      activities: [
+        { icon: '🏋️', label: 'Спорт', time: '45 мин' },
+        { icon: '📚', label: 'Чтение', time: '30 мин' },
+        { icon: '🎵', label: 'Музыка', time: '20 мин' },
+      ],
+    };
+  }, [stressVal]);
 
   useEffect(() => {
     const relax = tip.activities.find((a) => /релакс|медитац/i.test(a.label));
@@ -122,7 +138,38 @@ const Dashboard = () => {
     setExpandedRecIndex((cur) => (cur === index ? null : index));
   };
 
-  const hasPersonalization = Boolean(personalizationLikes?.length);
+  const recommendations = [
+    {
+      icon: Wind,
+      title: 'Уменьшить тревожность',
+      category: 'Дыхание',
+      time: '2 мин',
+      desc: 'Короткая практика дыхания для снижения тревожности.',
+      detail:
+        'Дышите медленно: вдох 4 счёта, задержка 2, выдох 6. Повторите 5–8 циклов. Так активируется парасимпатическая нервная система, снижается пульс и уровень кортизола. Удобно делать сидя или перед сном.',
+      hasPlay: false,
+    },
+    {
+      icon: Brain,
+      title: 'Спокойный ум',
+      category: 'Тест',
+      time: '2 мин',
+      desc: 'Мини-проверка состояния и фокус внимания.',
+      detail:
+        'Закройте глаза на минуту и отметьте три звука вокруг, затем три ощущения в теле. Это упражнение «заземления» возвращает внимание в настоящий момент и снижает круговые мысли.',
+      hasPlay: false,
+    },
+    {
+      icon: Sparkles,
+      title: 'Момент тишины',
+      category: 'Медитация',
+      time: '2 мин',
+      desc: 'Микро-медитация без подготовки.',
+      detail:
+        'Сядьте ровно, мягко смотрите в одну точку или закройте глаза. Считайте вдохи от 1 до 10 и снова. Если отвлеклись — спокойно вернитесь к счёту. Достаточно 2 минут, чтобы снизить возбуждение нервной системы.',
+      hasPlay: true,
+    },
+  ];
 
   if (loading) return (
     <div className="dash-loading"><div className="loading-spinner" /></div>
@@ -131,7 +178,6 @@ const Dashboard = () => {
   return (
     <div className="dashboard-new fade-in">
 
-      {/* Header */}
       <div className="dash-header">
         <h1 className="dash-greeting">
           {greetingTime()}, {(user?.name?.split(' ')[0] || 'друг').toUpperCase()}!
@@ -141,34 +187,11 @@ const Dashboard = () => {
         </button>
       </div>
 
-      <button
-        type="button"
-        className={`personalization-cta${hasPersonalization ? ' personalization-cta--done' : ''}`}
-        onClick={() => navigate('/personalization')}
-      >
-        <span className="personalization-cta-ico" aria-hidden>
-          {hasPersonalization ? <Sparkles size={22} strokeWidth={2} /> : <Compass size={22} strokeWidth={2} />}
-        </span>
-        <span className="personalization-cta-text">
-          <span className="personalization-cta-title">
-            {hasPersonalization ? 'Предпочтения для дня' : 'Тест: чем вам проще восстанавливаться?'}
-          </span>
-          <span className="personalization-cta-sub">
-            {hasPersonalization
-              ? 'Обновите ответы — советы и практики на главной подстроятся под вас.'
-              : '1–2 минуты: отметьте, что помогает при выгорании — появятся персональные рекомендации.'}
-          </span>
-        </span>
-        <ChevronRight className="personalization-cta-arrow" size={20} strokeWidth={2} aria-hidden />
-      </button>
-
-      {/* Tabs */}
       <div className="dash-tabs">
         <button className={`dash-tab ${activeTab === 'today' ? 'active' : ''}`} onClick={() => setActiveTab('today')}>Сегодня</button>
         <button className={`dash-tab ${activeTab === 'week' ? 'active' : ''}`} onClick={() => setActiveTab('week')}>За неделю</button>
       </div>
 
-      {/* Week strip */}
       <div className="week-strip">
         {weekDays.map((day, i) => {
           const isToday = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
@@ -187,7 +210,6 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Hero banner */}
       <div className="hero-banner hero-banner--mock">
         <div className="hero-left">
           <img
@@ -241,7 +263,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Tip card */}
       <div className="tip-card">
         <h2 className="tip-title">💡 {tip.title.toUpperCase()}</h2>
         <p className="tip-body">{tip.text}</p>
@@ -269,21 +290,15 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Recommendations */}
       <div className="recs-section">
         <h2 className="recs-title">🌿 Рекомендации дня</h2>
-        <p className="recs-sub">
-          {hasPersonalization
-            ? 'Подобрано с учётом ваших предпочтений и текущего уровня стресса.'
-            : 'Пройдите короткий тест выше — рекомендации станут точнее.'}
-        </p>
         <div className="recs-list">
           {recommendations.map((rec, i) => {
             const expanded = expandedRecIndex === i;
             const RecIcon = rec.icon;
             return (
               <div
-                key={rec.key}
+                key={`rec-${i}`}
                 role="button"
                 tabIndex={0}
                 className={`rec-card ${expanded ? 'expanded' : ''}`}
@@ -315,9 +330,9 @@ const Dashboard = () => {
                       <button
                         type="button"
                         className="rec-start-btn btn btn-primary"
-                        onClick={() => navigate('/practices')}
+                        onClick={() => navigate(i === 1 ? '/tests' : '/practices')}
                       >
-                        К практикам
+                        Начать
                       </button>
                     </div>
                   )}

@@ -1,8 +1,5 @@
 const pool = require('./db');
 
-/**
- * Создаёт колонки онбординга; вызывать перед UPDATE, чтобы не падать, если стартовая миграция не отработала.
- */
 async function runOnboardingMigration() {
   await pool.query(`
     ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_burnout_completed BOOLEAN DEFAULT FALSE;
@@ -15,7 +12,6 @@ async function runOnboardingMigration() {
   `);
 }
 
-/** При старте сервера — мягко, с логом */
 async function ensureOnboardingSchema() {
   try {
     await runOnboardingMigration();

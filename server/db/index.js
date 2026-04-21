@@ -1,7 +1,6 @@
-const path = require('path');
 const { Pool } = require('pg');
 const { parse } = require('pg-connection-string');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config();
 
 const connectionString = process.env.DATABASE_URL?.trim();
 if (!connectionString) {
@@ -11,22 +10,16 @@ if (!connectionString) {
   );
   process.exit(1);
 }
-if (/yourpassword/i.test(connectionString)) {
-  console.error(
-    'FATAL: В server/.env указан шаблонный пароль "yourpassword". Укажите реальный пароль PostgreSQL в DATABASE_URL.'
-  );
-  process.exit(1);
-}
 
 const parsed = parse(connectionString);
 const pool = new Pool({
   ...parsed,
-  // SCRAM в node-pg требует строку; без DATABASE_URL или без пароля в URL получался null → ошибка SASL
   password: String(parsed.password ?? process.env.PGPASSWORD ?? ''),
 });
 
 let pgLogOnce = false;
-pool.on('connect', () => {
+pool.on('connect', (client) => {
+  client.query("SET client_encoding TO 'UTF8'").catch(() => {});
   if (!pgLogOnce) {
     pgLogOnce = true;
     console.log('✅ Connected to PostgreSQL database');

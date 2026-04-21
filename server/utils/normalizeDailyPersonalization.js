@@ -1,4 +1,3 @@
-/** Единый разбор JSONB / строки для daily_personalization */
 function normalizeDailyPersonalization(raw) {
   if (raw == null || raw === '') return null;
   if (typeof raw === 'object' && raw !== null && !Array.isArray(raw)) return raw;

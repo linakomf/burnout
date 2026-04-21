@@ -1,7 +1,5 @@
 import React, { useId } from 'react';
 
-/** Декоративные иллюстрации в стиле Burnout: лайм, мягкие формы, без тяжёлых медицинских ассоциаций */
-
 export function HeroPsychArt() {
   return (
     <svg

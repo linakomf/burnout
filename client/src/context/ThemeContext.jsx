@@ -10,7 +10,6 @@ export function ThemeProvider({ children }) {
       const s = localStorage.getItem(STORAGE_KEY);
       if (s === 'dark' || s === 'light') return s;
     } catch {
-      /* private mode */
     }
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark';
@@ -23,7 +22,6 @@ export function ThemeProvider({ children }) {
     try {
       localStorage.setItem(STORAGE_KEY, theme);
     } catch {
-      /* ignore */
     }
   }, [theme]);
 

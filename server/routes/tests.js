@@ -5,20 +5,18 @@ const { authMiddleware, adminOnly } = require('../middleware/auth');
 const { computeTestResult } = require('../scoring');
 const { applyCanonicalToTestRow, applyCanonicalToTestRows } = require('../testCanonical');
 
-// GET /api/tests - get tests relevant to user role
 router.get('/', authMiddleware, async (req, res) => {
   const role = req.user.role;
   try {
-    const isAdmin = role === 'admin';
     const result = await pool.query(
       `SELECT t.*, c.name as category_name, c.target_role,
        (SELECT COUNT(*)::int FROM questions q WHERE q.test_id = t.test_id) AS question_count
-       FROM tests t
+       FROM tests t 
        LEFT JOIN categories c ON t.category_id = c.category_id
        WHERE t.test_id <> 1
-         AND ($1::boolean OR c.target_role = 'all' OR c.target_role = $2)
+         AND (c.target_role = 'all' OR c.target_role = $1)
        ORDER BY t.created_at DESC`,
-      [isAdmin, role]
+      [role]
     );
     res.json(applyCanonicalToTestRows(result.rows));
   } catch (err) {
@@ -26,7 +24,6 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// Статический путь должен быть ДО /:id, иначе Express принимает "results" за id
 router.get('/results/my', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
@@ -53,7 +50,6 @@ router.get('/results/my', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/tests/:id - get test with questions
 router.get('/:id', authMiddleware, async (req, res) => {
   const tid = parseInt(req.params.id, 10);
   if (Number.isFinite(tid) && tid === 1) {
@@ -82,9 +78,8 @@ router.get('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/tests/:id/submit - submit test answers
 router.post('/:id/submit', authMiddleware, async (req, res) => {
-  const { answers } = req.body; // { questionId: answerIndex }
+  const { answers } = req.body;
   const userId = req.user.user_id;
   const testId = req.params.id;
   const tid = parseInt(testId, 10);
@@ -125,8 +120,6 @@ router.post('/:id/submit', authMiddleware, async (req, res) => {
   }
 });
 
-// ========= ADMIN ROUTES =========
-
 function normalizeCategoryId(category_id) {
   if (category_id === '' || category_id === undefined || category_id === null) return null;
   const n = parseInt(String(category_id), 10);
@@ -148,7 +141,6 @@ function normalizeQuestionPayload(q) {
   return { question_text: text, options: filtered };
 }
 
-// POST /api/tests - create test (admin)
 router.post('/', authMiddleware, adminOnly, async (req, res) => {
   const { title, description, category_id, questions, scoring_type } = req.body;
   const catId = normalizeCategoryId(category_id);
@@ -202,7 +194,6 @@ router.post('/', authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
-// PUT /api/tests/:id (admin) — метаданные и полная замена вопросов (если передан массив questions)
 router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
   const testId = parseInt(req.params.id, 10);
   if (!Number.isFinite(testId)) {
@@ -288,7 +279,6 @@ router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
-// DELETE /api/tests/:id (admin)
 router.delete('/:id', authMiddleware, adminOnly, async (req, res) => {
   await pool.query('DELETE FROM tests WHERE test_id=$1', [req.params.id]);
   res.json({ message: 'Тест удалён' });

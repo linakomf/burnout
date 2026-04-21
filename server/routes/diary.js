@@ -3,7 +3,6 @@ const router = express.Router();
 const pool = require('../db');
 const { authMiddleware } = require('../middleware/auth');
 
-// GET /api/diary - get user's diary entries
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
@@ -16,7 +15,6 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/diary/date/:date - get entries by date
 router.get('/date/:date', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
@@ -29,7 +27,6 @@ router.get('/date/:date', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/diary/mood-stats - mood data for chart (last 30 days)
 router.get('/mood-stats', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
@@ -46,7 +43,6 @@ router.get('/mood-stats', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/diary - create entry
 router.post('/', authMiddleware, async (req, res) => {
   const { mood, mood_score, note } = req.body;
   if (!mood_score) return res.status(400).json({ message: 'Укажите уровень настроения' });
@@ -62,7 +58,6 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /api/diary/:id - update entry
 router.put('/:id', authMiddleware, async (req, res) => {
   const { mood, mood_score, note } = req.body;
   try {
@@ -77,7 +72,6 @@ router.put('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /api/diary/:id
 router.delete('/:id', authMiddleware, async (req, res) => {
   await pool.query('DELETE FROM diary_entries WHERE entry_id=$1 AND user_id=$2', [req.params.id, req.user.user_id]);
   res.json({ message: 'Запись удалена' });

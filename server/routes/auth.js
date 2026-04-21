@@ -2,32 +2,9 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
-const { normalizeDailyPersonalization } = require('../utils/normalizeDailyPersonalization');
-const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 
-function normalizeEmail(e) {
-  return String(e || '').trim().toLowerCase();
-}
-
-function publicUser(u) {
-  return {
-    user_id: u.user_id,
-    name: u.name,
-    email: u.email,
-    role: u.role,
-    avatar: u.avatar,
-    age: u.age,
-    onboarding_burnout_completed: Boolean(u.onboarding_burnout_completed),
-    onboarding_burnout_percent: u.onboarding_burnout_percent ?? null,
-    onboarding_burnout_completed_at: u.onboarding_burnout_completed_at ?? null,
-    daily_personalization: normalizeDailyPersonalization(u.daily_personalization_json),
-  };
-}
-
-// POST /api/auth/register
 router.post('/register', async (req, res) => {
-  const { name, password, role, age } = req.body;
-  const email = normalizeEmail(req.body.email);
+  const { name, email, password, role, age } = req.body;
 
   if (!name || !email || !password || !role) {
     return res.status(400).json({ message: 'Заполните все обязательные поля' });
@@ -38,7 +15,7 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    const existing = await pool.query('SELECT * FROM users WHERE LOWER(TRIM(email)) = $1', [email]);
+    const existing = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (existing.rows.length > 0) {
       return res.status(409).json({ message: 'Пользователь с таким email уже существует' });
     }
@@ -49,8 +26,7 @@ router.post('/register', async (req, res) => {
        RETURNING user_id, name, email, role, avatar, age,
          COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
          onboarding_burnout_percent,
-         onboarding_burnout_completed_at,
-         daily_personalization_json`,
+         onboarding_burnout_completed_at`,
       [name, email, password, role, age || null]
     );
 
@@ -63,37 +39,39 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({
       token,
-      user: publicUser(user),
+      user: {
+        user_id: user.user_id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        age: user.age,
+        onboarding_burnout_completed: Boolean(user.onboarding_burnout_completed),
+        onboarding_burnout_percent: user.onboarding_burnout_percent ?? null,
+        onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
+      },
     });
   } catch (err) {
     console.error(err);
-    const dbMessage = dbErrorToMessage(err);
-    if (dbMessage) return res.status(500).json({ message: dbMessage });
     res.status(500).json({ message: 'Ошибка сервера' });
   }
 });
 
-// POST /api/auth/login
 router.post('/login', async (req, res) => {
-  const email = normalizeEmail(req.body.email);
-  const password = String(req.body.password ?? '').trim();
+  const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ message: 'Введите email и пароль' });
   }
 
-  if (!process.env.JWT_SECRET) {
-    return res.status(500).json({ message: 'Сервер не настроен: укажите JWT_SECRET в server/.env' });
-  }
-
   try {
-    const result = await pool.query('SELECT * FROM users WHERE LOWER(TRIM(email)) = $1', [email]);
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (result.rows.length === 0) {
       return res.status(401).json({ message: 'Неверный email или пароль' });
     }
 
     const user = result.rows[0];
-    const match = password === String(user.password ?? '').trim();
+    const match = password === user.password;
     if (!match) {
       return res.status(401).json({ message: 'Неверный email или пароль' });
     }
@@ -106,12 +84,20 @@ router.post('/login', async (req, res) => {
 
     res.json({
       token,
-      user: publicUser(user),
+      user: {
+        user_id: user.user_id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        age: user.age,
+        onboarding_burnout_completed: Boolean(user.onboarding_burnout_completed),
+        onboarding_burnout_percent: user.onboarding_burnout_percent ?? null,
+        onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
+      },
     });
   } catch (err) {
     console.error(err);
-    const dbMessage = dbErrorToMessage(err);
-    if (dbMessage) return res.status(500).json({ message: dbMessage });
     res.status(500).json({ message: 'Ошибка сервера' });
   }
 });

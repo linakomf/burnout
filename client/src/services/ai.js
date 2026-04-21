@@ -1,30 +1,4 @@
-/**
- * ChatGPT (OpenAI Chat Completions): психологическая поддержка и ответы на вопросы.
- * Без REACT_APP_OPENAI_API_KEY — локальные заглушки.
- */
-
-const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
-
-const DEFAULT_MODEL = 'gpt-4o-mini';
-
-/** Полный системный промпт: диалог, вопросы, психообразование, границы роли */
-export const PSYCHOLOGIST_SYSTEM_PROMPT = `Ты — ИИ-ассистент на базе ChatGPT в приложении поддержки ментального здоровья (студенты, преподаватели, профилактика выгорания и стресса).
-
-Твоя роль: тёплый, внимательный собеседник с опорой на принципы поддерживающего психологического консультирования и психообразования. Ты не врач, не психиатр и не заменяешь очную терапию или кризисные службы.
-
-Что ты делаешь:
-- Отвечай на сообщения и прямые вопросы пользователя по-русски: чувства, тревога, стресс, усталость, отношения, мотивация, границы, саморегуляция, сон, учёба, работа.
-- Если спрашивают «что делать, если…», «почему я…», «как справиться с…» — дай понятный ответ с практическими шагами (что попробовать сегодня), без сухого пересказа учебника.
-- Можно кратко объяснить идеи (например, что такое тревога или выгорание) простым языком.
-- Задавай не больше одного уточняющего вопроса, если без него нельзя ответить по делу.
-- Признаки острого кризиса, суицидальные мысли или сильная опасность — мягко порекомендуй немедленно обратиться к близким, на линию доверия или к врачу; не обещай, что чат заменит помощь.
-
-Чего не делать:
-- Не ставь диагнозы и не назначай лекарства.
-- Не обесценивай («у всех так») и не морализаторствуй.
-- Не будь холодным роботом — эмпатия и уважение к темпу пользователя.
-
-Длина: обычно 4–10 предложений; если просят короче или развернутее — подстройся.`;
+import api from '../utils/api';
 
 const FAKE_REPLIES = {
   stress: [
@@ -72,62 +46,27 @@ export function getFakePsychologistReply(userText) {
   return pick(FAKE_REPLIES[bucket] || FAKE_REPLIES.neutral);
 }
 
-function toOpenAIMessages(history) {
+function toApiMessages(history) {
   return history
     .filter((m) => m.role === 'user' || m.role === 'assistant')
     .map((m) => ({ role: m.role, content: m.content }));
 }
 
-function getModel() {
-  return process.env.REACT_APP_OPENAI_MODEL || DEFAULT_MODEL;
+async function getServerPsychologistReply(messages) {
+  const payload = {
+    messages: toApiMessages(messages).slice(-20),
+  };
+  const res = await api.post('/ai/chat', payload);
+  return res?.data?.reply?.trim() || null;
 }
 
-/**
- * @param {{ role: string, content: string }[]} messages — без system
- * @param {{ maxTokens?: number }} [opts]
- */
-export async function getOpenAIChatReply(messages, opts = {}) {
-  const key = process.env.REACT_APP_OPENAI_API_KEY?.trim();
-  if (!key) return null;
-
-  const maxTokens = opts.maxTokens ?? 900;
-
-  const res = await fetch(OPENAI_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: getModel(),
-      max_tokens: maxTokens,
-      temperature: 0.7,
-      messages: [{ role: 'system', content: PSYCHOLOGIST_SYSTEM_PROMPT }, ...toOpenAIMessages(messages)],
-    }),
-  });
-
-  if (!res.ok) {
-    let detail = '';
-    try {
-      const err = await res.json();
-      detail = err.error?.message || JSON.stringify(err).slice(0, 200);
-    } catch {
-      detail = await res.text().catch(() => '');
-    }
-    console.error('[OpenAI]', res.status, detail);
-    return null;
-  }
-
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content?.trim() || null;
-}
-
-/**
- * Ответ ассистента: ChatGPT или заглушка (если нет ключа / ошибка API).
- */
 export async function getPsychologistReply(messagesForApi) {
-  const text = await getOpenAIChatReply(messagesForApi);
-  if (text) return text;
+  try {
+    const text = await getServerPsychologistReply(messagesForApi);
+    if (text) return text;
+  } catch (err) {
+    console.error('[AI chat]', err?.response?.data || err?.message || err);
+  }
   const lastUser = [...messagesForApi].reverse().find((m) => m.role === 'user');
   return getFakePsychologistReply(lastUser?.content || '');
 }

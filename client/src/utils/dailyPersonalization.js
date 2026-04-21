@@ -10,7 +10,6 @@ import {
   ListChecks,
 } from 'lucide-react';
 
-/** Варианты мини-теста на странице персонализации */
 export const PERSONALIZATION_OPTIONS = [
   { id: 'breathing', label: 'Дыхание и телесные практики', hint: 'медленный вдох, расслабление плеч', Icon: Wind },
   { id: 'movement', label: 'Движение и прогулки', hint: 'лёгкая нагрузка без перегруза', Icon: Activity },
@@ -77,7 +76,6 @@ function pickActivitiesFromLikes(likes, stressVal) {
   return picked.slice(0, 3);
 }
 
-/** Совет дня: текст по стрессу + активности из предпочтений или по умолчанию */
 export function buildDailyTip(stressVal, likes) {
   let title;
   let text;
@@ -206,7 +204,6 @@ const PRACTICE_META = {
   },
 };
 
-/** Три рекомендации дня: сочетание предпочтений и уровня стресса */
 export function buildDailyRecommendations(stressVal, likes) {
   const keys = [];
   const seen = new Set();

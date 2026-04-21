@@ -3,16 +3,13 @@ import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 import { getPsychologistReply } from '../../services/ai';
 import './AIChat.css';
 
-const hasOpenAI = Boolean(process.env.REACT_APP_OPENAI_API_KEY?.trim());
-
 const AIChat = () => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: hasOpenAI
-        ? 'Привет! Я работаю через ChatGPT и могу поддержать вас, ответить на вопросы о стрессе, тревоге, настроении и не только. Как вы себя чувствуете сегодня?'
-        : 'Привет! Для ответов через ChatGPT добавьте в файл .env в папке client ключ REACT_APP_OPENAI_API_KEY и перезапустите приложение. Пока я отвечу короткими подсказками.',
+      content:
+        'Привет! Я ИИ-помощник по ментальному здоровью. Могу поддержать и ответить на вопросы про выгорание, тревогу, грусть, стресс и саморегуляцию. Как вы сейчас?',
     },
   ]);
   const [input, setInput] = useState('');
@@ -78,7 +75,7 @@ const AIChat = () => {
               <div className="ai-avatar"><Bot size={18} /></div>
               <div>
                 <span className="ai-name">MindTrack · ChatGPT</span>
-                <span className="ai-status">{hasOpenAI ? 'Онлайн' : 'Локальные ответы'}</span>
+                <span className="ai-status">Онлайн</span>
               </div>
             </div>
             <button type="button" className="ai-close" onClick={() => setOpen(false)} aria-label="Закрыть">

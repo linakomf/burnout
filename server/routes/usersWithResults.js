@@ -48,7 +48,6 @@ function pgDateToKey(d) {
   return str.length >= 10 ? str.slice(0, 10) : str;
 }
 
-// GET /api/users-with-results
 router.get('/', authMiddleware, adminOnly, async (req, res) => {
   try {
     const testRowsRes = await pool.query(`

@@ -136,7 +136,6 @@ function DonutStat({ current, max, label, color }) {
   );
 }
 
-/** @param {{ text: string, up: boolean | null }} trend */
 function deltaToneClass(trend, goodWhenUp) {
   if (trend.up == null || trend.text === '—') return '';
   const feelsGood = goodWhenUp ? trend.up : !trend.up;

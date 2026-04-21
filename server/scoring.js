@@ -1,8 +1,3 @@
-/**
- * Психометрический подсчёт баллов тестов.
- * answers: { [questionId]: number } — индекс выбранного варианта (0..n-1).
- */
-
 function sumAnswerPoints(questions, answers, pointsPerOption) {
   let raw = 0;
   for (const q of questions) {
@@ -15,7 +10,6 @@ function sumAnswerPoints(questions, answers, pointsPerOption) {
   return raw;
 }
 
-/** GAD-7: 7 вопросов, 0–3, сумма 0–21 */
 function scoreGad7(questions, answers) {
   const pts = {};
   for (const q of questions) {
@@ -63,7 +57,6 @@ function scoreGad7(questions, answers) {
   };
 }
 
-/** MBI-студент: 5 вариантов 0–4, сумма по 9 вопросам, max 36 */
 function scoreMbiStudent(questions, answers) {
   const pts = {};
   for (const q of questions) {
@@ -103,7 +96,6 @@ function scoreMbiStudent(questions, answers) {
   return { score: sum, maxScore: max, percentage, level, scale: 'mbi_student', interpretation };
 }
 
-/** Быстрый ежедневный: 5 вопросов, 0–4 */
 function scoreDaily5(questions, answers) {
   const pts = {};
   for (const q of questions) {
@@ -141,7 +133,6 @@ function scoreDaily5(questions, answers) {
   return { score: sum, maxScore: max, percentage, level, scale: 'daily5', interpretation };
 }
 
-/** Общий случай: сумма индексов, max = n * (options-1), уровни по процентилям */
 function scoreLikertSum(questions, answers) {
   let sum = 0;
   let max = 0;
@@ -178,11 +169,6 @@ function scoreLikertSum(questions, answers) {
   return { score: sum, maxScore: max, percentage, level, scale: 'generic', interpretation };
 }
 
-/**
- * @param {{ scoring_type?: string }} testRow
- * @param {object[]} questionRows
- * @param {Record<string, number>} answers
- */
 function computeTestResult(testRow, questionRows, answers) {
   const type = testRow.scoring_type || 'likert_sum';
   const sorted = [...questionRows].sort((a, b) => (a.order_num || 0) - (b.order_num || 0));

@@ -1,41 +1,21 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Tag, BookOpen, Plus, Trash2, Edit2, X, Save, BarChart3 } from 'lucide-react';
+import { Users, Tag, BookOpen, Plus, Trash2, Edit2, X, Save } from 'lucide-react';
 import api from '../../utils/api';
 import './Admin.css';
 
-// ─── Admin Users ───────────────────────────────────────────────────────────────
 export const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
-
-  const loadUsers = () => {
-    setLoading(true);
-    setError('');
-    api
-      .get('/users/all')
-      .then((r) => setUsers(r.data))
-      .catch((err) => setError(err.response?.data?.message || 'Не удалось загрузить пользователей'))
-      .finally(() => setLoading(false));
-  };
 
   useEffect(() => {
-    loadUsers();
+    api.get('/users/all').then(r => setUsers(r.data)).finally(() => setLoading(false));
   }, []);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Удалить пользователя?')) return;
-    setError('');
-    setNotice('');
-    try {
-      await api.delete(`/users/${id}`);
-      setUsers((prev) => prev.filter((u) => u.user_id !== id));
-      setNotice('Пользователь удалён');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Не удалось удалить пользователя');
-    }
+    await api.delete(`/users/${id}`);
+    setUsers(users.filter(u => u.user_id !== id));
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: 40 }}>Загрузка...</div>;
@@ -44,12 +24,6 @@ export const AdminUsers = () => {
     <div className="admin-section fade-in">
       <h1 className="page-title">Пользователи</h1>
       <p className="page-sub">{users.length} зарегистрировано</p>
-      {error ? (
-        <div className="admin-inline-error">
-          {error} <button className="btn btn-ghost btn-sm" onClick={loadUsers}>Повторить</button>
-        </div>
-      ) : null}
-      {notice ? <div className="admin-inline-ok">{notice}</div> : null}
 
       <div className="card">
         <table className="admin-table">
@@ -93,7 +67,6 @@ export const AdminUsers = () => {
   );
 };
 
-// ─── Admin Categories ──────────────────────────────────────────────────────────
 export const AdminCategories = () => {
   const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -204,7 +177,6 @@ const emptyTestForm = () => ({
   questions: [],
 });
 
-// ─── Admin Tests ───────────────────────────────────────────────────────────────
 export const AdminTests = () => {
   const [tests, setTests] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -575,44 +547,15 @@ export const AdminTests = () => {
   );
 };
 
-// ─── Admin Overview ────────────────────────────────────────────────────────────
 export const AdminOverview = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState({ users: 0, tests: 0, categories: 0 });
-  const [analytics, setAnalytics] = useState(null);
-  const [analyticsLoading, setAnalyticsLoading] = useState(true);
-  const [analyticsError, setAnalyticsError] = useState('');
 
   useEffect(() => {
     Promise.all([api.get('/users/all'), api.get('/tests'), api.get('/categories')])
       .then(([u, t, c]) => setStats({ users: u.data.length, tests: t.data.length, categories: c.data.length }))
       .catch(() => {});
   }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    setAnalyticsLoading(true);
-    setAnalyticsError('');
-    api
-      .get('/users/with-results')
-      .then((r) => {
-        if (!cancelled) setAnalytics(r.data);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setAnalytics(null);
-        setAnalyticsError(err.response?.data?.message || 'Не удалось загрузить аналитику');
-      })
-      .finally(() => {
-        if (!cancelled) setAnalyticsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const recentRows = useMemo(() => (analytics?.rows || []).slice(0, 8), [analytics]);
-  const dist = analytics?.burnoutDistribution || { low: 0, medium: 0, high: 0, unknown: 0 };
 
   return (
     <div className="admin-section fade-in">
@@ -635,83 +578,6 @@ export const AdminOverview = () => {
           <div className="admin-stat-val">{stats.categories}</div>
           <div className="admin-stat-label">Категорий</div>
         </div>
-      </div>
-
-      <div className="card admin-analytics-card">
-        <div className="admin-analytics-head">
-          <div>
-            <h2 className="admin-analytics-title">
-              <BarChart3 size={18} /> Аналитика скринингов
-            </h2>
-            <p className="admin-analytics-sub">Реальные данные пользователей и результатов тестов</p>
-          </div>
-          <button className="btn btn-primary btn-sm" onClick={() => navigate('/admin-dashboard')}>
-            Полный дашборд
-          </button>
-        </div>
-
-        {analyticsLoading ? (
-          <div className="admin-analytics-empty">Загрузка аналитики…</div>
-        ) : analyticsError ? (
-          <div className="admin-analytics-error">{analyticsError}</div>
-        ) : !analytics || (analytics.rows || []).length === 0 ? (
-          <div className="admin-analytics-empty">Нет данных</div>
-        ) : (
-          <>
-            <div className="admin-kpi-row">
-              <div className="admin-kpi-box">
-                <div className="k">Пользователей платформы</div>
-                <div className="v">{analytics.kpis?.totalUsers ?? 0}</div>
-              </div>
-              <div className="admin-kpi-box">
-                <div className="k">Прохождения сегодня</div>
-                <div className="v">{analytics.kpis?.testsToday ?? 0}</div>
-              </div>
-              <div className="admin-kpi-box">
-                <div className="k">Прохождения за 7 дней</div>
-                <div className="v">{analytics.kpis?.testsWeek ?? 0}</div>
-              </div>
-              <div className="admin-kpi-box">
-                <div className="k">Новых за 7 дней</div>
-                <div className="v">{analytics.kpis?.newUsersWeek ?? 0}</div>
-              </div>
-            </div>
-
-            <div className="admin-risk-row">
-              <span className="risk-chip risk-low">Низкий: {dist.low ?? 0}</span>
-              <span className="risk-chip risk-medium">Средний: {dist.medium ?? 0}</span>
-              <span className="risk-chip risk-high">Высокий: {dist.high ?? 0}</span>
-              <span className="risk-chip risk-unknown">Нет данных: {dist.unknown ?? 0}</span>
-            </div>
-
-            <div className="admin-mini-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Email</th>
-                    <th>Имя</th>
-                    <th>Дата</th>
-                    <th>Риск</th>
-                    <th>Процент</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentRows.map((r) => (
-                    <tr key={r.rowKey}>
-                      <td>{r.user_id}</td>
-                      <td>{r.email}</td>
-                      <td>{r.name}</td>
-                      <td>{r.testDate ? new Date(r.testDate).toLocaleDateString('ru') : '—'}</td>
-                      <td>{r.level || 'unknown'}</td>
-                      <td>{r.percent != null ? `${r.percent}%` : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
       </div>
     </div>
   );

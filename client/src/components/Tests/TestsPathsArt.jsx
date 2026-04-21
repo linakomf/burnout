@@ -1,10 +1,5 @@
 import React, { useId } from 'react';
 
-/**
- * Спокойные абстрактные иллюстрации: пастель, без резких контуров,
- * без «медицинских» и тревожных образов (трещина, тёмный проём, замок на теле).
- */
-
 export function IlluHealing({ className }) {
   const uid = useId().replace(/:/g, '');
   return (

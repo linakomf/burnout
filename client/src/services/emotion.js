@@ -1,7 +1,3 @@
-/**
- * Анализ эмоций: OpenAI JSON или локальные ключевые слова (0–100).
- */
-
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 
 const JOY_WORDS = [
@@ -29,9 +25,6 @@ function normalizeScores(raw) {
   };
 }
 
-/**
- * Локальный анализ по ключевым словам → 0–100
- */
 export function analyzeEmotionsKeywords(text) {
   if (!text || !String(text).trim()) {
     return { joy: 15, anxiety: 15, stress: 15 };
@@ -69,9 +62,6 @@ export function analyzeEmotionsKeywords(text) {
   return normalizeScores({ joy, anxiety, stress });
 }
 
-/**
- * OpenAI: только JSON с оценками
- */
 export async function analyzeEmotionsOpenAI(text) {
   const key = process.env.REACT_APP_OPENAI_API_KEY;
   if (!key) return null;
@@ -110,7 +100,6 @@ export async function analyzeEmotionsOpenAI(text) {
   }
 }
 
-/** Итог: сначала OpenAI, иначе ключевые слова */
 export async function analyzeEmotions(text) {
   const fromAi = await analyzeEmotionsOpenAI(text);
   if (fromAi) return fromAi;

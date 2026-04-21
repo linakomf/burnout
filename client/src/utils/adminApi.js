@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-/** Как в api.js: пусто или `/api` — прокси CRA; полный URL должен заканчиваться на `/api`. */
 function adminPortalBaseURL() {
   const raw = process.env.REACT_APP_API_BASE;
   if (raw == null || String(raw).trim() === '') return '/api/admin-portal';

@@ -1,6 +1,5 @@
 const pool = require('./db');
 
-/** Колонка scoring_type нужна для подсчёта; в старых БД её могло не быть */
 async function ensureTestSchema() {
   try {
     await pool.query(`
