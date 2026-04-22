@@ -7,19 +7,19 @@ import {
   Palette,
   Users,
   Trees,
-  ListChecks,
-} from 'lucide-react';
+  ListChecks } from
+'lucide-react';
 
 export const PERSONALIZATION_OPTIONS = [
-  { id: 'breathing', label: 'Дыхание и телесные практики', hint: 'медленный вдох, расслабление плеч', Icon: Wind },
-  { id: 'movement', label: 'Движение и прогулки', hint: 'лёгкая нагрузка без перегруза', Icon: Activity },
-  { id: 'quiet', label: 'Тишина и медитация', hint: 'без экрана, мягкое присутствие', Icon: Brain },
-  { id: 'music', label: 'Музыка и звук', hint: 'плейлист, ритм, голос', Icon: Music },
-  { id: 'creative', label: 'Творчество', hint: 'рисунок, текст, руками', Icon: Palette },
-  { id: 'social', label: 'Тёплое общение', hint: 'близкий человек, не переписка', Icon: Users },
-  { id: 'nature', label: 'Природа и воздух', hint: 'окно, двор, парк', Icon: Trees },
-  { id: 'structure', label: 'Порядок и малые шаги', hint: 'список из 2–3 пунктов', Icon: ListChecks },
-];
+{ id: 'breathing', label: 'Дыхание и телесные практики', hint: 'медленный вдох, расслабление плеч', Icon: Wind },
+{ id: 'movement', label: 'Движение и прогулки', hint: 'лёгкая нагрузка без перегруза', Icon: Activity },
+{ id: 'quiet', label: 'Тишина и медитация', hint: 'без экрана, мягкое присутствие', Icon: Brain },
+{ id: 'music', label: 'Музыка и звук', hint: 'плейлист, ритм, голос', Icon: Music },
+{ id: 'creative', label: 'Творчество', hint: 'рисунок, текст, руками', Icon: Palette },
+{ id: 'social', label: 'Тёплое общение', hint: 'близкий человек, не переписка', Icon: Users },
+{ id: 'nature', label: 'Природа и воздух', hint: 'окно, двор, парк', Icon: Trees },
+{ id: 'structure', label: 'Порядок и малые шаги', hint: 'список из 2–3 пунктов', Icon: ListChecks }];
+
 
 const ACTIVITY_BY_LIKE = {
   breathing: [{ icon: '🌬️', label: 'Дыхательная пауза', time: '5 мин' }],
@@ -29,24 +29,24 @@ const ACTIVITY_BY_LIKE = {
   creative: [{ icon: '🎨', label: 'Творчество без цели', time: '20 мин' }],
   social: [{ icon: '💬', label: 'Тёплый контакт', time: '15 мин' }],
   nature: [{ icon: '🌿', label: 'Свежий воздух', time: '15 мин' }],
-  structure: [{ icon: '✓', label: 'Микро-план дня', time: '10 мин' }],
+  structure: [{ icon: '✓', label: 'Микро-план дня', time: '10 мин' }]
 };
 
 const DEFAULT_ACTIVITIES_HIGH = [
-  { icon: '🧘', label: 'Медитация', time: '15 мин' },
-  { icon: '🚶', label: 'Прогулка', time: '30 мин' },
-  { icon: '😴', label: 'Отдых', time: '20 мин' },
-];
+{ icon: '🧘', label: 'Медитация', time: '15 мин' },
+{ icon: '🚶', label: 'Прогулка', time: '30 мин' },
+{ icon: '😴', label: 'Отдых', time: '20 мин' }];
+
 const DEFAULT_ACTIVITIES_MID = [
-  { icon: '🏃', label: 'Лёгкая активность', time: '20 мин' },
-  { icon: '🎨', label: 'Хобби', time: '25 мин' },
-  { icon: '🎵', label: 'Музыка', time: '20 мин' },
-];
+{ icon: '🏃', label: 'Лёгкая активность', time: '20 мин' },
+{ icon: '🎨', label: 'Хобби', time: '25 мин' },
+{ icon: '🎵', label: 'Музыка', time: '20 мин' }];
+
 const DEFAULT_ACTIVITIES_LOW = [
-  { icon: '🏋️', label: 'Движение', time: '30 мин' },
-  { icon: '📚', label: 'Чтение', time: '25 мин' },
-  { icon: '🎵', label: 'Музыка', time: '20 мин' },
-];
+{ icon: '🏋️', label: 'Движение', time: '30 мин' },
+{ icon: '📚', label: 'Чтение', time: '25 мин' },
+{ icon: '🎵', label: 'Музыка', time: '20 мин' }];
+
 
 function defaultActivitiesForStress(stressVal) {
   if (stressVal >= 70) return DEFAULT_ACTIVITIES_HIGH;
@@ -82,19 +82,19 @@ export function buildDailyTip(stressVal, likes) {
   if (stressVal >= 70) {
     title = 'Совет дня: позаботьтесь о себе';
     text =
-      'Уровень стресса повышен. Сделайте паузу, выйдите на свежий воздух и уделите время дыхательным упражнениям.';
+    'Уровень стресса повышен. Сделайте паузу, выйдите на свежий воздух и уделите время дыхательным упражнениям.';
   } else if (stressVal >= 40) {
     title = 'Совет дня: поддержите баланс';
     text =
-      'Включите любимую музыку и уделите несколько минут себе. Это поможет переключиться и немного расслабиться.';
+    'Включите любимую музыку и уделите несколько минут себе. Это поможет переключиться и немного расслабиться.';
   } else {
     title = 'Совет дня: отличное состояние!';
     text =
-      'Вы в хорошей форме! Поддерживайте режим дня и не забывайте про регулярную физическую активность.';
+    'Вы в хорошей форме! Поддерживайте режим дня и не забывайте про регулярную физическую активность.';
   }
 
   const activities =
-    likes && likes.length > 0 ? pickActivitiesFromLikes(likes, stressVal) : defaultActivitiesForStress(stressVal);
+  likes && likes.length > 0 ? pickActivitiesFromLikes(likes, stressVal) : defaultActivitiesForStress(stressVal);
 
   return { title, text, activities };
 }
@@ -107,7 +107,7 @@ const LIKE_TO_PRACTICE_KEYS = {
   creative: ['affirm_calm', 'grounding_54321'],
   social: ['affirm_calm', 'grounding_54321'],
   nature: ['quick_reset', 'micro_break'],
-  structure: ['box_breathing', 'breath_478'],
+  structure: ['box_breathing', 'breath_478']
 };
 
 const STRESS_DEFAULT_HIGH = ['breath_478', 'grounding_54321', 'quick_reset'];
@@ -122,8 +122,8 @@ const PRACTICE_META = {
     time: '2 мин',
     desc: 'Короткая практика, чтобы успокоить нервную систему.',
     detail:
-      'Дышите медленно: вдох 4 счёта, задержка 7, выдох 8. Повторите несколько циклов — так активируется парасимпатическая система и снижается возбуждение.',
-    hasPlay: true,
+    'Дышите медленно: вдох 4 счёта, задержка 7, выдох 8. Повторите несколько циклов — так активируется парасимпатическая система и снижается возбуждение.',
+    hasPlay: true
   },
   box_breathing: {
     key: 'box_breathing',
@@ -133,8 +133,8 @@ const PRACTICE_META = {
     time: '3 мин',
     desc: 'Ровные фазы вдоха и выдоха — концентрация и ясность.',
     detail:
-      'Вдох 4 счёта, задержка 4, выдох 4, пауза 4 — «квадрат». Подходит перед сном или между задачами.',
-    hasPlay: true,
+    'Вдох 4 счёта, задержка 4, выдох 4, пауза 4 — «квадрат». Подходит перед сном или между задачами.',
+    hasPlay: true
   },
   meditation_body: {
     key: 'meditation_body',
@@ -144,8 +144,8 @@ const PRACTICE_META = {
     time: '5 мин',
     desc: 'Короткая практика осознанности.',
     detail:
-      'Закройте глаза и мягко проведите внимание от макушки к стопам. Замечайте ощущения без оценки — это снижает напряжение.',
-    hasPlay: true,
+    'Закройте глаза и мягко проведите внимание от макушки к стопам. Замечайте ощущения без оценки — это снижает напряжение.',
+    hasPlay: true
   },
   quick_reset: {
     key: 'quick_reset',
@@ -155,8 +155,8 @@ const PRACTICE_META = {
     time: '2 мин',
     desc: '90 секунд: плечи, взгляд вдаль, три медленных вдоха.',
     detail:
-      'Подходит между парами или после экрана: снимает зажим в теле и возвращает в контакт с окружением.',
-    hasPlay: true,
+    'Подходит между парами или после экрана: снимает зажим в теле и возвращает в контакт с окружением.',
+    hasPlay: true
   },
   grounding_54321: {
     key: 'grounding_54321',
@@ -166,8 +166,8 @@ const PRACTICE_META = {
     time: '3 мин',
     desc: 'Снижает остроту тревоги через органы чувств.',
     detail:
-      'Назовите 5 предметов вокруг, 4 звука, 3 ощущения кожи, 2 запаха, 1 вкус — внимание возвращается в «здесь и сейчас».',
-    hasPlay: false,
+    'Назовите 5 предметов вокруг, 4 звука, 3 ощущения кожи, 2 запаха, 1 вкус — внимание возвращается в «здесь и сейчас».',
+    hasPlay: false
   },
   affirm_calm: {
     key: 'affirm_calm',
@@ -177,8 +177,8 @@ const PRACTICE_META = {
     time: '2 мин',
     desc: 'Короткие фразы — вслух или про себя.',
     detail:
-      'Выберите одну фразу и повторите её 5–7 раз. Это не «магия», а мягкое переключение внимания с катастрофы на опору.',
-    hasPlay: false,
+    'Выберите одну фразу и повторите её 5–7 раз. Это не «магия», а мягкое переключение внимания с катастрофы на опору.',
+    hasPlay: false
   },
   micro_break: {
     key: 'micro_break',
@@ -188,8 +188,8 @@ const PRACTICE_META = {
     time: '1 мин',
     desc: 'Взгляд вдаль и моргание — разгрузка для глаз и нервной системы.',
     detail:
-      'Отойдите на шаг от монитора, смотрите в окно 60 секунд, моргайте чаще. Микродвижение снижает залипание.',
-    hasPlay: true,
+    'Отойдите на шаг от монитора, смотрите в окно 60 секунд, моргайте чаще. Микродвижение снижает залипание.',
+    hasPlay: true
   },
   calm_sound: {
     key: 'calm_sound',
@@ -199,9 +199,9 @@ const PRACTICE_META = {
     time: '5 мин',
     desc: 'Таймер под спокойный ритм дыхания.',
     detail:
-      'Сядьте, задайте ровный темп вдоха и выдоха. Можно без музыки — только ритм и внимание к звуку выдоха.',
-    hasPlay: true,
-  },
+    'Сядьте, задайте ровный темп вдоха и выдоха. Можно без музыки — только ритм и внимание к звуку выдоха.',
+    hasPlay: true
+  }
 };
 
 export function buildDailyRecommendations(stressVal, likes) {

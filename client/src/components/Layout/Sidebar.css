@@ -1,4 +1,4 @@
-/* Сайдбар — макет: белый фон, чёрная «таблетка» у активного пункта, логотип serif */
+
 
 .sidebar {
   position: fixed;
@@ -37,7 +37,7 @@
   justify-content: center;
 }
 
-/* Logo */
+
 .sidebar-logo {
   display: flex;
   align-items: center;
@@ -75,7 +75,7 @@
   white-space: nowrap;
 }
 
-/* Nav */
+
 .sidebar-nav {
   flex: 1;
   display: flex;
@@ -155,7 +155,7 @@
   letter-spacing: -0.01em;
 }
 
-/* Profile (низ) */
+
 .sidebar-bottom {
   display: flex;
   flex-direction: column;
@@ -218,7 +218,7 @@
   color: #111111;
 }
 
-/* Кнопка сворачивания */
+
 .collapse-btn {
   position: absolute;
   top: 50%;
@@ -244,7 +244,7 @@
   border-color: #cccccc;
 }
 
-/* Тёмная тема */
+
 [data-theme='dark'] .sidebar.sidebar--modern {
   background: #141414;
   border-right-color: #2a2a2a;

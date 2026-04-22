@@ -40,7 +40,7 @@ router.get('/results/my', authMiddleware, async (req, res) => {
         const fixed = applyCanonicalToTestRow({
           test_id: row.test_id,
           title: row.title,
-          description: row.description,
+          description: row.description
         });
         return { ...row, title: fixed.title, description: fixed.description };
       })
@@ -71,7 +71,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
 
     res.json({
       ...applyCanonicalToTestRow(testResult.rows[0]),
-      questions: questionsResult.rows,
+      questions: questionsResult.rows
     });
   } catch (err) {
     res.status(500).json({ message: 'Ошибка сервера' });
@@ -112,7 +112,7 @@ router.post('/:id/submit', authMiddleware, async (req, res) => {
       level: computed.level,
       scale: computed.scale,
       interpretation: computed.interpretation,
-      maxScore: computed.maxScore,
+      maxScore: computed.maxScore
     });
   } catch (err) {
     console.error(err);
@@ -137,7 +137,7 @@ function normalizeQuestionPayload(q) {
     }
   }
   if (!Array.isArray(options)) options = [];
-  const filtered = options.map((o) => (o == null ? '' : String(o).trim())).filter(Boolean);
+  const filtered = options.map((o) => o == null ? '' : String(o).trim()).filter(Boolean);
   return { question_text: text, options: filtered };
 }
 
@@ -211,7 +211,7 @@ router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
   }
 
   const scoring =
-    typeof scoring_type === 'string' && scoring_type.trim() ? scoring_type.trim() : 'likert_sum';
+  typeof scoring_type === 'string' && scoring_type.trim() ? scoring_type.trim() : 'likert_sum';
 
   const client = await pool.connect();
   try {
@@ -268,7 +268,7 @@ router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
     );
     res.json({
       ...applyCanonicalToTestRow(testResult.rows[0]),
-      questions: questionsResult.rows,
+      questions: questionsResult.rows
     });
   } catch (err) {
     await client.query('ROLLBACK');

@@ -1,17 +1,17 @@
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 
 const JOY_WORDS = [
-  'рад', 'радост', 'счастлив', 'классно', 'отлично', 'хорошо', 'весел', 'люблю', 'кайф', 'супер',
-  'здорово', 'приятно', 'благодар', 'легко', 'спокоен', 'умиротвор', 'на высоте', 'получилось',
-];
+'рад', 'радост', 'счастлив', 'классно', 'отлично', 'хорошо', 'весел', 'люблю', 'кайф', 'супер',
+'здорово', 'приятно', 'благодар', 'легко', 'спокоен', 'умиротвор', 'на высоте', 'получилось'];
+
 const ANXIETY_WORDS = [
-  'тревог', 'беспоко', 'волнуюсь', 'страшно', 'боюсь', 'переживаю', 'паник', 'нерв', 'не знаю что',
-  'вдруг', 'плохо кончится', 'дрож', 'сердце колотится',
-];
+'тревог', 'беспоко', 'волнуюсь', 'страшно', 'боюсь', 'переживаю', 'паник', 'нерв', 'не знаю что',
+'вдруг', 'плохо кончится', 'дрож', 'сердце колотится'];
+
 const STRESS_WORDS = [
-  'стресс', 'устал', 'устала', 'выгор', 'много дел', 'дедлайн', 'экзамен', 'диплом', 'не успеваю',
-  'давлен', 'раздраж', 'злой', 'злая', 'невыносим', 'тяжело', 'грустно', 'плохо', 'одинок',
-];
+'стресс', 'устал', 'устала', 'выгор', 'много дел', 'дедлайн', 'экзамен', 'диплом', 'не успеваю',
+'давлен', 'раздраж', 'злой', 'злая', 'невыносим', 'тяжело', 'грустно', 'плохо', 'одинок'];
+
 
 function clamp(n, min = 0, max = 100) {
   return Math.max(min, Math.min(max, Math.round(n)));
@@ -21,7 +21,7 @@ function normalizeScores(raw) {
   return {
     joy: clamp(Number(raw.joy) || 0),
     anxiety: clamp(Number(raw.anxiety) || 0),
-    stress: clamp(Number(raw.stress) || 0),
+    stress: clamp(Number(raw.stress) || 0)
   };
 }
 
@@ -32,7 +32,7 @@ export function analyzeEmotionsKeywords(text) {
   const lower = text.toLowerCase();
 
   const countHits = (words) =>
-    words.reduce((acc, w) => (lower.includes(w) ? acc + 1 : acc), 0);
+  words.reduce((acc, w) => lower.includes(w) ? acc + 1 : acc, 0);
 
   const j = countHits(JOY_WORDS);
   const a = countHits(ANXIETY_WORDS);
@@ -71,7 +71,7 @@ export async function analyzeEmotionsOpenAI(text) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${key}`,
+        Authorization: `Bearer ${key}`
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
@@ -79,14 +79,14 @@ export async function analyzeEmotionsOpenAI(text) {
         temperature: 0.2,
         response_format: { type: 'json_object' },
         messages: [
-          {
-            role: 'system',
-            content:
-              'Ты аналитик эмоций. По тексту пользователя оцени интенсивность (0–100 каждое): радость (joy), тревога (anxiety), стресс (stress). Ответь ТОЛЬКО JSON: {"joy":number,"anxiety":number,"stress":number}',
-          },
-          { role: 'user', content: String(text).slice(0, 2000) },
-        ],
-      }),
+        {
+          role: 'system',
+          content:
+          'Ты аналитик эмоций. По тексту пользователя оцени интенсивность (0–100 каждое): радость (joy), тревога (anxiety), стресс (stress). Ответь ТОЛЬКО JSON: {"joy":number,"anxiety":number,"stress":number}'
+        },
+        { role: 'user', content: String(text).slice(0, 2000) }]
+
+      })
     });
 
     if (!res.ok) return null;
@@ -117,7 +117,7 @@ export function deriveOverallMood({ joy, anxiety, stress }) {
     return {
       emoji: '😌',
       label: 'Спокойно',
-      sub: 'Эмоции ровные. Стресс не превышает норму.',
+      sub: 'Эмоции ровные. Стресс не превышает норму.'
     };
   }
   if (joy > stress && joy > anxiety) {

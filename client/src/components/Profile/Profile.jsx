@@ -13,8 +13,8 @@ import {
   Shield,
   Moon,
   LogOut,
-  ChevronRight,
-} from 'lucide-react';
+  ChevronRight } from
+'lucide-react';
 import api from '../../utils/api';
 import './Profile.css';
 
@@ -31,7 +31,7 @@ const Profile = () => {
     email: user?.email || '',
     age: user?.age || '',
     currentPassword: '',
-    newPassword: '',
+    newPassword: ''
   });
   const [msg, setMsg] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -75,7 +75,7 @@ const Profile = () => {
     formData.append('avatar', file);
     try {
       const res = await api.post('/users/avatar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       updateUser({ avatar: res.data.avatar });
       setMsg({ type: 'success', text: 'Фото обновлено' });
@@ -92,7 +92,7 @@ const Profile = () => {
   const roleLabel = {
     student: t('auth.roleStudent'),
     teacher: t('auth.roleTeacher'),
-    admin: t('pages.roleAdmin'),
+    admin: t('pages.roleAdmin')
   };
 
   return (
@@ -100,33 +100,33 @@ const Profile = () => {
       <h1 className="page-title">{t('pages.profileTitle')}</h1>
       <p className="page-sub">{t('pages.profileSub')}</p>
 
-      {msg && (
-        <div className={`profile-msg profile-msg--banner ${msg.type}`}>
-          {msg.type === 'success' ? (
-            <CheckCircle size={16} />
-          ) : msg.type === 'error' ? (
-            <AlertCircle size={16} />
-          ) : (
-            <Info size={16} />
-          )}
+      {msg &&
+      <div className={`profile-msg profile-msg--banner ${msg.type}`}>
+          {msg.type === 'success' ?
+        <CheckCircle size={16} /> :
+        msg.type === 'error' ?
+        <AlertCircle size={16} /> :
+
+        <Info size={16} />
+        }
           {msg.text}
         </div>
-      )}
+      }
 
       <div className="profile-grid">
         <div className="card avatar-card">
           <div className="avatar-wrapper">
-            {user?.avatar ? (
-              <img
-                src={`http://localhost:5000${user.avatar}`}
-                alt="avatar"
-                className="profile-avatar-img"
-              />
-            ) : (
-              <div className="profile-avatar-placeholder">
+            {user?.avatar ?
+            <img
+              src={`http://localhost:5000${user.avatar}`}
+              alt="avatar"
+              className="profile-avatar-img" /> :
+
+
+            <div className="profile-avatar-placeholder">
                 {user?.name?.charAt(0)?.toUpperCase()}
               </div>
-            )}
+            }
             <label className="avatar-upload-btn" htmlFor="avatarInput">
               <Camera size={16} />
             </label>
@@ -135,8 +135,8 @@ const Profile = () => {
               type="file"
               accept="image/*"
               style={{ display: 'none' }}
-              onChange={handleAvatarChange}
-            />
+              onChange={handleAvatarChange} />
+            
           </div>
           <h2 className="profile-name">{user?.name}</h2>
           <span className="profile-role-badge">{roleLabel[user?.role]}</span>
@@ -177,8 +177,8 @@ const Profile = () => {
                   name="currentPassword"
                   value={form.currentPassword}
                   onChange={handleChange}
-                  placeholder="••••••••"
-                />
+                  placeholder="••••••••" />
+                
               </div>
               <div className="form-group">
                 <label>Новый пароль</label>
@@ -188,8 +188,8 @@ const Profile = () => {
                   name="newPassword"
                   value={form.newPassword}
                   onChange={handleChange}
-                  placeholder="Минимум 6 символов"
-                />
+                  placeholder="Минимум 6 символов" />
+                
               </div>
             </div>
 
@@ -217,8 +217,8 @@ const Profile = () => {
                 <input
                   type="checkbox"
                   checked={notifOn}
-                  onChange={() => setNotifOn((v) => !v)}
-                />
+                  onChange={() => setNotifOn((v) => !v)} />
+                
                 <span className="profile-switch-slider" />
               </label>
             </li>
@@ -235,10 +235,10 @@ const Profile = () => {
                 type="button"
                 className="profile-setting-action"
                 onClick={() =>
-                  setMsg({ type: 'info', text: 'Раздел приватности появится в следующем обновлении.' })
+                setMsg({ type: 'info', text: 'Раздел приватности появится в следующем обновлении.' })
                 }
-                aria-label="Приватность"
-              >
+                aria-label="Приватность">
+                
                 <ChevronRight size={22} />
               </button>
             </li>
@@ -266,8 +266,8 @@ const Profile = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Profile;

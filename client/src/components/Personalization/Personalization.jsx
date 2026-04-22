@@ -23,8 +23,8 @@ const Personalization = () => {
   const toggle = (id) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id);else
+      next.add(id);
       return next;
     });
   };
@@ -43,12 +43,12 @@ const Personalization = () => {
       navigate('/dashboard');
     } catch (ex) {
       const msg =
-        ex.response?.data?.message ||
-        (ex.code === 'ERR_NETWORK' || ex.message === 'Network Error'
-          ? 'Нет ответа от сервера. Убедитесь, что backend запущен (порт 5000) и в client указан proxy.'
-          : null) ||
-        ex.message ||
-        'Не удалось сохранить';
+      ex.response?.data?.message || (
+      ex.code === 'ERR_NETWORK' || ex.message === 'Network Error' ?
+      'Нет ответа от сервера. Убедитесь, что backend запущен (порт 5000) и в client указан proxy.' :
+      null) ||
+      ex.message ||
+      'Не удалось сохранить';
       setErr(msg);
     } finally {
       setSaving(false);
@@ -80,8 +80,8 @@ const Personalization = () => {
                 type="button"
                 className={`personalization-chip ${on ? 'personalization-chip--on' : ''}`}
                 onClick={() => toggle(id)}
-                aria-pressed={on}
-              >
+                aria-pressed={on}>
+                
                 <span className="personalization-chip-check" aria-hidden>
                   {on ? <Check size={14} strokeWidth={3} /> : null}
                 </span>
@@ -92,8 +92,8 @@ const Personalization = () => {
                   <span className="personalization-chip-label">{label}</span>
                   <span className="personalization-chip-hint">{hint}</span>
                 </span>
-              </button>
-            );
+              </button>);
+
           })}
         </div>
 
@@ -106,8 +106,8 @@ const Personalization = () => {
           </button>
         </div>
       </form>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Personalization;

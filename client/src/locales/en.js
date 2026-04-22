@@ -8,7 +8,7 @@ export default {
     checkin: {
       title: 'How are you feeling?',
       sub: "Log how you feel today and track your progress",
-      cta: 'Log my state',
+      cta: 'Log my state'
     },
     stats: { mood: 'Your mood', stress: 'Stress', energy: 'Energy', more: 'Details' },
     recsTitle: 'Today’s recommendations',
@@ -31,7 +31,7 @@ export default {
       help: 'What do you need help with',
       helpPh: 'Briefly describe the situation or request',
       phonePh: '+7 (___) ___-__-__',
-      submit: 'Send request',
+      submit: 'Send request'
     },
     checkinForm: {
       title: 'How are you feeling today?',
@@ -51,14 +51,14 @@ export default {
       notesSub: 'Add extra notes',
       notesPh: 'e.g. I felt especially tired because of a deadline today.',
       cancel: 'Cancel',
-      save: 'Save',
+      save: 'Save'
     },
     details: {
       title: 'About these indicators',
       leadIntro: 'Below is a short explanation of mood, stress, and energy.',
       leadFromCheckin: " Today's values come from the check-in on the home screen.",
       leadModelWithOnb:
-        ' The scores include your initial burnout screening, the latest test results, and are aligned. ',
+      ' The scores include your initial burnout screening, the latest test results, and are aligned. ',
       leadModel: ' The scores are based on your latest test results and are aligned. ',
       leadDisclaim: 'This is guidance, not a diagnosis.',
       liMood: 'Mood',
@@ -69,37 +69,37 @@ export default {
       liEnergyExp: '— how alert you feel; low values suggest rest and sleep.',
       foot: 'For full history, open the Analytics section.',
       close: 'Close',
-      analytics: 'Open analytics',
+      analytics: 'Open analytics'
     },
     onboard: {
       title: 'Welcome',
       body:
-        'Open Tests (e.g. GAD-7) and keep a daily check-in — then Analytics will show your trends. Then open Practices: we will suggest exercises based on your results. In AI Journal you can log how you feel and get gentle support (not a diagnosis).',
+      'Open Tests (e.g. GAD-7) and keep a daily check-in — then Analytics will show your trends. Then open Practices: we will suggest exercises based on your results. In AI Journal you can log how you feel and get gentle support (not a diagnosis).',
       later: 'Later',
-      toTests: 'Go to tests',
+      toTests: 'Go to tests'
     },
-    close: 'Close',
+    close: 'Close'
   },
   mood: {
     0: 'Great',
     1: 'Good',
     2: 'OK',
     3: 'Sad',
-    4: 'Anxious',
+    4: 'Anxious'
   },
   tip: {
     high: {
       title: 'Tip of the day: take care of yourself',
-      text: 'Stress is elevated. Pause, get some air, and try a short breathing exercise.',
+      text: 'Stress is elevated. Pause, get some air, and try a short breathing exercise.'
     },
     mid: {
       title: "Tip of the day: find balance",
-      text: 'Play music you like and take a few minutes for yourself. It can help you switch and relax a little.',
+      text: 'Play music you like and take a few minutes for yourself. It can help you switch and relax a little.'
     },
     low: {
       title: 'Tip of the day: you are doing well',
-      text: "You're in a good state! Keep a steady routine and stay physically active.",
-    },
+      text: "You're in a good state! Keep a steady routine and stay physically active."
+    }
   },
   tipAct: {
     m1: { label: 'Meditation', time: '15 min' },
@@ -110,7 +110,7 @@ export default {
     w3: { label: 'Relaxation', time: '30 min' },
     l1: { label: 'Sport', time: '45 min' },
     l2: { label: 'Reading', time: '30 min' },
-    l3: { label: 'Music', time: '20 min' },
+    l3: { label: 'Music', time: '20 min' }
   },
   rec: {
     0: {
@@ -119,7 +119,7 @@ export default {
       time: '2 min',
       desc: 'This exercise helps lower anxiety by slowing the breath and engaging the parasympathetic system.',
       detail:
-        'Breathe slowly: inhale 4, hold 2, exhale 6. Repeat 5–8 cycles. This supports the parasympathetic system and can lower heart rate and cortisol. Seated or before bed works well.',
+      'Breathe slowly: inhale 4, hold 2, exhale 6. Repeat 5–8 cycles. This supports the parasympathetic system and can lower heart rate and cortisol. Seated or before bed works well.'
     },
     1: {
       title: 'Calm mind',
@@ -127,7 +127,7 @@ export default {
       time: '2 min',
       desc: 'This exercise helps lower anxiety by slowing the breath and engaging the parasympathetic system.',
       detail:
-        'Close your eyes for a minute and name three sounds around you, then three body sensations. This grounding practice brings attention to the present and can ease looping thoughts.',
+      'Close your eyes for a minute and name three sounds around you, then three body sensations. This grounding practice brings attention to the present and can ease looping thoughts.'
     },
     2: {
       title: 'A moment of quiet',
@@ -135,15 +135,15 @@ export default {
       time: '2 min',
       desc: 'This exercise helps lower anxiety by slowing the breath and engaging the parasympathetic system.',
       detail:
-        'Sit tall, gently gaze at one point or close your eyes. Count inhales from 1 to 10 and start again. If you drift, gently return. Even 2 minutes can lower nervous arousal.',
-    },
+      'Sit tall, gently gaze at one point or close your eyes. Count inhales from 1 to 10 and start again. If you drift, gently return. Even 2 minutes can lower nervous arousal.'
+    }
   },
   practiceCats: {
     all: 'All',
     breath: 'Breath',
     focus: 'Meditation',
     grounding: 'Reflection',
-    video: 'Video',
+    video: 'Video'
   },
   nav: {
     langAria: 'Interface language',
@@ -159,7 +159,7 @@ export default {
     adminOverview: 'Overview',
     adminUsers: 'Users',
     adminCategories: 'Categories',
-    adminTests: 'Tests',
+    adminTests: 'Tests'
   },
   landing: {
     logoSub: 'Academic edition',
@@ -170,7 +170,7 @@ export default {
     heroHighlight: 'under control',
     heroLine2: 'from day one',
     heroDesc:
-      'A private space to track how you feel and prevent burnout. Built for students and teachers — calm, clear, and without the noise.',
+    'A private space to track how you feel and prevent burnout. Built for students and teachers — calm, clear, and without the noise.',
     ctaStart: 'Start for free',
     ctaMore: 'Learn more',
     stat1n: '24/7',
@@ -210,7 +210,7 @@ export default {
     ctaBannerTitle: 'Start caring for yourself today',
     ctaBannerSub: 'Sign-up takes under a minute. No credit card, no hidden fees.',
     ctaBannerBtn: 'Create a free account',
-    footCopy: '© 2026 Burnout. Support for students’ and teachers’ mental health.',
+    footCopy: '© 2026 Burnout. Support for students’ and teachers’ mental health.'
   },
   auth: {
     loginTitle: 'Welcome',
@@ -238,7 +238,7 @@ export default {
     phAge: 'Your age',
     labelRole: 'Role',
     roleStudent: '🎓 Student',
-    roleTeacher: '👨‍🏫 Teacher',
+    roleTeacher: '👨‍🏫 Teacher'
   },
   pages: {
     practicesTitle: 'Practices',
@@ -288,21 +288,21 @@ export default {
     diaryOutOf: '{n} of 10',
     diaryEntriesBadge: '{n} entries',
     checkinMark: 'Check-in',
-    diaryOverall: 'OVERALL STATE',
+    diaryOverall: 'OVERALL STATE'
   },
   testsPath: {
     heal: {
       title: 'Renewal',
-      lead: 'A short survey on overload and recovery — step by step.',
+      lead: 'A short survey on overload and recovery — step by step.'
     },
     discover: {
       title: 'Pulse',
-      lead: 'Anxiety and inner tension — notice what is happening right now.',
+      lead: 'Anxiety and inner tension — notice what is happening right now.'
     },
     insight: {
       title: 'Daily balance',
-      lead: 'A quick check-in: mood and resources for steady tracking.',
-    },
+      lead: 'A quick check-in: mood and resources for steady tracking.'
+    }
   },
   testsFilter: {
     all: 'All',
@@ -310,12 +310,12 @@ export default {
     basic: 'Basic',
     clinical: 'Clinical tests',
     practices: 'Practices',
-    other: 'Other',
+    other: 'Other'
   },
   testsUi: {
     goTest: 'Start test',
     noTests: 'No tests are available for your role right now. Check back later or contact an admin.',
     emptyFilter: 'No surveys in this category. Try another filter.',
-    quickStartAria: 'Quick start',
-  },
+    quickStartAria: 'Quick start'
+  }
 };

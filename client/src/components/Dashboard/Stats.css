@@ -1,4 +1,4 @@
-/* Аналитика — палитра: #4F4F4F #FFC77A #FFB28E #AAB6E0 #F5F4F3 #FFEBB1 #FFD2AD #C8CAF2 */
+
 
 .analytics-page {
   --a-text: #4f4f4f;
@@ -18,7 +18,7 @@
   margin: 0 auto;
   padding: 16px 12px 48px;
   box-sizing: border-box;
-  /* Фон совпадает с main-content — без отдельного «блока» */
+  
   background: transparent;
   border-radius: 0;
   min-height: calc(100dvh - 48px);
@@ -89,7 +89,7 @@
   box-shadow: none;
 }
 
-/* KPI — мягкие градиенты по карточкам */
+
 .analytics-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -195,7 +195,7 @@
   color: #8b4a4a;
 }
 
-/* Charts */
+
 .analytics-charts-row {
   display: grid;
   grid-template-columns: 1.55fr 1fr;
@@ -218,7 +218,7 @@
   box-shadow: none;
 }
 
-/* Блок «Динамика настроения» — как макет: светлая карточка, столбцы #D1D5FA */
+
 .analytics-card--mood-chart {
   background: #f9f9f9;
   border: 1px solid #1a1a1a;
@@ -571,7 +571,7 @@
   flex-shrink: 0;
 }
 
-/* Тёмная тема */
+
 [data-theme='dark'] .analytics-page {
   --a-text: var(--text-dark, #f1f5f9);
   --a-text-soft: var(--text-mid, #94a3b8);
@@ -632,7 +632,7 @@
   background: linear-gradient(180deg, rgba(200, 202, 242, 0.1) 0%, transparent 50%);
 }
 
-/* Recharts: убираем тень у встроенного тултипа */
+
 .analytics-page .recharts-tooltip-wrapper,
 .analytics-page .recharts-default-tooltip {
   box-shadow: none !important;

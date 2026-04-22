@@ -9,8 +9,8 @@ const Layout = ({ children }) => {
       <main className="main-content">
         {children}
       </main>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Layout;

@@ -4,31 +4,31 @@ import React, {
   useContext,
   useEffect,
   useMemo,
-  useState,
-} from 'react';
+  useState } from
+'react';
 import ru from '../locales/ru';
 import en from '../locales/en';
 import kk from '../locales/kk';
 
 const DICTS = { ru, en, kk };
 export const LANGS = [
-  { code: 'ru', short: 'RU', name: 'Русский' },
-  { code: 'kk', short: 'KK', name: 'Қазақша' },
-  { code: 'en', short: 'EN', name: 'English' },
-];
+{ code: 'ru', short: 'RU', name: 'Русский' },
+{ code: 'kk', short: 'KK', name: 'Қазақша' },
+{ code: 'en', short: 'EN', name: 'English' }];
+
 
 const STORAGE_KEY = 'burnout_ui_lang_v1';
 
 const LanguageContext = createContext(null);
 
 function getNested(obj, path) {
-  return path.split('.').reduce((o, key) => (o == null ? o : o[key]), obj);
+  return path.split('.').reduce((o, key) => o == null ? o : o[key], obj);
 }
 
 function applyParams(str, params) {
   if (!params || typeof str !== 'string') return str;
   return str.replace(/\{(\w+)\}/g, (_, k) =>
-    params[k] != null ? String(params[k]) : ''
+  params[k] != null ? String(params[k]) : ''
   );
 }
 
@@ -38,7 +38,7 @@ export function LanguageProvider({ children }) {
       const s = localStorage.getItem(STORAGE_KEY);
       if (s && ['ru', 'en', 'kk'].includes(s)) return s;
     } catch {
-      /* ignore */
+
     }
     return 'ru';
   });
@@ -51,7 +51,7 @@ export function LanguageProvider({ children }) {
     try {
       localStorage.setItem(STORAGE_KEY, code);
     } catch {
-      /* ignore */
+
     }
   }, []);
 
@@ -69,7 +69,7 @@ export function LanguageProvider({ children }) {
     [dict]
   );
 
-  /** Произвольное значение из словаря (объекты «совет/рекомендация») */
+
   const tRaw = useCallback(
     (key) => {
       const v = getNested(DICTS[lang], key);
@@ -83,7 +83,7 @@ export function LanguageProvider({ children }) {
     try {
       document.documentElement.setAttribute('lang', lang === 'kk' ? 'kk' : lang);
     } catch {
-      /* ignore */
+
     }
   }, [lang]);
 
@@ -93,8 +93,8 @@ export function LanguageProvider({ children }) {
   );
 
   return (
-    <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
-  );
+    <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>);
+
 }
 
 export function useLanguage() {

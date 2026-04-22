@@ -26,8 +26,8 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
   if (loading) return (
     <div className="app-loading-fullscreen">
       <div className="loading-spinner" />
-    </div>
-  );
+    </div>);
+
   if (!user) return <Navigate to="/" replace />;
   if (adminOnly && user.role !== 'admin') return <Navigate to="/dashboard" replace />;
   return children;
@@ -38,8 +38,8 @@ function RequireAdminDashboard({ children }) {
   if (loading) return (
     <div className="app-loading-fullscreen">
       <div className="loading-spinner" />
-    </div>
-  );
+    </div>);
+
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;
   return children;
@@ -50,8 +50,8 @@ const PublicRoute = ({ children }) => {
   if (loading) return (
     <div className="app-loading-fullscreen">
       <div className="loading-spinner" />
-    </div>
-  );
+    </div>);
+
   if (user) {
     if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
     return <Navigate to="/dashboard" replace />;
@@ -67,12 +67,12 @@ function RequireOnboardingDone({ children }) {
   return children;
 }
 
-const UserLayout = ({ children }) => (
-  <Layout>
+const UserLayout = ({ children }) =>
+<Layout>
     {children}
     <AIChatRouteAware />
-  </Layout>
-);
+  </Layout>;
+
 
 function AIChatRouteAware() {
   const { pathname } = useLocation();
@@ -95,86 +95,86 @@ const App = () => {
           <Route path="/admin-portal" element={<AdminPortal />} />
 
           <Route path="/admin-dashboard" element={
-            <RequireAdminDashboard><AdminDashboard /></RequireAdminDashboard>
-          } />
+                    <RequireAdminDashboard><AdminDashboard /></RequireAdminDashboard>
+                    } />
           <Route path="/user-dashboard" element={<Navigate to="/dashboard" replace />} />
 
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
           <Route path="/onboarding/burnout" element={
-            <PrivateRoute><OnboardingBurnout /></PrivateRoute>
-          } />
+                    <PrivateRoute><OnboardingBurnout /></PrivateRoute>
+                    } />
 
           <Route path="/dashboard" element={
-            <PrivateRoute>
+                    <PrivateRoute>
               <RequireOnboardingDone>
                 <UserLayout><Dashboard /></UserLayout>
               </RequireOnboardingDone>
             </PrivateRoute>
-          } />
+                    } />
           <Route path="/personalization" element={
-            <PrivateRoute>
+                    <PrivateRoute>
               <RequireOnboardingDone>
                 <UserLayout><Personalization /></UserLayout>
               </RequireOnboardingDone>
             </PrivateRoute>
-          } />
+                    } />
           <Route path="/tests" element={
-            <PrivateRoute>
+                    <PrivateRoute>
               <RequireOnboardingDone>
                 <UserLayout><TestsList /></UserLayout>
               </RequireOnboardingDone>
             </PrivateRoute>
-          } />
+                    } />
           <Route path="/tests/:id" element={
-            <PrivateRoute>
+                    <PrivateRoute>
               <RequireOnboardingDone>
                 <UserLayout><TakeTest /></UserLayout>
               </RequireOnboardingDone>
             </PrivateRoute>
-          } />
+                    } />
           <Route path="/practices" element={
-            <PrivateRoute>
+                    <PrivateRoute>
               <RequireOnboardingDone>
                 <UserLayout><Practices /></UserLayout>
               </RequireOnboardingDone>
             </PrivateRoute>
-          } />
+                    } />
           <Route path="/diary" element={
-            <PrivateRoute>
+                    <PrivateRoute>
               <RequireOnboardingDone>
                 <UserLayout><Diary /></UserLayout>
               </RequireOnboardingDone>
             </PrivateRoute>
-          } />
+                    } />
           <Route path="/stats" element={
-            <PrivateRoute>
+                    <PrivateRoute>
               <RequireOnboardingDone>
                 <UserLayout><Stats /></UserLayout>
               </RequireOnboardingDone>
             </PrivateRoute>
-          } />
+                    } />
           <Route path="/profile" element={
-            <PrivateRoute>
+                    <PrivateRoute>
               <RequireOnboardingDone>
                 <UserLayout><Profile /></UserLayout>
               </RequireOnboardingDone>
             </PrivateRoute>
-          } />
+                    } />
 
           <Route path="/admin" element={
-            <PrivateRoute adminOnly><Layout><AdminOverview /></Layout></PrivateRoute>
-          } />
+                    <PrivateRoute adminOnly><Layout><AdminOverview /></Layout></PrivateRoute>
+                    } />
           <Route path="/admin/users" element={
-            <PrivateRoute adminOnly><Layout><AdminUsers /></Layout></PrivateRoute>
-          } />
+                    <PrivateRoute adminOnly><Layout><AdminUsers /></Layout></PrivateRoute>
+                    } />
           <Route path="/admin/categories" element={
-            <PrivateRoute adminOnly><Layout><AdminCategories /></Layout></PrivateRoute>
-          } />
+                    <PrivateRoute adminOnly><Layout><AdminCategories /></Layout></PrivateRoute>
+                    } />
           <Route path="/admin/tests" element={
-            <PrivateRoute adminOnly><Layout><AdminTests /></Layout></PrivateRoute>
-          } />
+                    <PrivateRoute adminOnly><Layout><AdminTests /></Layout></PrivateRoute>
+                    } />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -184,8 +184,8 @@ const App = () => {
     </BrowserRouter>
     </LanguageProvider>
     </ThemeProvider>
-    </div>
-  );
+    </div>);
+
 };
 
 export default App;

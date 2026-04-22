@@ -6,12 +6,12 @@ import './AIChat.css';
 const AIChat = () => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content:
-        'Привет! Я ИИ-помощник по ментальному здоровью. Могу поддержать и ответить на вопросы про выгорание, тревогу, грусть, стресс и саморегуляцию. Как вы сейчас?',
-    },
-  ]);
+  {
+    role: 'assistant',
+    content:
+    'Привет! Я ИИ-помощник по ментальному здоровью. Могу поддержать и ответить на вопросы про выгорание, тревогу, грусть, стресс и саморегуляцию. Как вы сейчас?'
+  }]
+  );
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
@@ -46,13 +46,13 @@ const AIChat = () => {
       console.error(e);
       setMessages((cur) => {
         const next = [
-          ...cur,
-          {
-            role: 'assistant',
-            content:
-              'Не удалось получить ответ. Проверьте ключ OpenAI и баланс на platform.openai.com, затем попробуйте снова.',
-          },
-        ];
+        ...cur,
+        {
+          role: 'assistant',
+          content:
+          'Не удалось получить ответ. Проверьте ключ OpenAI и баланс на platform.openai.com, затем попробуйте снова.'
+        }];
+
         messagesRef.current = next;
         return next;
       });
@@ -68,8 +68,8 @@ const AIChat = () => {
         {!open && <span className="ai-fab-label">ИИ-помощник</span>}
       </button>
 
-      {open && (
-        <div className="ai-chat-window fade-in">
+      {open &&
+      <div className="ai-chat-window fade-in">
           <div className="ai-chat-header">
             <div className="ai-header-info">
               <div className="ai-avatar"><Bot size={18} /></div>
@@ -84,49 +84,49 @@ const AIChat = () => {
           </div>
 
           <div className="ai-messages">
-            {messages.map((msg, i) => (
-              <div key={i} className={`ai-msg ${msg.role}`}>
+            {messages.map((msg, i) =>
+          <div key={i} className={`ai-msg ${msg.role}`}>
                 <div className="ai-msg-avatar">
                   {msg.role === 'assistant' ? <Bot size={14} /> : <User size={14} />}
                 </div>
                 <div className="ai-msg-bubble">{msg.content}</div>
               </div>
-            ))}
-            {loading && (
-              <div className="ai-msg assistant">
+          )}
+            {loading &&
+          <div className="ai-msg assistant">
                 <div className="ai-msg-avatar"><Bot size={14} /></div>
                 <div className="ai-msg-bubble typing" aria-live="polite">
                   <span /><span /><span />
                 </div>
               </div>
-            )}
+          }
             <div ref={messagesEndRef} />
           </div>
 
           <div className="ai-input-bar">
             <input
-              className="ai-input"
-              placeholder="Задайте вопрос или опишите, что чувствуете…"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-              disabled={loading}
-              aria-label="Сообщение"
-            />
+            className="ai-input"
+            placeholder="Задайте вопрос или опишите, что чувствуете…"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+            disabled={loading}
+            aria-label="Сообщение" />
+          
             <button
-              type="button"
-              className={`ai-send ${input.trim() ? 'active' : ''}`}
-              onClick={sendMessage}
-              disabled={!input.trim() || loading}
-              aria-label="Отправить"
-            >
+            type="button"
+            className={`ai-send ${input.trim() ? 'active' : ''}`}
+            onClick={sendMessage}
+            disabled={!input.trim() || loading}
+            aria-label="Отправить">
+            
               <Send size={16} />
             </button>
           </div>
         </div>
-      )}
-    </>
-  );
+      }
+    </>);
+
 };
 
 export default AIChat;

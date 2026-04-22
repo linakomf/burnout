@@ -22,7 +22,7 @@
   box-sizing: border-box;
 }
 
-/* ── Navbar ── */
+
 .land-nav {
   display: flex;
   align-items: center;
@@ -169,7 +169,7 @@
   background: #fafafa;
 }
 
-/* ── Hero ── */
+
 .land-hero-section {
   position: relative;
   overflow: hidden;
@@ -345,7 +345,7 @@
   background: linear-gradient(90deg, #86efac, #4ade80);
 }
 
-/* ── Sections ── */
+
 .section-title {
   font-size: clamp(26px, 3.5vw, 38px);
   font-weight: 800;
@@ -494,7 +494,7 @@
   flex-shrink: 0;
 }
 
-/* Trust — светло-фиолетовая полоса */
+
 .land-trust {
   background: var(--lavender-soft);
   padding: 26px clamp(18px, 4vw, 56px);
@@ -590,7 +590,7 @@
   text-align: center;
 }
 
-/* Responsive */
+
 @media (max-width: 1024px) {
   .features-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -636,7 +636,7 @@
   }
 }
 
-/* Тёмная тема */
+
 [data-theme='dark'] .landing {
   --text: var(--text-dark, #f1f5f9);
   --text-muted: var(--text-mid, #94a3b8);

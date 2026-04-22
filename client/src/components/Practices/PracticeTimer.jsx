@@ -42,7 +42,7 @@ function PracticeTimer({ practice, onComplete, onStop }) {
     return Math.min(Math.floor(elapsedSec / chunk), practice.steps.length - 1);
   }, [durationSec, elapsedSec, practice.steps.length]);
 
-  const progress = Math.min((elapsedSec / durationSec) * 100, 100);
+  const progress = Math.min(elapsedSec / durationSec * 100, 100);
   const remaining = Math.max(durationSec - elapsedSec, 0);
 
   const resetPractice = () => {
@@ -62,8 +62,8 @@ function PracticeTimer({ practice, onComplete, onStop }) {
           className="pr-timer-fill"
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-        />
+          transition={{ duration: 0.6, ease: 'easeOut' }} />
+        
       </div>
 
       <div className="pr-timer-time">
@@ -71,11 +71,11 @@ function PracticeTimer({ practice, onComplete, onStop }) {
           <p className="pr-timer-label">Таймер</p>
           <p className="pr-timer-value">{formatClock(remaining)}</p>
         </div>
-        {isDone && (
-          <span className="pr-timer-done">
+        {isDone &&
+        <span className="pr-timer-done">
             Практика завершена
           </span>
-        )}
+        }
       </div>
 
       <div className="pr-step-box">
@@ -89,8 +89,8 @@ function PracticeTimer({ practice, onComplete, onStop }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
-            className="pr-step-text"
-          >
+            className="pr-step-text">
+            
             {practice.steps[currentStepIndex]}
           </motion.p>
         </AnimatePresence>
@@ -102,8 +102,8 @@ function PracticeTimer({ practice, onComplete, onStop }) {
           onClick={() => setIsPaused((prev) => !prev)}
           disabled={isDone}
           whileTap={{ scale: 0.95 }}
-          className={`btn ${isDone ? 'pr-btn-disabled' : 'btn-primary'}`}
-        >
+          className={`btn ${isDone ? 'pr-btn-disabled' : 'btn-primary'}`}>
+          
           {isPaused ? <Play size={14} fill="currentColor" /> : <Pause size={14} />}
           {isPaused ? 'Продолжить' : 'Пауза'}
         </motion.button>
@@ -111,8 +111,8 @@ function PracticeTimer({ practice, onComplete, onStop }) {
           type="button"
           onClick={resetPractice}
           whileTap={{ scale: 0.95 }}
-          className="btn btn-ghost"
-        >
+          className="btn btn-ghost">
+          
           <RotateCcw size={14} />
           Сброс
         </motion.button>
@@ -120,14 +120,14 @@ function PracticeTimer({ practice, onComplete, onStop }) {
           type="button"
           onClick={onStop}
           whileTap={{ scale: 0.95 }}
-          className="btn btn-danger"
-        >
+          className="btn btn-danger">
+          
           <Square size={14} />
           Стоп
         </motion.button>
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 export default PracticeTimer;

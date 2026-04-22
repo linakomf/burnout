@@ -11,7 +11,7 @@ const CHIP_PASTEL = {
   breath: 'practices-chip--breath',
   focus: 'practices-chip--meditation',
   grounding: 'practices-chip--reflection',
-  video: 'practices-chip--video',
+  video: 'practices-chip--video'
 };
 
 function matchCategory(practice, activeCategory) {
@@ -36,8 +36,8 @@ function Practices() {
   const toggleFavorite = (practiceId) => {
     setFavorites((prev) => {
       const next = new Set(prev);
-      if (next.has(practiceId)) next.delete(practiceId);
-      else next.add(practiceId);
+      if (next.has(practiceId)) next.delete(practiceId);else
+      next.add(practiceId);
       return next;
     });
   };
@@ -60,11 +60,11 @@ function Practices() {
               role="tab"
               aria-selected={isActive}
               className={`practices-chip ${pastel || ''} ${isActive ? 'practices-chip--active' : ''}`}
-              onClick={() => setActiveCategory(category.id)}
-            >
+              onClick={() => setActiveCategory(category.id)}>
+              
               {t(`practiceCats.${category.id}`)}
-            </button>
-          );
+            </button>);
+
         })}
       </div>
 
@@ -73,28 +73,28 @@ function Practices() {
       </div>
 
       <div className="practices-grid">
-        {practicesByCategory.map((practice, index) => (
-          <PracticeCard
-            key={practice.id}
-            practice={practice}
-            isFavorite={favorites.has(practice.id)}
-            onToggleFavorite={toggleFavorite}
-            onPlay={setSelectedPractice}
-            index={index}
-          />
-        ))}
+        {practicesByCategory.map((practice, index) =>
+        <PracticeCard
+          key={practice.id}
+          practice={practice}
+          isFavorite={favorites.has(practice.id)}
+          onToggleFavorite={toggleFavorite}
+          onPlay={setSelectedPractice}
+          index={index} />
+
+        )}
       </div>
 
       <AnimatePresence>
-        {selectedPractice && (
-          <PracticeModal
-            practice={selectedPractice}
-            onClose={() => setSelectedPractice(null)}
-          />
-        )}
+        {selectedPractice &&
+        <PracticeModal
+          practice={selectedPractice}
+          onClose={() => setSelectedPractice(null)} />
+
+        }
       </AnimatePresence>
-    </div>
-  );
+    </div>);
+
 }
 
 export default Practices;

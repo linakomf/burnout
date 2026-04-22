@@ -23,9 +23,9 @@ const Login = () => {
     setLoading(true);
     try {
       const user = await login(form.email, form.password);
-      if (user.role === 'admin') navigate('/admin');
-      else if (!user.onboarding_burnout_completed) navigate('/onboarding/burnout', { replace: true });
-      else navigate('/dashboard');
+      if (user.role === 'admin') navigate('/admin');else
+      if (!user.onboarding_burnout_completed) navigate('/onboarding/burnout', { replace: true });else
+      navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || t('auth.errLogin'));
     } finally {
@@ -53,12 +53,12 @@ const Login = () => {
         <h1 className="auth-title">{t('auth.loginTitle')}</h1>
         <p className="auth-subtitle">{t('auth.loginSubtitle')}</p>
 
-        {error && (
-          <div className="auth-error">
+        {error &&
+        <div className="auth-error">
             <AlertCircle size={16} />
             <span>{error}</span>
           </div>
-        )}
+        }
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
@@ -70,8 +70,8 @@ const Login = () => {
               placeholder="your@email.com"
               value={form.email}
               onChange={handleChange}
-              required
-            />
+              required />
+            
           </div>
 
           <div className="form-group">
@@ -84,8 +84,8 @@ const Login = () => {
                 placeholder={t('auth.phPassword')}
                 value={form.password}
                 onChange={handleChange}
-                required
-              />
+                required />
+              
               <button type="button" className="eye-btn" onClick={() => setShowPass(!showPass)}>
                 {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -102,8 +102,8 @@ const Login = () => {
           <Link to="/register">{t('auth.linkReg')}</Link>
         </p>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Login;

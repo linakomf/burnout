@@ -6,8 +6,8 @@ export function HeroPsychArt() {
       className="tests-decor-hero-svg"
       viewBox="0 0 560 200"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
+      aria-hidden>
+      
       <defs>
         <linearGradient id="thg1" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#d8d0f0" stopOpacity="0.85" />
@@ -27,23 +27,23 @@ export function HeroPsychArt() {
         d="M200 120c40-50 120-55 160-5 25 28 30 70 8 95-18 20-50 22-78 8-35-18-55-55-90-98z"
         fill="#ede9f7"
         opacity="0.9"
-        className="tests-decor-float tests-decor-float--mid"
-      />
+        className="tests-decor-float tests-decor-float--mid" />
+      
       <g className="tests-decor-brain" transform="translate(248 52)">
         <path
           d="M32 8c-18 0-32 16-32 36 0 22 14 38 32 38 4 0 8-1 12-3 4 2 8 3 12 3 18 0 32-16 32-38 0-20-14-36-32-36-6 0-12 2-16 6-4-4-10-6-16-6z"
           fill="#9b8fd4"
           stroke="#5a4a8c"
-          strokeWidth="1.5"
-        />
+          strokeWidth="1.5" />
+        
         <path
           d="M24 36c-4 8-4 18 0 26M40 40c0 10 0 20 2 28M56 28c6 4 10 14 8 24"
           stroke="#5a4f78"
           strokeWidth="2"
           strokeLinecap="round"
           fill="none"
-          opacity="0.55"
-        />
+          opacity="0.55" />
+        
       </g>
       <circle cx="80" cy="48" r="8" fill="#7a6bc9" opacity="0.5" className="tests-decor-spark" />
       <circle cx="500" cy="140" r="6" fill="#ffb347" opacity="0.45" className="tests-decor-spark tests-decor-spark--delay" />
@@ -54,10 +54,10 @@ export function HeroPsychArt() {
         strokeWidth="3"
         strokeLinecap="round"
         opacity="0.4"
-        className="tests-decor-plus"
-      />
-    </svg>
-  );
+        className="tests-decor-plus" />
+      
+    </svg>);
+
 }
 
 export function CardBlobArt({ bucket, uid = '0' }) {
@@ -66,7 +66,7 @@ export function CardBlobArt({ bucket, uid = '0' }) {
     stress: { a: '#fdeee0', b: '#c97d3a' },
     mood: { a: '#e4e8f8', b: '#5a6a9e' },
     esteem: { a: '#fce8e4', b: '#c06050' },
-    other: { a: '#f0edf8', b: '#6a6688' },
+    other: { a: '#f0edf8', b: '#6a6688' }
   };
   const c = colors[bucket] || colors.other;
   const gid = `cbg-${bucket}-${uid}`;
@@ -75,8 +75,8 @@ export function CardBlobArt({ bucket, uid = '0' }) {
       className="tests-decor-card-blob"
       viewBox="0 0 120 100"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
+      aria-hidden>
+      
       <defs>
         <linearGradient id={gid} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor={c.a} />
@@ -87,31 +87,31 @@ export function CardBlobArt({ bucket, uid = '0' }) {
         fill={`url(#${gid})`}
         d="M95 20c12 18 18 42 8 62-14 28-48 32-72 18C-2 88-8 52 8 28 20 8 48-4 72 4c10 2 18 10 23 16z"
         opacity="0.85"
-        className="tests-decor-card-blob-shape"
-      />
-    </svg>
-  );
+        className="tests-decor-card-blob-shape" />
+      
+    </svg>);
+
 }
 
 export function IntroSplashArt({ bucket }) {
   const uid = useId().replace(/:/g, '');
   const tint =
-    bucket === 'anxiety'
-      ? '#ede8f7'
-      : bucket === 'stress'
-        ? '#fdeee0'
-        : bucket === 'mood'
-          ? '#e4e8f4'
-          : bucket === 'esteem'
-            ? '#fce8e4'
-            : '#edebf7';
+  bucket === 'anxiety' ?
+  '#ede8f7' :
+  bucket === 'stress' ?
+  '#fdeee0' :
+  bucket === 'mood' ?
+  '#e4e8f4' :
+  bucket === 'esteem' ?
+  '#fce8e4' :
+  '#edebf7';
   return (
     <svg
       className="tests-decor-intro-svg"
       viewBox="0 0 320 180"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
+      aria-hidden>
+      
       <defs>
         <linearGradient id={`insg-top-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#f7f5ff" />
@@ -139,14 +139,14 @@ export function IntroSplashArt({ bucket }) {
           stroke="#7a6bc9"
           strokeWidth="2"
           opacity="0.35"
-          className="tests-decor-pulse"
-        />
+          className="tests-decor-pulse" />
+        
       </g>
       <text x="160" y="162" textAnchor="middle" fontSize="11" fill="#7a8494" fontFamily="Nunito, sans-serif" fontWeight="600">
         Отвечайте честно — так точнее
       </text>
-    </svg>
-  );
+    </svg>);
+
 }
 
 export function QuestionSideArt() {
@@ -156,8 +156,8 @@ export function QuestionSideArt() {
       className="tests-decor-q-side"
       viewBox="0 0 64 200"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
+      aria-hidden>
+      
       <defs>
         <linearGradient id={`qside-a-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#e4dff5" />
@@ -177,8 +177,8 @@ export function QuestionSideArt() {
         strokeWidth="2.2"
         fill="none"
         strokeLinecap="round"
-        opacity="0.45"
-      />
-    </svg>
-  );
+        opacity="0.45" />
+      
+    </svg>);
+
 }

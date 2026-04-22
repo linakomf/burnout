@@ -1,4 +1,4 @@
-/* Первичный тест выгорания — стиль Mental Health Dashboard */
+
 .onb-page {
   min-height: 100%;
   min-height: 100dvh;
@@ -223,7 +223,7 @@
   line-height: 1.45;
 }
 
-/* —— Результат —— */
+
 .onb-result-inner {
   width: 100%;
   max-width: 480px;

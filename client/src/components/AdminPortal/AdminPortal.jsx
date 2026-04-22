@@ -7,8 +7,8 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis,
-} from 'recharts';
+  YAxis } from
+'recharts';
 import { BarChart3, LogIn, LogOut, RefreshCw } from 'lucide-react';
 import adminApi from '../../utils/adminApi';
 import './AdminPortal.css';
@@ -16,7 +16,7 @@ import './AdminPortal.css';
 const ROLE_LABEL = {
   student: 'Студент',
   teacher: 'Преподаватель',
-  admin: 'Админ',
+  admin: 'Админ'
 };
 
 function formatDay(d) {
@@ -101,8 +101,8 @@ const AdminPortal = () => {
                 id="ap-login"
                 autoComplete="username"
                 value={login}
-                onChange={(ev) => setLogin(ev.target.value)}
-              />
+                onChange={(ev) => setLogin(ev.target.value)} />
+              
             </div>
             <div className="admin-portal-field">
               <label htmlFor="ap-pass">Пароль</label>
@@ -111,8 +111,8 @@ const AdminPortal = () => {
                 type="password"
                 autoComplete="current-password"
                 value={password}
-                onChange={(ev) => setPassword(ev.target.value)}
-              />
+                onChange={(ev) => setPassword(ev.target.value)} />
+              
             </div>
             <button type="submit" className="admin-portal-btn admin-portal-btn-primary" disabled={authLoading} style={{ width: '100%', marginTop: 8 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
@@ -121,13 +121,13 @@ const AdminPortal = () => {
             </button>
           </form>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   const chartData = (stats?.timeline || []).map((row) => ({
     ...row,
-    label: formatDay(row.day),
+    label: formatDay(row.day)
   }));
 
   return (
@@ -146,8 +146,8 @@ const AdminPortal = () => {
               type="button"
               className="admin-portal-btn admin-portal-btn-ghost"
               onClick={() => loadStats()}
-              disabled={statsLoading}
-            >
+              disabled={statsLoading}>
+              
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <RefreshCw size={16} className={statsLoading ? 'admin-portal-spin' : ''} />
                 Обновить
@@ -163,10 +163,10 @@ const AdminPortal = () => {
 
         {statsError ? <div className="admin-portal-error" style={{ marginBottom: 16 }}>{statsError}</div> : null}
 
-        {statsLoading && !stats ? (
-          <div className="admin-portal-loading">Загрузка статистики…</div>
-        ) : stats ? (
-          <>
+        {statsLoading && !stats ?
+        <div className="admin-portal-loading">Загрузка статистики…</div> :
+        stats ?
+        <>
             <div className="admin-portal-grid">
               <div className="admin-portal-stat">
                 <div className="val">{stats.users.total}</div>
@@ -200,12 +200,12 @@ const AdminPortal = () => {
               <div className="admin-portal-section">
                 <h3>Роли пользователей</h3>
                 <div className="admin-portal-grid" style={{ marginBottom: 0 }}>
-                  {Object.entries(stats.users.byRole || {}).map(([role, n]) => (
-                    <div key={role} className="admin-portal-stat">
+                  {Object.entries(stats.users.byRole || {}).map(([role, n]) =>
+                <div key={role} className="admin-portal-stat">
                       <div className="val">{n}</div>
                       <div className="lbl">{ROLE_LABEL[role] || role}</div>
                     </div>
-                  ))}
+                )}
                 </div>
               </div>
               <div className="admin-portal-section">
@@ -230,13 +230,13 @@ const AdminPortal = () => {
                     <XAxis dataKey="label" tick={{ fill: '#9a9ab0', fontSize: 11 }} />
                     <YAxis tick={{ fill: '#9a9ab0', fontSize: 11 }} allowDecimals={false} />
                     <Tooltip
-                      contentStyle={{
-                        background: '#1a1828',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        borderRadius: 8,
-                      }}
-                      labelStyle={{ color: '#9a9ab0' }}
-                    />
+                    contentStyle={{
+                      background: '#1a1828',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      borderRadius: 8
+                    }}
+                    labelStyle={{ color: '#9a9ab0' }} />
+                  
                     <Legend wrapperStyle={{ fontSize: 12 }} />
                     <Bar dataKey="newUsers" name="Новые пользователи" fill="#9a9fd4" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="testCompletions" name="Завершения тестов" fill="#b8bce8" radius={[4, 4, 0, 0]} />
@@ -257,12 +257,12 @@ const AdminPortal = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {stats.topTests.map((t) => (
-                        <tr key={t.test_id}>
+                      {stats.topTests.map((t) =>
+                    <tr key={t.test_id}>
                           <td>{t.title}</td>
                           <td style={{ textAlign: 'right', fontWeight: 700, color: '#fff' }}>{t.completions}</td>
                         </tr>
-                      ))}
+                    )}
                     </tbody>
                   </table>
                 </div>
@@ -280,8 +280,8 @@ const AdminPortal = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {stats.recentUsers.map((u) => (
-                        <tr key={u.user_id}>
+                      {stats.recentUsers.map((u) =>
+                    <tr key={u.user_id}>
                           <td>
                             <div style={{ fontWeight: 600, color: '#fff' }}>{u.name}</div>
                             <div style={{ fontSize: '0.75rem', color: '#6b7c8f' }}>{u.email}</div>
@@ -292,7 +292,7 @@ const AdminPortal = () => {
                           <td>{u.onboarding_burnout_completed ? `${u.onboarding_burnout_percent ?? '—'}%` : '—'}</td>
                           <td>{new Date(u.created_at).toLocaleDateString('ru')}</td>
                         </tr>
-                      ))}
+                    )}
                     </tbody>
                   </table>
                 </div>
@@ -302,11 +302,11 @@ const AdminPortal = () => {
             <p style={{ fontSize: '0.75rem', color: '#5a6578', marginTop: 8 }}>
               Снимок: {new Date(stats.generatedAt).toLocaleString('ru')}
             </p>
-          </>
-        ) : null}
+          </> :
+        null}
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default AdminPortal;

@@ -6,7 +6,7 @@ const connectionString = process.env.DATABASE_URL?.trim();
 if (!connectionString) {
   console.error(
     'FATAL: DATABASE_URL не задан или пуст. Скопируйте server/.env.example в server/.env и укажите строку подключения PostgreSQL, например:\n' +
-      '  DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/burnout_db'
+    '  DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/burnout_db'
   );
   process.exit(1);
 }
@@ -14,7 +14,7 @@ if (!connectionString) {
 const parsed = parse(connectionString);
 const pool = new Pool({
   ...parsed,
-  password: String(parsed.password ?? process.env.PGPASSWORD ?? ''),
+  password: String(parsed.password ?? process.env.PGPASSWORD ?? '')
 });
 
 let pgLogOnce = false;

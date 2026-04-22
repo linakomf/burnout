@@ -13,15 +13,15 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
     cb(null, `avatar_${req.user.user_id}_${Date.now()}${ext}`);
-  },
+  }
 });
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) cb(null, true);
-    else cb(new Error('Только изображения'));
-  },
+    if (file.mimetype.startsWith('image/')) cb(null, true);else
+    cb(new Error('Только изображения'));
+  }
 });
 
 router.get('/me', authMiddleware, async (req, res) => {
@@ -91,7 +91,7 @@ router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
     return res.status(400).json({ message: 'Каждый ответ — число от 0 до 3' });
   }
   const sum = nums.reduce((s, n) => s + n, 0);
-  const percent = Math.min(100, Math.max(0, Math.round((sum / 30) * 100)));
+  const percent = Math.min(100, Math.max(0, Math.round(sum / 30 * 100)));
   try {
     await runOnboardingMigration();
     const result = await pool.query(
@@ -113,9 +113,9 @@ router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('[onboarding-burnout]', err);
     res.status(500).json({
-      message: err.code === '42703' || /column/i.test(err.message)
-        ? 'База не обновлена. Перезапустите сервер приложения.'
-        : 'Ошибка сервера при сохранении',
+      message: err.code === '42703' || /column/i.test(err.message) ?
+      'База не обновлена. Перезапустите сервер приложения.' :
+      'Ошибка сервера при сохранении'
     });
   }
 });

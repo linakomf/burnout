@@ -20,7 +20,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (form.password.length < 6) { setError(t('auth.passShort')); return; }
+    if (form.password.length < 6) {setError(t('auth.passShort'));return;}
     setLoading(true);
     try {
       await register(form);
@@ -52,12 +52,12 @@ const Register = () => {
         <h1 className="auth-title">{t('auth.registerTitle')}</h1>
         <p className="auth-subtitle">{t('auth.registerSubtitle')}</p>
 
-        {error && (
-          <div className="auth-error">
+        {error &&
+        <div className="auth-error">
             <AlertCircle size={16} />
             <span>{error}</span>
           </div>
-        )}
+        }
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
@@ -81,15 +81,15 @@ const Register = () => {
               <button
                 type="button"
                 className={`role-btn ${form.role === 'student' ? 'active' : ''}`}
-                onClick={() => setForm({ ...form, role: 'student' })}
-              >
+                onClick={() => setForm({ ...form, role: 'student' })}>
+                
                 {t('auth.roleStudent')}
               </button>
               <button
                 type="button"
                 className={`role-btn ${form.role === 'teacher' ? 'active' : ''}`}
-                onClick={() => setForm({ ...form, role: 'teacher' })}
-              >
+                onClick={() => setForm({ ...form, role: 'teacher' })}>
+                
                 {t('auth.roleTeacher')}
               </button>
             </div>
@@ -105,8 +105,8 @@ const Register = () => {
                 placeholder={t('auth.phPasswordNew')}
                 value={form.password}
                 onChange={handleChange}
-                required
-              />
+                required />
+              
               <button type="button" className="eye-btn" onClick={() => setShowPass(!showPass)}>
                 {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -122,8 +122,8 @@ const Register = () => {
           {t('auth.hasAccount')} <Link to="/login">{t('auth.linkLogin')}</Link>
         </p>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Register;

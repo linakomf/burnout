@@ -9,13 +9,13 @@ export const AdminUsers = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/users/all').then(r => setUsers(r.data)).finally(() => setLoading(false));
+    api.get('/users/all').then((r) => setUsers(r.data)).finally(() => setLoading(false));
   }, []);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Удалить пользователя?')) return;
     await api.delete(`/users/${id}`);
-    setUsers(users.filter(u => u.user_id !== id));
+    setUsers(users.filter((u) => u.user_id !== id));
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: 40 }}>Загрузка...</div>;
@@ -33,8 +33,8 @@ export const AdminUsers = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map(u => (
-              <tr key={u.user_id}>
+            {users.map((u) =>
+            <tr key={u.user_id}>
                 <td>
                   <div className="table-user">
                     <div className="table-avatar">{u.name?.charAt(0)}</div>
@@ -51,20 +51,20 @@ export const AdminUsers = () => {
                 <td>{new Date(u.created_at).toLocaleDateString('ru')}</td>
                 <td>
                   <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleDelete(u.user_id)}
-                    disabled={u.role === 'admin'}
-                  >
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDelete(u.user_id)}
+                  disabled={u.role === 'admin'}>
+                  
                     <Trash2 size={14} />
                   </button>
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export const AdminCategories = () => {
@@ -74,13 +74,13 @@ export const AdminCategories = () => {
   const [form, setForm] = useState({ name: '', description: '', target_role: 'all' });
 
   useEffect(() => {
-    api.get('/categories').then(r => setCategories(r.data));
+    api.get('/categories').then((r) => setCategories(r.data));
   }, []);
 
   const handleSave = async () => {
     if (editing) {
       const res = await api.put(`/categories/${editing.category_id}`, form);
-      setCategories(categories.map(c => c.category_id === editing.category_id ? res.data : c));
+      setCategories(categories.map((c) => c.category_id === editing.category_id ? res.data : c));
     } else {
       const res = await api.post('/categories', form);
       setCategories([...categories, res.data]);
@@ -99,7 +99,7 @@ export const AdminCategories = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Удалить категорию?')) return;
     await api.delete(`/categories/${id}`);
-    setCategories(categories.filter(c => c.category_id !== id));
+    setCategories(categories.filter((c) => c.category_id !== id));
   };
 
   const TARGET_LABELS = { all: 'Для всех', student: 'Студенты', teacher: 'Преподаватели' };
@@ -111,14 +111,14 @@ export const AdminCategories = () => {
           <h1 className="page-title">Категории</h1>
           <p className="page-sub">Управление категориями тестов</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setEditing(null); setShowModal(true); }}>
+        <button className="btn btn-primary" onClick={() => {setEditing(null);setShowModal(true);}}>
           <Plus size={16} /> Добавить
         </button>
       </div>
 
       <div className="categories-grid">
-        {categories.map(cat => (
-          <div key={cat.category_id} className="card cat-card">
+        {categories.map((cat) =>
+        <div key={cat.category_id} className="card cat-card">
             <div className="cat-card-header">
               <Tag size={20} className="cat-icon" />
               <div className="cat-actions">
@@ -130,27 +130,27 @@ export const AdminCategories = () => {
             <p className="cat-desc">{cat.description}</p>
             <span className="cat-target">{TARGET_LABELS[cat.target_role]}</span>
           </div>
-        ))}
+        )}
       </div>
 
-      {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-card fade-in" onClick={e => e.stopPropagation()}>
+      {showModal &&
+      <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-card fade-in" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editing ? 'Редактировать' : 'Новая категория'}</h2>
               <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
             </div>
             <div className="form-group" style={{ marginTop: 16 }}>
               <label>Название</label>
-              <input className="input" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+              <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
             <div className="form-group" style={{ marginTop: 14 }}>
               <label>Описание</label>
-              <input className="input" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+              <input className="input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
             <div className="form-group" style={{ marginTop: 14 }}>
               <label>Для кого</label>
-              <select className="input" value={form.target_role} onChange={e => setForm({...form, target_role: e.target.value})}>
+              <select className="input" value={form.target_role} onChange={(e) => setForm({ ...form, target_role: e.target.value })}>
                 <option value="all">Для всех</option>
                 <option value="student">Студенты</option>
                 <option value="teacher">Преподаватели</option>
@@ -162,9 +162,9 @@ export const AdminCategories = () => {
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 };
 
 const DEFAULT_OPTIONS = ['', '', '', '', ''];
@@ -174,7 +174,7 @@ const emptyTestForm = () => ({
   description: '',
   category_id: '',
   scoring_type: 'likert_sum',
-  questions: [],
+  questions: []
 });
 
 export const AdminTests = () => {
@@ -188,15 +188,15 @@ export const AdminTests = () => {
   const [form, setForm] = useState(emptyTestForm);
 
   const refreshTests = () =>
-    api.get('/tests').then((r) => setTests(r.data)).catch(() => {});
+  api.get('/tests').then((r) => setTests(r.data)).catch(() => {});
 
   useEffect(() => {
-    Promise.all([api.get('/tests'), api.get('/categories')])
-      .then(([t, c]) => {
-        setTests(t.data);
-        setCategories(c.data);
-      })
-      .catch(() => {});
+    Promise.all([api.get('/tests'), api.get('/categories')]).
+    then(([t, c]) => {
+      setTests(t.data);
+      setCategories(c.data);
+    }).
+    catch(() => {});
   }, []);
 
   const openCreate = () => {
@@ -207,19 +207,19 @@ export const AdminTests = () => {
   };
 
   const mapQuestionsFromApi = (rows) =>
-    (rows || []).map((q) => {
-      let opts = q.options;
-      if (typeof opts === 'string') {
-        try {
-          opts = JSON.parse(opts);
-        } catch {
-          opts = [];
-        }
+  (rows || []).map((q) => {
+    let opts = q.options;
+    if (typeof opts === 'string') {
+      try {
+        opts = JSON.parse(opts);
+      } catch {
+        opts = [];
       }
-      const arr = Array.isArray(opts) ? opts.map(String) : [];
-      const padded = [...arr, ...DEFAULT_OPTIONS].slice(0, 5);
-      return { question_text: q.question_text || '', options: padded };
-    });
+    }
+    const arr = Array.isArray(opts) ? opts.map(String) : [];
+    const padded = [...arr, ...DEFAULT_OPTIONS].slice(0, 5);
+    return { question_text: q.question_text || '', options: padded };
+  });
 
   const openEdit = async (testRow) => {
     setLoadError('');
@@ -235,9 +235,9 @@ export const AdminTests = () => {
         category_id: data.category_id != null ? String(data.category_id) : '',
         scoring_type: data.scoring_type || 'likert_sum',
         questions:
-          data.questions && data.questions.length > 0
-            ? mapQuestionsFromApi(data.questions)
-            : [{ question_text: '', options: [...DEFAULT_OPTIONS] }],
+        data.questions && data.questions.length > 0 ?
+        mapQuestionsFromApi(data.questions) :
+        [{ question_text: '', options: [...DEFAULT_OPTIONS] }]
       });
     } catch {
       setLoadError('Не удалось загрузить тест');
@@ -258,14 +258,14 @@ export const AdminTests = () => {
   const addQuestion = () => {
     setForm((f) => ({
       ...f,
-      questions: [...f.questions, { question_text: '', options: [...DEFAULT_OPTIONS] }],
+      questions: [...f.questions, { question_text: '', options: [...DEFAULT_OPTIONS] }]
     }));
   };
 
   const removeQuestion = (qi) => {
     setForm((f) => ({
       ...f,
-      questions: f.questions.filter((_, i) => i !== qi),
+      questions: f.questions.filter((_, i) => i !== qi)
     }));
   };
 
@@ -305,8 +305,8 @@ export const AdminTests = () => {
       scoring_type: form.scoring_type || 'likert_sum',
       questions: form.questions.map((q) => ({
         question_text: q.question_text,
-        options: q.options,
-      })),
+        options: q.options
+      }))
     };
 
     setSaving(true);
@@ -336,7 +336,7 @@ export const AdminTests = () => {
     likert_sum: 'Общая шкала (сумма выбранных вариантов)',
     gad7: 'GAD-7 (4 варианта 0–3)',
     mbi_student: 'Выгорание MBI-студент (5 вариантов 0–4)',
-    daily5: 'Ежедневный чек-ин (5 вариантов 0–4)',
+    daily5: 'Ежедневный чек-ин (5 вариантов 0–4)'
   };
 
   return (
@@ -363,37 +363,37 @@ export const AdminTests = () => {
             </tr>
           </thead>
           <tbody>
-            {tests.map((t) => (
-              <tr key={t.test_id}>
+            {tests.map((t) =>
+            <tr key={t.test_id}>
                 <td style={{ fontWeight: 600 }}>{t.title}</td>
                 <td>{t.category_name}</td>
                 <td>{t.question_count != null ? t.question_count : '—'}</td>
                 <td>{new Date(t.created_at).toLocaleDateString('ru')}</td>
                 <td>
                   <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => openEdit(t)}
-                    title="Редактировать"
-                  >
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => openEdit(t)}
+                  title="Редактировать">
+                  
                     <Edit2 size={14} />
                   </button>
                   <button
-                    type="button"
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleDelete(t.test_id)}
-                  >
+                  type="button"
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDelete(t.test_id)}>
+                  
                     <Trash2 size={14} />
                   </button>
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
 
-      {showModal && (
-        <div className="modal-overlay" onClick={closeModal}>
+      {showModal &&
+      <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-card admin-test-modal fade-in" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editingId != null ? 'Редактировать тест' : 'Создать тест'}</h2>
@@ -402,129 +402,129 @@ export const AdminTests = () => {
               </button>
             </div>
 
-            {loadError && (
-              <p className="admin-form-error" style={{ marginTop: 12, color: 'var(--danger, #c44)' }}>
+            {loadError &&
+          <p className="admin-form-error" style={{ marginTop: 12, color: 'var(--danger, #c44)' }}>
                 {loadError}
               </p>
-            )}
+          }
 
-            {editLoading && (
-              <p style={{ marginTop: 12, opacity: 0.8 }}>Загрузка теста…</p>
-            )}
+            {editLoading &&
+          <p style={{ marginTop: 12, opacity: 0.8 }}>Загрузка теста…</p>
+          }
 
             <div className="form-group" style={{ marginTop: 16 }}>
               <label>Название теста</label>
               <input
-                className="input"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                disabled={editLoading}
-              />
+              className="input"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              disabled={editLoading} />
+            
             </div>
             <div className="form-group" style={{ marginTop: 14 }}>
               <label>Описание</label>
               <input
-                className="input"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                disabled={editLoading}
-              />
+              className="input"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              disabled={editLoading} />
+            
             </div>
             <div className="form-group" style={{ marginTop: 14 }}>
               <label>Категория</label>
               <select
-                className="input"
-                value={form.category_id}
-                onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-                disabled={editLoading}
-              >
+              className="input"
+              value={form.category_id}
+              onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+              disabled={editLoading}>
+              
                 <option value="">Выберите категорию</option>
-                {categories.map((c) => (
-                  <option key={c.category_id} value={c.category_id}>
+                {categories.map((c) =>
+              <option key={c.category_id} value={c.category_id}>
                     {c.name}
                   </option>
-                ))}
+              )}
               </select>
             </div>
             <div className="form-group" style={{ marginTop: 14 }}>
               <label>Тип подсчёта результата</label>
               <select
-                className="input"
-                value={form.scoring_type}
-                onChange={(e) => setForm({ ...form, scoring_type: e.target.value })}
-                disabled={editLoading}
-              >
-                {Object.entries(SCORING_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
+              className="input"
+              value={form.scoring_type}
+              onChange={(e) => setForm({ ...form, scoring_type: e.target.value })}
+              disabled={editLoading}>
+              
+                {Object.entries(SCORING_LABELS).map(([value, label]) =>
+              <option key={value} value={value}>
                     {label}
                   </option>
-                ))}
+              )}
               </select>
             </div>
 
             <div className="questions-section">
               <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 12,
-                }}
-              >
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 12
+              }}>
+              
                 <h3 style={{ fontSize: 15, fontWeight: 700 }}>Вопросы ({form.questions.length})</h3>
                 <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={addQuestion}
-                  disabled={editLoading}
-                >
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={addQuestion}
+                disabled={editLoading}>
+                
                   <Plus size={14} /> Добавить вопрос
                 </button>
               </div>
 
-              {form.questions.map((q, qi) => (
-                <div key={qi} className="question-builder">
+              {form.questions.map((q, qi) =>
+            <div key={qi} className="question-builder">
                   <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: 6,
-                    }}
-                  >
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 6
+                }}>
+                
                     <label style={{ margin: 0 }}>Вопрос {qi + 1}</label>
                     <button
-                      type="button"
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => removeQuestion(qi)}
-                      title="Удалить вопрос"
-                      disabled={editLoading}
-                    >
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => removeQuestion(qi)}
+                  title="Удалить вопрос"
+                  disabled={editLoading}>
+                  
                       <Trash2 size={14} />
                     </button>
                   </div>
                   <input
-                    className="input"
-                    placeholder="Текст вопроса"
-                    value={q.question_text}
-                    onChange={(e) => updateQuestion(qi, 'question_text', e.target.value)}
-                    style={{ marginBottom: 10 }}
-                    disabled={editLoading}
-                  />
+                className="input"
+                placeholder="Текст вопроса"
+                value={q.question_text}
+                onChange={(e) => updateQuestion(qi, 'question_text', e.target.value)}
+                style={{ marginBottom: 10 }}
+                disabled={editLoading} />
+              
                   <div className="options-builder">
-                    {q.options.map((opt, oi) => (
-                      <input
-                        key={oi}
-                        className="input"
-                        placeholder={`Вариант ${oi + 1}`}
-                        value={opt}
-                        onChange={(e) => updateOption(qi, oi, e.target.value)}
-                        disabled={editLoading}
-                      />
-                    ))}
+                    {q.options.map((opt, oi) =>
+                <input
+                  key={oi}
+                  className="input"
+                  placeholder={`Вариант ${oi + 1}`}
+                  value={opt}
+                  onChange={(e) => updateOption(qi, oi, e.target.value)}
+                  disabled={editLoading} />
+
+                )}
                   </div>
                 </div>
-              ))}
+            )}
             </div>
 
             <div className="modal-actions" style={{ marginTop: 24 }}>
@@ -532,19 +532,19 @@ export const AdminTests = () => {
                 Отмена
               </button>
               <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleSave}
-                disabled={saving || editLoading}
-              >
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSave}
+              disabled={saving || editLoading}>
+              
                 <Save size={14} /> {saving ? 'Сохранение…' : editingId != null ? 'Сохранить' : 'Создать'}
               </button>
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 };
 
 export const AdminOverview = () => {
@@ -552,9 +552,9 @@ export const AdminOverview = () => {
   const [stats, setStats] = useState({ users: 0, tests: 0, categories: 0 });
 
   useEffect(() => {
-    Promise.all([api.get('/users/all'), api.get('/tests'), api.get('/categories')])
-      .then(([u, t, c]) => setStats({ users: u.data.length, tests: t.data.length, categories: c.data.length }))
-      .catch(() => {});
+    Promise.all([api.get('/users/all'), api.get('/tests'), api.get('/categories')]).
+    then(([u, t, c]) => setStats({ users: u.data.length, tests: t.data.length, categories: c.data.length })).
+    catch(() => {});
   }, []);
 
   return (
@@ -579,6 +579,6 @@ export const AdminOverview = () => {
           <div className="admin-stat-label">Категорий</div>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 };

@@ -18,27 +18,27 @@ const ChatPanel = ({ user, messages, input, setInput, sendMessage, loading, mess
       </div>
 
       <div className="diary-chat-mock__messages" role="log" aria-live="polite">
-        {messages.map((msg, i) => (
-          <div key={i} className={`chat-row ${msg.role}`}>
+        {messages.map((msg, i) =>
+        <div key={i} className={`chat-row ${msg.role}`}>
             {msg.role === 'assistant' && <div className="chat-avatar-ai">🤖</div>}
             <div className="chat-bubble-wrap">
               <div className={`chat-bubble-msg ${msg.role}`}>{msg.content}</div>
               {msg.time && <span className="chat-time">{msg.time}</span>}
             </div>
-            {msg.role === 'user' && (
-              <div className="chat-avatar-user">{user?.name?.charAt(0) || t('pages.chatUserFallback')}</div>
-            )}
+            {msg.role === 'user' &&
+          <div className="chat-avatar-user">{user?.name?.charAt(0) || t('pages.chatUserFallback')}</div>
+          }
           </div>
-        ))}
+        )}
 
-        {loading && (
-          <div className="chat-row assistant">
+        {loading &&
+        <div className="chat-row assistant">
             <div className="chat-avatar-ai">🤖</div>
             <div className="chat-bubble-msg assistant typing" aria-live="polite">
               <span /><span /><span />
             </div>
           </div>
-        )}
+        }
         <div ref={messagesEndRef} />
       </div>
 
@@ -56,22 +56,22 @@ const ChatPanel = ({ user, messages, input, setInput, sendMessage, loading, mess
           }}
           disabled={loading}
           rows={4}
-          aria-label={t('pages.chatInputAria')}
-        />
+          aria-label={t('pages.chatInputAria')} />
+        
         <div className="diary-chat-mock__send-wrap">
           <button
             type="button"
             className="diary-chat-mock__send"
             onClick={sendMessage}
-            disabled={!input.trim() || loading}
-          >
+            disabled={!input.trim() || loading}>
+            
             <Send size={18} strokeWidth={2.2} />
             {t('pages.chatSend')}
           </button>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default ChatPanel;

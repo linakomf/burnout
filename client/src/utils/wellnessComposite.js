@@ -17,9 +17,9 @@ export function compositeStressPct({ onboardingPercent, lastTestStress, periodTe
 
 export function compositeMoodPct({ diaryAvgMoodPct, stressPct, fallbackWhenNoDiary }) {
   const fromStress =
-    stressPct != null
-      ? Math.max(6, Math.min(100, 100 - Math.round(stressPct * 0.9)))
-      : null;
+  stressPct != null ?
+  Math.max(6, Math.min(100, 100 - Math.round(stressPct * 0.9))) :
+  null;
   if (diaryAvgMoodPct > 0 && fromStress != null) {
     return Math.min(100, Math.max(0, Math.round(diaryAvgMoodPct * 0.55 + fromStress * 0.45)));
   }

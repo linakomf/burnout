@@ -10,7 +10,7 @@ function staticPracticesPayload() {
     practices: PRACTICES.map((p) => ({ ...p, isFavorite: false })),
     categories: CATEGORY_LABELS,
     stats: { available: PRACTICES.length, favorites: 0, minutesTotal: 0 },
-    personalizedHint: null,
+    personalizedHint: null
   };
 }
 
@@ -28,7 +28,7 @@ router.get('/', authMiddleware, async (req, res) => {
     );
     recent.rows = recent.rows.map((r) => ({
       ...r,
-      title: titleForTestId(r.test_id) || r.title,
+      title: titleForTestId(r.test_id) || r.title
     }));
     const levels = recent.rows.map((r) => r.level);
     const ordered = rankPracticesForUser(levels);
@@ -64,15 +64,15 @@ router.get('/', authMiddleware, async (req, res) => {
       categories: CATEGORY_LABELS,
       stats,
       personalizedHint:
-        levels.length === 0
-          ? 'Пройдите тест тревожности или выгорания — мы подсветим практики под ваше состояние.'
-          : null,
+      levels.length === 0 ?
+      'Пройдите тест тревожности или выгорания — мы подсветим практики под ваше состояние.' :
+      null
     });
   } catch (err) {
     console.error('[practices GET]', err);
     const payload = staticPracticesPayload();
     payload.personalizedHint =
-      'Не удалось загрузить персонализацию. Практики доступны; при следующем входе статистика обновится.';
+    'Не удалось загрузить персонализацию. Практики доступны; при следующем входе статистика обновится.';
     res.json(payload);
   }
 });

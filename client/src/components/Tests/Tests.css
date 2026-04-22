@@ -1,5 +1,5 @@
-/* Раздел «Тесты»: каталог, прохождение, анимации */
-/* Анимации и декор психодиагностики */
+
+
 @keyframes tests-float {
   0%,
   100% {
@@ -112,7 +112,7 @@
   animation: tests-float-slow 9s ease-in-out infinite;
 }
 
-/* Акцент: лаванда/индиго (как главная), без зелёного */
+
 .tests-catalog-page,
 .tests-paths-page,
 .tests-loading,
@@ -310,7 +310,7 @@
   margin-right: auto;
 }
 
-/* Фильтры — в одном стиле с практиками (pill + active) */
+
 .tests-filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -565,7 +565,7 @@
 .page-sub { font-size: 14px; color: var(--text-light); margin-bottom: 24px; }
 .tests-empty { text-align: center; padding: 60px; color: var(--text-light); }
 
-/* Take Test */
+
 .take-test { width: 100%; max-width: none; margin: 0; box-sizing: border-box; }
 .back-btn { margin-bottom: 20px; }
 
@@ -815,7 +815,7 @@
 .test-q-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
 .test-q-actions .btn { padding: 14px 28px; font-size: 15px; }
 
-/* Result */
+
 .test-result {
   display: flex; flex-direction: column; align-items: center;
   text-align: center; gap: 20px; padding: 48px;
@@ -878,7 +878,7 @@
   background: linear-gradient(135deg, var(--primary-light) 0%, var(--bg-card) 100%);
 }
 
-/* ——— Страница списка тестов: фон задаёт main-content, здесь без отдельного блока ——— */
+
 .tests-catalog-page.tests-mock {
   max-width: 1160px;
   margin: 0 auto;
@@ -1186,7 +1186,7 @@
   }
 }
 
-/* Тёмная тема: фон страницы — у .layout; здесь без отдельной подложки */
+
 [data-theme='dark'] .tests-catalog-page.tests-mock {
   background: transparent;
   border: none;

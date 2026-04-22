@@ -6,8 +6,8 @@ function PracticeCard({ practice, isFavorite, onToggleFavorite, onPlay, index })
   return (
     <article
       className="practice-card"
-      style={{ animationDelay: `${0.04 + (index % 12) * 0.03}s` }}
-    >
+      style={{ animationDelay: `${0.04 + index % 12 * 0.03}s` }}>
+      
       <motion.div
         className="practice-card-inner"
         onClick={() => onPlay(practice)}
@@ -20,8 +20,8 @@ function PracticeCard({ practice, isFavorite, onToggleFavorite, onPlay, index })
         role="button"
         tabIndex={0}
         whileHover={{ y: -2 }}
-        transition={{ duration: 0.2 }}
-      >
+        transition={{ duration: 0.2 }}>
+        
         <div className="practice-card-top">
           <span className="practice-card-emoji" aria-hidden>
             {practice.emoji || '🌿'}
@@ -33,8 +33,8 @@ function PracticeCard({ practice, isFavorite, onToggleFavorite, onPlay, index })
             onClick={(event) => {
               event.stopPropagation();
               onToggleFavorite(practice.id);
-            }}
-          >
+            }}>
+            
             <Heart size={18} strokeWidth={2} fill={isFavorite ? 'currentColor' : 'none'} />
           </button>
         </div>
@@ -51,8 +51,8 @@ function PracticeCard({ practice, isFavorite, onToggleFavorite, onPlay, index })
 
         <span className="practice-card-cta">{practice.playLabel}</span>
       </motion.div>
-    </article>
-  );
+    </article>);
+
 }
 
 export default PracticeCard;

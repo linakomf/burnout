@@ -8,8 +8,8 @@ import {
   ONBOARDING_OPTIONS,
   STUDENT_BURNOUT_QUESTIONS,
   TEACHER_BURNOUT_QUESTIONS,
-  burnoutLevelLabel,
-} from '../../data/onboardingBurnoutQuestions';
+  burnoutLevelLabel } from
+'../../data/onboardingBurnoutQuestions';
 import './OnboardingBurnout.css';
 
 const OnboardingBurnout = () => {
@@ -25,7 +25,7 @@ const OnboardingBurnout = () => {
   const [savedOffline, setSavedOffline] = useState(false);
 
   const questions = useMemo(
-    () => (user?.role === 'teacher' ? TEACHER_BURNOUT_QUESTIONS : STUDENT_BURNOUT_QUESTIONS),
+    () => user?.role === 'teacher' ? TEACHER_BURNOUT_QUESTIONS : STUDENT_BURNOUT_QUESTIONS,
     [user?.role]
   );
 
@@ -44,7 +44,7 @@ const OnboardingBurnout = () => {
   }
 
   const totalSteps = questions.length;
-  const progress = ((step + 1) / totalSteps) * 100;
+  const progress = (step + 1) / totalSteps * 100;
   const currentAnswer = answers[step];
 
   const pickOption = (value) => {
@@ -57,8 +57,8 @@ const OnboardingBurnout = () => {
 
   const goNext = () => {
     if (currentAnswer === null) return;
-    if (step < totalSteps - 1) setStep((s) => s + 1);
-    else finishTest();
+    if (step < totalSteps - 1) setStep((s) => s + 1);else
+    finishTest();
   };
 
   const goBack = () => {
@@ -80,7 +80,7 @@ const OnboardingBurnout = () => {
     } catch (e) {
       console.error(e);
       const sum = answers.reduce((s, v) => s + v, 0);
-      const percent = Math.min(100, Math.max(0, Math.round((sum / 30) * 100)));
+      const percent = Math.min(100, Math.max(0, Math.round(sum / 30 * 100)));
       savePendingOnboarding(user.user_id, { percent, rawScore: sum, answers });
       setResultPercent(percent);
       setRawScore(sum);
@@ -88,7 +88,7 @@ const OnboardingBurnout = () => {
       updateUser({
         ...user,
         onboarding_burnout_completed: true,
-        onboarding_burnout_percent: percent,
+        onboarding_burnout_percent: percent
       });
       setPhase('result');
       setError('');
@@ -130,19 +130,19 @@ const OnboardingBurnout = () => {
 
             <h2 className={`onb-level-title onb-level-title--${level.key}`}>{level.title}</h2>
             <p className="onb-level-desc">{level.hint}</p>
-            {savedOffline && (
-              <p className="onb-offline-note">
+            {savedOffline &&
+            <p className="onb-offline-note">
                 Нет связи с сервером: результат сохранён на устройстве. При появлении сети он отправится
                 автоматически при следующем входе.
               </p>
-            )}
+            }
           </div>
 
           <button
             type="button"
             className="onb-continue-btn"
-            onClick={() => navigate('/dashboard', { replace: true })}
-          >
+            onClick={() => navigate('/dashboard', { replace: true })}>
+            
             Продолжить
             <ArrowRight size={20} />
           </button>
@@ -150,8 +150,8 @@ const OnboardingBurnout = () => {
             Далее вы попадёте на главный экран: практики, дневник и аналитика помогут отслеживать динамику.
           </p>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -188,49 +188,49 @@ const OnboardingBurnout = () => {
           </div>
           <p className="onb-q-text">{questions[step]}</p>
           <div className="onb-options">
-            {ONBOARDING_OPTIONS.map((label, idx) => (
-              <button
-                key={label}
-                type="button"
-                className={`onb-option ${currentAnswer === idx ? 'selected' : ''}`}
-                onClick={() => pickOption(idx)}
-              >
+            {ONBOARDING_OPTIONS.map((label, idx) =>
+            <button
+              key={label}
+              type="button"
+              className={`onb-option ${currentAnswer === idx ? 'selected' : ''}`}
+              onClick={() => pickOption(idx)}>
+              
                 <span className="onb-option-dot" />
                 {label}
               </button>
-            ))}
+            )}
           </div>
         </div>
 
-        {error && step === totalSteps - 1 && (
-          <div className="onb-error-banner" role="alert">
+        {error && step === totalSteps - 1 &&
+        <div className="onb-error-banner" role="alert">
             {error}
           </div>
-        )}
+        }
 
         <div className="onb-actions">
-          {step > 0 ? (
-            <button type="button" className="onb-back-btn" onClick={goBack}>
+          {step > 0 ?
+          <button type="button" className="onb-back-btn" onClick={goBack}>
               <ChevronLeft size={18} />
               Назад
-            </button>
-          ) : (
-            <span />
-          )}
+            </button> :
+
+          <span />
+          }
           <button
             type="button"
             className="btn btn-primary onb-next-btn"
             onClick={goNext}
-            disabled={currentAnswer === null || submitting}
-          >
-            {step === totalSteps - 1 ? (submitting ? 'Сохранение…' : 'Завершить') : 'Далее'}
+            disabled={currentAnswer === null || submitting}>
+            
+            {step === totalSteps - 1 ? submitting ? 'Сохранение…' : 'Завершить' : 'Далее'}
           </button>
         </div>
 
         <p className="onb-foot-hint">Отвечайте честно — так рекомендации будут полезнее.</p>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default OnboardingBurnout;

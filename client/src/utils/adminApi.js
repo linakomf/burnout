@@ -10,7 +10,7 @@ function adminPortalBaseURL() {
 
 const adminApi = axios.create({
   baseURL: adminPortalBaseURL(),
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 'Content-Type': 'application/json' }
 });
 
 adminApi.interceptors.request.use((config) => {

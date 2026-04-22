@@ -87,9 +87,9 @@ const UserDashboard = () => {
             <Sparkles size={18} />
             <span>
               <strong>Текущий статус:</strong> {status.short}
-              {user?.onboarding_burnout_percent != null && status.key !== 'unknown'
-                ? ` (${user.onboarding_burnout_percent}%)`
-                : null}
+              {user?.onboarding_burnout_percent != null && status.key !== 'unknown' ?
+              ` (${user.onboarding_burnout_percent}%)` :
+              null}
             </span>
           </div>
 
@@ -110,12 +110,12 @@ const UserDashboard = () => {
             <Activity size={18} color="#7a9014" />
             История результатов
           </h2>
-          {loading ? (
-            <div className="ud-empty">Загрузка…</div>
-          ) : results.length === 0 ? (
-            <div className="ud-empty">Пока нет сохранённых результатов тестов. Пройдите опросник выше.</div>
-          ) : (
-            <div className="ud-table-wrap">
+          {loading ?
+          <div className="ud-empty">Загрузка…</div> :
+          results.length === 0 ?
+          <div className="ud-empty">Пока нет сохранённых результатов тестов. Пройдите опросник выше.</div> :
+
+          <div className="ud-table-wrap">
               <table className="ud-table">
                 <thead>
                   <tr>
@@ -126,22 +126,22 @@ const UserDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((r) => (
-                    <tr key={r.result_id}>
+                  {results.map((r) =>
+                <tr key={r.result_id}>
                       <td style={{ fontWeight: 700 }}>{r.title || '—'}</td>
                       <td>{r.created_at ? new Date(r.created_at).toLocaleString('ru') : '—'}</td>
                       <td>{r.score ?? '—'}</td>
                       <td>{r.level || '—'}</td>
                     </tr>
-                  ))}
+                )}
                 </tbody>
               </table>
             </div>
-          )}
+          }
         </section>
       </main>
-    </div>
-  );
+    </div>);
+
 };
 
 export default UserDashboard;

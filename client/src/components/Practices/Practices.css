@@ -1,4 +1,4 @@
-/* —— Страница «Практики»: лавандовый акцент (как главная/тесты), без зелёного —— */
+
 .practices-page,
 .practices-theme {
   --primary: #6a5fc9;
@@ -147,7 +147,7 @@
   }
 }
 
-/* Карточка практики */
+
 .practice-card {
   border: 1px solid #e0e0e0;
   border-radius: 14px;

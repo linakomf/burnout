@@ -1,4 +1,4 @@
-/* Shared with app shell — same look as дашборд */
+
 .lang-switch {
   display: flex;
   gap: 2px;
@@ -34,7 +34,7 @@
   color: #ffffff;
 }
 
-/* Лендинг: светлая кнопка на тёмном/цветном фоне */
+
 .lang-switch--on-light-bg {
   background: rgba(255, 255, 255, 0.95);
   border-color: #e0e0e0;

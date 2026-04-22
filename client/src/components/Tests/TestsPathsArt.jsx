@@ -29,13 +29,13 @@ export function IlluHealing({ className }) {
       <path
         d="M100 72c-12 0-22 10-22 22 0 18 22 38 22 38s22-20 22-38c0-12-10-22-22-22z"
         fill={`url(#h-heart-${uid})`}
-        opacity="0.88"
-      />
+        opacity="0.88" />
+      
       <circle cx="52" cy="56" r="4" fill="#fda4af" opacity="0.5" />
       <circle cx="152" cy="64" r="3" fill="#8b7ec8" opacity="0.45" />
       <circle cx="44" cy="140" r="3.5" fill="#93c5fd" opacity="0.45" />
-    </svg>
-  );
+    </svg>);
+
 }
 
 export function IlluDiscovery({ className }) {
@@ -63,15 +63,15 @@ export function IlluDiscovery({ className }) {
       <circle cx="100" cy="72" r="44" fill="#fef08a" opacity="0.2" />
       {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => {
         const r = 52;
-        const x = 100 + r * Math.cos((deg * Math.PI) / 180);
-        const y = 72 + r * Math.sin((deg * Math.PI) / 180);
+        const x = 100 + r * Math.cos(deg * Math.PI / 180);
+        const y = 72 + r * Math.sin(deg * Math.PI / 180);
         return <circle key={i} cx={x} cy={y} r="5" fill="#fde68a" opacity="0.55" />;
       })}
       <circle cx="48" cy="118" r="6" fill="#a5f3fc" opacity="0.6" />
       <circle cx="152" cy="124" r="5" fill="#c4b5fd" opacity="0.45" />
       <circle cx="100" cy="148" r="4" fill="#8b7ec8" opacity="0.4" />
-    </svg>
-  );
+    </svg>);
+
 }
 
 export function IlluInsight({ className }) {
@@ -98,13 +98,13 @@ export function IlluInsight({ className }) {
       <path
         d="M100 52l8 18 20 2-14 14 4 20-18-10-18 10 4-20-14-14 20-2z"
         fill={`url(#i-star-${uid})`}
-        opacity="0.9"
-      />
+        opacity="0.9" />
+      
       <circle cx="52" cy="64" r="3" fill="#7dd3fc" opacity="0.55" />
       <circle cx="156" cy="72" r="2.5" fill="#fda4af" opacity="0.5" />
       <circle cx="44" cy="120" r="2.5" fill="#c4b5fd" opacity="0.45" />
       <circle cx="160" cy="132" r="3" fill="#8b7ec8" opacity="0.4" />
       <ellipse cx="100" cy="168" rx="40" ry="8" fill="rgba(106, 95, 201, 0.14)" />
-    </svg>
-  );
+    </svg>);
+
 }

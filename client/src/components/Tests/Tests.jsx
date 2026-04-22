@@ -7,8 +7,8 @@ import {
   BookOpen,
   Zap,
   Lightbulb,
-  Star,
-} from 'lucide-react';
+  Star } from
+'lucide-react';
 import api from '../../utils/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { IntroSplashArt, QuestionSideArt } from './TestsDecor';
@@ -25,34 +25,34 @@ function pickTest(tests, preferIds) {
 }
 
 const TEST_PATHS = [
-  {
-    key: 'heal',
-    preferIds: [5, 2, 4],
-    title: 'Вдохновение',
-    lead: 'Короткий опрос о перегрузке и восстановлении — с прогрессом по шагам.',
-    Icon: Lightbulb,
-    panelBg: '#FEEBC8',
-    accent: 'heal',
-  },
-  {
-    key: 'discover',
-    preferIds: [6, 3],
-    title: 'Импульс',
-    lead: 'Тревога и внутреннее напряжение — взглянуть на то, что происходит сейчас.',
-    Icon: Zap,
-    panelBg: '#FEF3C7',
-    accent: 'discover',
-  },
-  {
-    key: 'insight',
-    preferIds: [7, 5],
-    title: 'Баланс дня',
-    lead: 'Короткий чек-ин: настроение и ресурс — для регулярной динамики.',
-    Icon: Star,
-    panelBg: '#FEE2E2',
-    accent: 'insight',
-  },
-];
+{
+  key: 'heal',
+  preferIds: [5, 2, 4],
+  title: 'Вдохновение',
+  lead: 'Короткий опрос о перегрузке и восстановлении — с прогрессом по шагам.',
+  Icon: Lightbulb,
+  panelBg: '#FEEBC8',
+  accent: 'heal'
+},
+{
+  key: 'discover',
+  preferIds: [6, 3],
+  title: 'Импульс',
+  lead: 'Тревога и внутреннее напряжение — взглянуть на то, что происходит сейчас.',
+  Icon: Zap,
+  panelBg: '#FEF3C7',
+  accent: 'discover'
+},
+{
+  key: 'insight',
+  preferIds: [7, 5],
+  title: 'Баланс дня',
+  lead: 'Короткий чек-ин: настроение и ресурс — для регулярной динамики.',
+  Icon: Star,
+  panelBg: '#FEE2E2',
+  accent: 'insight'
+}];
+
 
 export function bucketToAccent(bucket) {
   if (bucket === 'stress') return 'heal';
@@ -63,13 +63,13 @@ export function bucketToAccent(bucket) {
 }
 
 const CATALOG_FILTER_CHIPS = [
-  { id: 'all', label: 'Все' },
-  { id: 'quick', label: 'Быстрые опросники' },
-  { id: 'basic', label: 'Базовые' },
-  { id: 'clinical', label: 'Клинические тесты' },
-  { id: 'practices', label: 'Практики' },
-  { id: 'other', label: 'Другие' },
-];
+{ id: 'all', label: 'Все' },
+{ id: 'quick', label: 'Быстрые опросники' },
+{ id: 'basic', label: 'Базовые' },
+{ id: 'clinical', label: 'Клинические тесты' },
+{ id: 'practices', label: 'Практики' },
+{ id: 'other', label: 'Другие' }];
+
 
 export function getTestBucket(test) {
   const s = `${test.title || ''} ${test.category_name || ''} ${test.description || ''}`.toLowerCase();
@@ -81,7 +81,7 @@ export function getTestBucket(test) {
   return 'other';
 }
 
-/** Группа для фильтров каталога (макет: быстрые / базовые / клинические / …) */
+
 export function getCatalogFilter(test) {
   const qc = Number(test.question_count) || 0;
   const blob = `${test.title || ''} ${test.description || ''} ${test.category_name || ''}`.toLowerCase();
@@ -89,8 +89,8 @@ export function getCatalogFilter(test) {
   if (/практик|медитац|дыхани|релакс|mindful/i.test(blob)) return 'practices';
 
   if (
-    /gad-7|\bgad\b|mbi|phq|pss|клиническ|диагностическ|шкал|выгоран|синдром|тревожн.*расстрой/i.test(blob)
-  ) {
+  /gad-7|\bgad\b|mbi|phq|pss|клиническ|диагностическ|шкал|выгоран|синдром|тревожн.*расстрой/i.test(blob))
+  {
     return 'clinical';
   }
 
@@ -115,8 +115,8 @@ function questionCountLabel(qc) {
   const m = n % 10;
   const f = n % 100;
   let word = 'вопросов';
-  if (m === 1 && f !== 11) word = 'вопрос';
-  else if (m >= 2 && m <= 4 && (f < 12 || f > 14)) word = 'вопроса';
+  if (m === 1 && f !== 11) word = 'вопрос';else
+  if (m >= 2 && m <= 4 && (f < 12 || f > 14)) word = 'вопроса';
   return `${n} ${word}`;
 }
 
@@ -151,17 +151,17 @@ export const TestsList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api
-      .get('/tests')
-      .then((res) => setTests(res.data || []))
-      .catch(() => setTests([]))
-      .finally(() => setLoading(false));
+    api.
+    get('/tests').
+    then((res) => setTests(res.data || [])).
+    catch(() => setTests([])).
+    finally(() => setLoading(false));
   }, []);
 
   const enriched = tests.map((t) => ({
     ...t,
     bucket: getTestBucket(t),
-    catalogFilter: getCatalogFilter(t),
+    catalogFilter: getCatalogFilter(t)
   }));
 
   const filterCounts = enriched.reduce(
@@ -175,9 +175,9 @@ export const TestsList = () => {
   );
 
   const filtered =
-    filter === 'all'
-      ? enriched
-      : enriched.filter((t) => t.catalogFilter === filter);
+  filter === 'all' ?
+  enriched :
+  enriched.filter((t) => t.catalogFilter === filter);
 
   const sortedFiltered = [...filtered].sort((a, b) => Number(a.test_id) - Number(b.test_id));
 
@@ -187,8 +187,8 @@ export const TestsList = () => {
         <div className="tests-loading">
           <div className="loading-spinner" />
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -212,12 +212,12 @@ export const TestsList = () => {
               role="tab"
               aria-selected={active}
               className={`tests-mock-chip ${active ? 'tests-mock-chip--active' : ''}`}
-              onClick={() => setFilter(id)}
-            >
+              onClick={() => setFilter(id)}>
+              
               {t(`testsFilter.${id}`)}
               {showCount ? ` (${count})` : ''}
-            </button>
-          );
+            </button>);
+
         })}
       </div>
 
@@ -232,8 +232,8 @@ export const TestsList = () => {
               <article
                 key={path.key}
                 className="tests-mock-path-card"
-                style={{ animationDelay: `${0.06 + i * 0.07}s` }}
-              >
+                style={{ animationDelay: `${0.06 + i * 0.07}s` }}>
+                
                 <div className="tests-mock-path-panel" style={{ background: path.panelBg }} aria-hidden>
                   <Icon className="tests-mock-path-icon" size={40} strokeWidth={2} />
                 </div>
@@ -243,49 +243,49 @@ export const TestsList = () => {
                   type="button"
                   className="tests-mock-path-btn"
                   disabled={!chosen}
-                  onClick={() => chosen && navigate(`/tests/${chosen.test_id}`)}
-                >
+                  onClick={() => chosen && navigate(`/tests/${chosen.test_id}`)}>
+                  
                   {t('testsUi.goTest')}
                   <ChevronRight size={18} strokeWidth={2.2} />
                 </button>
-              </article>
-            );
+              </article>);
+
           })}
         </div>
       </section>
 
-      {!tests.length && (
-        <p className="tests-mock-fallback">
+      {!tests.length &&
+      <p className="tests-mock-fallback">
           {t('testsUi.noTests')}
         </p>
-      )}
+      }
 
-      {tests.length > 0 && (
-        <section className="tests-mock-catalog-wrap" aria-label={t('pages.testsCatalog')}>
+      {tests.length > 0 &&
+      <section className="tests-mock-catalog-wrap" aria-label={t('pages.testsCatalog')}>
           <h2 className="tests-mock-section-title">{t('pages.testsCatalog')}</h2>
           <p className="tests-mock-section-lead">
             {t('pages.testsCatalogHint')}
           </p>
 
-          {sortedFiltered.length === 0 ? (
-            <p className="tests-mock-empty">{t('testsUi.emptyFilter')}</p>
-          ) : (
-            <div className="tests-mock-catalog-grid">
+          {sortedFiltered.length === 0 ?
+        <p className="tests-mock-empty">{t('testsUi.emptyFilter')}</p> :
+
+        <div className="tests-mock-catalog-grid">
               {sortedFiltered.map((row, i) => {
-                const qc = row.question_count != null ? Number(row.question_count) : 0;
-                const disabled = qc === 0;
-                return (
-                  <article
-                    key={row.test_id}
-                    className="tests-mock-catalog-card"
-                    style={{ animationDelay: `${0.04 + (i % 12) * 0.035}s` }}
-                  >
+            const qc = row.question_count != null ? Number(row.question_count) : 0;
+            const disabled = qc === 0;
+            return (
+              <article
+                key={row.test_id}
+                className="tests-mock-catalog-card"
+                style={{ animationDelay: `${0.04 + i % 12 * 0.035}s` }}>
+                
                     <button
-                      type="button"
-                      className="tests-mock-catalog-inner"
-                      disabled={disabled}
-                      onClick={() => !disabled && navigate(`/tests/${row.test_id}`)}
-                    >
+                  type="button"
+                  className="tests-mock-catalog-inner"
+                  disabled={disabled}
+                  onClick={() => !disabled && navigate(`/tests/${row.test_id}`)}>
+                  
                       <h3 className="tests-mock-catalog-title">{row.title}</h3>
                       <p className="tests-mock-catalog-meta">
                         {disabled ? 'Вопросы не загружены' : questionCountLabel(qc)}
@@ -298,15 +298,15 @@ export const TestsList = () => {
                         {!disabled && <ChevronRight size={16} strokeWidth={2.2} />}
                       </span>
                     </button>
-                  </article>
-                );
-              })}
+                  </article>);
+
+          })}
             </div>
-          )}
+        }
         </section>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 };
 
 export const TakeTest = () => {
@@ -320,14 +320,14 @@ export const TakeTest = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    api
-      .get(`/tests/${id}`)
-      .then((res) => setTest(mergeTestRu(res.data)))
-      .finally(() => setLoading(false));
+    api.
+    get(`/tests/${id}`).
+    then((res) => setTest(mergeTestRu(res.data))).
+    finally(() => setLoading(false));
   }, [id]);
 
   const handleAnswer = (questionId, answerIndex) => {
-    setAnswers(prev => ({ ...prev, [questionId]: answerIndex }));
+    setAnswers((prev) => ({ ...prev, [questionId]: answerIndex }));
   };
 
   const handleSubmit = async () => {
@@ -359,16 +359,16 @@ export const TakeTest = () => {
             Для этого теста в базе нет вопросов. Перезапустите сервер (подтянется каталог) или обратитесь к администратору.
           </p>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   const bucket = getTestBucket(test);
   const currentQ = questions[step - 1];
   const nQ = questions.length;
   const progress =
-    step > 0 && step <= nQ ? (step / nQ) * 100 : 0;
-  const allAnswered = questions.every(q => answers[q.question_id] !== undefined);
+  step > 0 && step <= nQ ? step / nQ * 100 : 0;
+  const allAnswered = questions.every((q) => answers[q.question_id] !== undefined);
 
   if (step === 0) {
     return (
@@ -382,8 +382,8 @@ export const TakeTest = () => {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={0}
-          aria-label="Прогресс опроса"
-        >
+          aria-label="Прогресс опроса">
+          
           <div className="test-progress-fill" style={{ width: '0%' }} />
         </div>
         <p className="test-progress-hint">После «Начать тест» полоса покажет ход опроса по вопросам.</p>
@@ -404,13 +404,13 @@ export const TakeTest = () => {
             type="button"
             className="btn btn-primary test-intro-start"
             disabled={questions.length === 0}
-            onClick={() => setStep(1)}
-          >
+            onClick={() => setStep(1)}>
+            
             Начать тест
           </button>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   if (step === questions.length + 1 && result) {
@@ -418,17 +418,17 @@ export const TakeTest = () => {
     const color = resultAccentColor(level);
     const interp = result.interpretation;
     const scoreLabel =
-      result.scale === 'gad7'
-        ? `балл GAD-7: ${result.result.score} / ${result.maxScore ?? 21}`
-        : result.scale === 'daily5'
-          ? `индекс дня: ${result.percentage}%`
-          : result.scale === 'mbi_student'
-            ? `индекс: ${result.percentage}%`
-            : 'интенсивность по шкале';
+    result.scale === 'gad7' ?
+    `балл GAD-7: ${result.result.score} / ${result.maxScore ?? 21}` :
+    result.scale === 'daily5' ?
+    `индекс дня: ${result.percentage}%` :
+    result.scale === 'mbi_student' ?
+    `индекс: ${result.percentage}%` :
+    'интенсивность по шкале';
 
     const showCrisisHint =
-      /высокая тревож|выраженное выгорание|сильн|нужен отдых и поддержк/i.test(level || '') ||
-      result.result.level === 'Высокий';
+    /высокая тревож|выраженное выгорание|сильн|нужен отдых и поддержк/i.test(level || '') ||
+    result.result.level === 'Высокий';
 
     return (
       <div className="take-test fade-in">
@@ -442,20 +442,20 @@ export const TakeTest = () => {
             <span className="result-score-num">{result.percentage}%</span>
             <span className="result-score-label">{scoreLabel}</span>
           </div>
-          {interp && (
-            <div className="result-interpret">
+          {interp &&
+          <div className="result-interpret">
               <h2 className="result-interpret-title">{interp.title}</h2>
               <p className="result-interpret-text">{interp.text}</p>
               <p className="result-interpret-rec">
                 <strong>Рекомендация:</strong> {interp.recommendation}
               </p>
             </div>
-          )}
-          {showCrisisHint && (
-            <div className="result-warning">
+          }
+          {showCrisisHint &&
+          <div className="result-warning">
               ⚠️ При сильном дискомфорте обратитесь к специалисту. ИИ и приложение не заменяют очную помощь.
             </div>
-          )}
+          }
           <div className="result-actions">
             <button type="button" className="btn btn-ghost" onClick={() => navigate('/tests')}>
               Все тесты
@@ -468,8 +468,8 @@ export const TakeTest = () => {
             </button>
           </div>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   const opts = parseQuestionOptions(currentQ?.options);
@@ -482,8 +482,8 @@ export const TakeTest = () => {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(progress)}
-        aria-label={`Прогресс опроса: ${Math.round(progress)} процентов`}
-      >
+        aria-label={`Прогресс опроса: ${Math.round(progress)} процентов`}>
+        
         <div className="test-progress-fill" style={{ width: `${progress}%` }} />
       </div>
       <div className="test-progress-row">
@@ -509,48 +509,48 @@ export const TakeTest = () => {
           <div key={step} className="test-question card tests-q-slide tests-q-card">
             <p className="q-text">{currentQ?.question_text}</p>
             <div className="q-options q-options--stagger">
-              {opts.map((opt, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  style={{ animationDelay: `${0.04 + i * 0.055}s` }}
-                  className={`q-option q-option--enter ${answers[currentQ.question_id] === i ? 'selected' : ''}`}
-                  onClick={() => handleAnswer(currentQ.question_id, i)}
-                >
+              {opts.map((opt, i) =>
+              <button
+                key={i}
+                type="button"
+                style={{ animationDelay: `${0.04 + i * 0.055}s` }}
+                className={`q-option q-option--enter ${answers[currentQ.question_id] === i ? 'selected' : ''}`}
+                onClick={() => handleAnswer(currentQ.question_id, i)}>
+                
                   <span className="q-option-dot" />
                   {opt}
                 </button>
-              ))}
+              )}
             </div>
           </div>
 
           <div className="test-q-actions">
-            {step < questions.length ? (
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={answers[currentQ.question_id] === undefined}
-                onClick={() => setStep((s) => s + 1)}
-              >
+            {step < questions.length ?
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={answers[currentQ.question_id] === undefined}
+              onClick={() => setStep((s) => s + 1)}>
+              
                 Дальше <ChevronRight size={16} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={!allAnswered || submitting}
-                onClick={handleSubmit}
-              >
-                {submitting ? 'Считаем результат…' : (
-                  <>
+              </button> :
+
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!allAnswered || submitting}
+              onClick={handleSubmit}>
+              
+                {submitting ? 'Считаем результат…' :
+              <>
                     <CheckCircle size={16} /> Завершить тест
                   </>
-                )}
+              }
               </button>
-            )}
+            }
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 };

@@ -28,22 +28,22 @@ function PracticeModal({ practice, onClose }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={handleClose}
-      >
+        onClick={handleClose}>
+        
         <motion.div
           initial={{ opacity: 0, y: 24, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 18 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           className="modal-card card practices-modal-card practices-theme"
-          onClick={(event) => event.stopPropagation()}
-        >
+          onClick={(event) => event.stopPropagation()}>
+          
           <button
             type="button"
             onClick={handleClose}
             className="practices-modal-close"
-            aria-label="Закрыть"
-          >
+            aria-label="Закрыть">
+            
             <X size={18} />
           </button>
 
@@ -58,13 +58,13 @@ function PracticeModal({ practice, onClose }) {
             onComplete={() => {
               setCompleted(true);
             }}
-            onStop={handleClose}
-          />
+            onStop={handleClose} />
+          
 
           <div className="practices-modal-note">
-            {completed
-              ? 'Класс. Можно повторить практику или выбрать следующую.'
-              : 'Формат и управление такие же простые, как в блоке тестов.'}
+            {completed ?
+            'Класс. Можно повторить практику или выбрать следующую.' :
+            'Формат и управление такие же простые, как в блоке тестов.'}
           </div>
         </motion.div>
       </motion.div>

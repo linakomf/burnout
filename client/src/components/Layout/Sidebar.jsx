@@ -13,8 +13,8 @@ import {
   Tag,
   Brain,
   ClipboardList,
-  SlidersHorizontal,
-} from 'lucide-react';
+  SlidersHorizontal } from
+'lucide-react';
 import './Sidebar.css';
 
 const publicPrefix = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
@@ -31,22 +31,22 @@ const Sidebar = () => {
 
   const studentLinks = useMemo(
     () => [
-      { path: '/dashboard', icon: <Home {...iconProps} />, label: t('nav.home') },
-      { path: '/diary', icon: <Calendar {...iconProps} />, label: t('nav.diary') },
-      { path: '/tests', icon: <ClipboardList {...iconProps} />, label: t('nav.tests') },
-      { path: '/practices', icon: <SlidersHorizontal {...iconProps} />, label: t('nav.practices') },
-      { path: '/stats', icon: <BarChart2 {...iconProps} />, label: t('nav.stats') },
-    ],
+    { path: '/dashboard', icon: <Home {...iconProps} />, label: t('nav.home') },
+    { path: '/diary', icon: <Calendar {...iconProps} />, label: t('nav.diary') },
+    { path: '/tests', icon: <ClipboardList {...iconProps} />, label: t('nav.tests') },
+    { path: '/practices', icon: <SlidersHorizontal {...iconProps} />, label: t('nav.practices') },
+    { path: '/stats', icon: <BarChart2 {...iconProps} />, label: t('nav.stats') }],
+
     [t]
   );
 
   const adminLinks = useMemo(
     () => [
-      { path: '/admin', icon: <Home {...iconProps} />, label: t('nav.adminOverview') },
-      { path: '/admin/users', icon: <Users {...iconProps} />, label: t('nav.adminUsers') },
-      { path: '/admin/categories', icon: <Tag {...iconProps} />, label: t('nav.adminCategories') },
-      { path: '/admin/tests', icon: <Brain {...iconProps} />, label: t('nav.adminTests') },
-    ],
+    { path: '/admin', icon: <Home {...iconProps} />, label: t('nav.adminOverview') },
+    { path: '/admin/users', icon: <Users {...iconProps} />, label: t('nav.adminUsers') },
+    { path: '/admin/categories', icon: <Tag {...iconProps} />, label: t('nav.adminCategories') },
+    { path: '/admin/tests', icon: <Brain {...iconProps} />, label: t('nav.adminTests') }],
+
     [t]
   );
 
@@ -64,18 +64,18 @@ const Sidebar = () => {
       </div>
 
       <nav className="sidebar-nav" aria-label={t('nav.mainMenu')}>
-        {links.map((link) => (
-          <button
-            key={link.path}
-            type="button"
-            className={`nav-item ${location.pathname === link.path ? 'active' : ''}`}
-            onClick={() => navigate(link.path)}
-            title={collapsed ? link.label : ''}
-          >
+        {links.map((link) =>
+        <button
+          key={link.path}
+          type="button"
+          className={`nav-item ${location.pathname === link.path ? 'active' : ''}`}
+          onClick={() => navigate(link.path)}
+          title={collapsed ? link.label : ''}>
+          
             <span className="nav-icon">{link.icon}</span>
             {!collapsed && <span className="nav-label">{link.label}</span>}
           </button>
-        ))}
+        )}
       </nav>
 
       <div className="sidebar-bottom">
@@ -86,8 +86,8 @@ const Sidebar = () => {
           type="button"
           className="sidebar-profile"
           onClick={() => navigate('/profile')}
-          title={collapsed ? t('nav.profile') : ''}
-        >
+          title={collapsed ? t('nav.profile') : ''}>
+          
           <div className="user-avatar user-avatar--sticker">
             <img
               src={avatarUrl}
@@ -95,8 +95,8 @@ const Sidebar = () => {
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = DEFAULT_AVATAR;
-              }}
-            />
+              }} />
+            
           </div>
           {!collapsed && <span className="sidebar-profile-label">{t('nav.profile')}</span>}
         </button>
@@ -106,12 +106,12 @@ const Sidebar = () => {
         type="button"
         className="collapse-btn"
         onClick={() => setCollapsed(!collapsed)}
-        aria-label={collapsed ? t('nav.expand') : t('nav.collapse')}
-      >
+        aria-label={collapsed ? t('nav.expand') : t('nav.collapse')}>
+        
         {collapsed ? <ChevronRight size={16} strokeWidth={2.5} /> : <ChevronLeft size={16} strokeWidth={2.5} />}
       </button>
-    </aside>
-  );
+    </aside>);
+
 };
 
 export default Sidebar;

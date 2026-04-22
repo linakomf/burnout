@@ -1,4 +1,4 @@
-/* Сайдбар position:fixed — не отнимаем место во flex; main на всю ширину + padding слева */
+
 .layout {
   display: block;
   flex: 1 1 auto;
@@ -6,7 +6,7 @@
   min-width: 0;
   min-height: 100%;
   min-height: 100dvh;
-  /* Единый светло-серый холст с разделами вроде практик/профиля (#f5f5f5) */
+  
   background: #f5f5f5;
   overflow-x: hidden;
 }
@@ -31,7 +31,7 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  /* opacity-only: иначе transform у анимации ломает position:fixed у потомков (привязка к main) */
+  
   animation: fadeInOpacity 0.4s ease;
   background: #f5f5f5;
 }

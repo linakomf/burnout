@@ -48,8 +48,8 @@ router.post('/register', async (req, res) => {
         age: user.age,
         onboarding_burnout_completed: Boolean(user.onboarding_burnout_completed),
         onboarding_burnout_percent: user.onboarding_burnout_percent ?? null,
-        onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
-      },
+        onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null
+      }
     });
   } catch (err) {
     console.error(err);
@@ -93,8 +93,8 @@ router.post('/login', async (req, res) => {
         age: user.age,
         onboarding_burnout_completed: Boolean(user.onboarding_burnout_completed),
         onboarding_burnout_percent: user.onboarding_burnout_percent ?? null,
-        onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
-      },
+        onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null
+      }
     });
   } catch (err) {
     console.error(err);

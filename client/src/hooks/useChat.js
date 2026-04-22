@@ -11,7 +11,7 @@ export function useChat({ userFirstName = 'друг', onUserMessageSent } = {}) 
   const [overallMood, setOverallMood] = useState({
     emoji: '😌',
     label: 'Спокойно',
-    sub: 'Эмоции ровные. Стресс не превышает норму.',
+    sub: 'Эмоции ровные. Стресс не превышает норму.'
   });
 
   const messagesEndRef = useRef(null);
@@ -37,7 +37,7 @@ export function useChat({ userFirstName = 'друг', onUserMessageSent } = {}) 
     const userMsg = {
       role: 'user',
       content: text,
-      time: format(new Date(), 'HH:mm'),
+      time: format(new Date(), 'HH:mm')
     };
 
     const prev = messagesRef.current;
@@ -54,19 +54,19 @@ export function useChat({ userFirstName = 'друг', onUserMessageSent } = {}) 
 
       const historyForAi = afterUser.map((m) => ({
         role: m.role,
-        content: m.content,
+        content: m.content
       }));
       const replyText = await getPsychologistReply(historyForAi);
 
       setMessages((cur) => {
         const next = [
-          ...cur,
-          {
-            role: 'assistant',
-            content: replyText,
-            time: format(new Date(), 'HH:mm'),
-          },
-        ];
+        ...cur,
+        {
+          role: 'assistant',
+          content: replyText,
+          time: format(new Date(), 'HH:mm')
+        }];
+
         messagesRef.current = next;
         return next;
       });
@@ -76,14 +76,14 @@ export function useChat({ userFirstName = 'друг', onUserMessageSent } = {}) 
       console.error(e);
       setMessages((cur) => {
         const next = [
-          ...cur,
-          {
-            role: 'assistant',
-            content:
-              'Сейчас не удалось связаться с ассистентом. Я всё равно рядом — попробуй написать ещё раз чуть позже.',
-            time: format(new Date(), 'HH:mm'),
-          },
-        ];
+        ...cur,
+        {
+          role: 'assistant',
+          content:
+          'Сейчас не удалось связаться с ассистентом. Я всё равно рядом — попробуй написать ещё раз чуть позже.',
+          time: format(new Date(), 'HH:mm')
+        }];
+
         messagesRef.current = next;
         return next;
       });
@@ -101,6 +101,6 @@ export function useChat({ userFirstName = 'друг', onUserMessageSent } = {}) 
     loading,
     emotions,
     overallMood,
-    messagesEndRef,
+    messagesEndRef
   };
 }

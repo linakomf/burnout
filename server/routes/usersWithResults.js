@@ -21,18 +21,18 @@ function normalizeRiskLevel(levelStr, scoringType) {
     mbi_student: {
       'Нет признаков выгорания': 'low',
       'Риск выгорания': 'medium',
-      'Выраженное выгорание': 'high',
+      'Выраженное выгорание': 'high'
     },
     daily5: {
       'Состояние стабильное': 'low',
       'Повышенная нагрузка': 'medium',
-      'Нужен отдых и поддержка': 'high',
+      'Нужен отдых и поддержка': 'high'
     },
     gad7: {
       'Низкая тревожность': 'low',
       'Средняя тревожность': 'medium',
-      'Высокая тревожность': 'high',
-    },
+      'Высокая тревожность': 'high'
+    }
   };
   if (maps[st]?.[s]) return maps[st][s];
   if (s === 'Низкий') return 'low';
@@ -86,9 +86,9 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
         const computed = computeTestResult(testRow, questions, answersObj);
         percent = computed.percentage != null ? Number(computed.percentage) : null;
         riskLevel =
-          normalizeRiskLevel(computed.level, tr.scoring_type) ||
-          normalizeRiskLevel(tr.level, tr.scoring_type) ||
-          bucketFromPercent(percent, true);
+        normalizeRiskLevel(computed.level, tr.scoring_type) ||
+        normalizeRiskLevel(tr.level, tr.scoring_type) ||
+        bucketFromPercent(percent, true);
       } catch (e) {
         console.warn('[users-with-results] compute row', tr.result_id, e.message);
         riskLevel = normalizeRiskLevel(tr.level, tr.scoring_type) || 'unknown';
@@ -105,7 +105,7 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
         percent,
         result_id: tr.result_id,
         source: 'test',
-        test_title: tr.test_title,
+        test_title: tr.test_title
       });
     }
 
@@ -131,7 +131,7 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
         percent: p,
         result_id: null,
         source: 'onboarding',
-        test_title: 'Первичный скрининг выгорания',
+        test_title: 'Первичный скрининг выгорания'
       });
     }
 
@@ -227,9 +227,9 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
         totalUsers: platformUsers.rows[0]?.n ?? 0,
         testsToday,
         testsWeek,
-        newUsersWeek: newUsersWeek.rows[0]?.n ?? 0,
+        newUsersWeek: newUsersWeek.rows[0]?.n ?? 0
       },
-      activityByDay,
+      activityByDay
     });
   } catch (err) {
     console.error('[users-with-results]', err);

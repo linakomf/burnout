@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-// Всегда читаем .env из папки server, даже если процесс запущен из корня репозитория
+
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const { ensurePracticeSchema } = require('./ensurePracticeSchema');
 const { ensureOnboardingSchema } = require('./ensureOnboardingSchema');
@@ -13,11 +13,11 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const corsOrigins = [
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'http://localhost:3001',
-  'http://127.0.0.1:3001',
-];
+'http://localhost:3000',
+'http://127.0.0.1:3000',
+'http://localhost:3001',
+'http://127.0.0.1:3001'];
+
 app.use(
   cors({
     origin: (origin, cb) => {
@@ -26,7 +26,7 @@ app.use(
       if (process.env.CORS_ORIGIN && origin === process.env.CORS_ORIGIN) return cb(null, true);
       return cb(new Error('Not allowed by CORS'));
     },
-    credentials: true,
+    credentials: true
   })
 );
 app.use('/api', (req, res, next) => {
@@ -56,13 +56,13 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-Promise.resolve()
-  .then(() => ensurePracticeSchema())
-  .then(() => ensureOnboardingSchema())
-  .then(() => ensureTestSchema())
-  .then(() => ensureTestCatalog())
-  .finally(() => {
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running at http://localhost:${PORT}`);
-    });
+Promise.resolve().
+then(() => ensurePracticeSchema()).
+then(() => ensureOnboardingSchema()).
+then(() => ensureTestSchema()).
+then(() => ensureTestCatalog()).
+finally(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
   });
+});
