@@ -11,7 +11,7 @@ export function useChat({ userFirstName = 'друг', onUserMessageSent } = {}) 
   const [overallMood, setOverallMood] = useState({
     emoji: '😌',
     label: 'Спокойно',
-    sub: 'Напишите пару строк — обновим анализ',
+    sub: 'Эмоции ровные. Стресс не превышает норму.',
   });
 
   const messagesEndRef = useRef(null);
@@ -24,32 +24,6 @@ export function useChat({ userFirstName = 'друг', onUserMessageSent } = {}) 
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
-
-  useEffect(() => {
-    const welcomeContent = `Привет, ${userFirstName}! Расскажи, как прошёл твой день?`;
-    const welcome = {
-      role: 'assistant',
-      content: welcomeContent,
-      time: format(new Date(), 'HH:mm'),
-    };
-    setMessages((prev) => {
-      if (prev.length === 0) {
-        messagesRef.current = [welcome];
-        return [welcome];
-      }
-      if (
-        prev.length === 1 &&
-        prev[0].role === 'assistant' &&
-        typeof prev[0].content === 'string' &&
-        prev[0].content.startsWith('Привет,')
-      ) {
-        const w = { ...prev[0], content: welcomeContent };
-        messagesRef.current = [w];
-        return [w];
-      }
-      return prev;
-    });
-  }, [userFirstName]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

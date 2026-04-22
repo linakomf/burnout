@@ -35,7 +35,7 @@ function PracticeModal({ practice, onClose }) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 18 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="modal-card card practices-modal-card"
+          className="modal-card card practices-modal-card practices-theme"
           onClick={(event) => event.stopPropagation()}
         >
           <button

@@ -1,9 +1,34 @@
+/* Палитра: карточки #FFF; фон страницы — как у main-content (#f5f5f5) */
 .profile-page {
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
   padding: 12px 8px 48px;
   box-sizing: border-box;
+  background: transparent;
+  min-height: min(100%, calc(100dvh - 80px));
+}
+
+.profile-page .page-title {
+  color: #000000;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 6px;
+}
+
+.profile-page .page-sub {
+  color: #8e8e8e;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0;
+}
+
+.profile-page .profile-msg--banner {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .profile-grid {
@@ -11,6 +36,8 @@
   grid-template-columns: 280px 1fr;
   gap: 20px;
   align-items: start;
+  max-width: 900px;
+  margin: 20px auto 0;
 }
 
 .profile-settings-card {
@@ -19,11 +46,14 @@
 
 .profile-card-title {
   margin-bottom: 8px;
+  color: #000000;
+  font-weight: 800;
+  font-size: 17px;
 }
 
 .profile-settings-hint {
   font-size: 13px;
-  color: var(--text-light);
+  color: #8e8e8e;
   margin-bottom: 18px;
   line-height: 1.45;
 }
@@ -51,9 +81,9 @@
 .profile-setting-icon {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
-  background: var(--primary-light);
-  color: var(--primary-dark);
+  border-radius: 50%;
+  background: #ffc3a0;
+  color: #1a1a1a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -61,7 +91,8 @@
 }
 
 [data-theme='dark'] .profile-setting-icon {
-  color: var(--primary);
+  background: color-mix(in srgb, #ffc3a0 35%, #2a2a2a);
+  color: #f0f0f0;
 }
 
 .profile-setting-text {
@@ -98,8 +129,8 @@
   transition: background 0.15s, color 0.15s;
 }
 .profile-setting-action:hover {
-  background: var(--primary-light);
-  color: var(--text-dark);
+  background: rgba(255, 195, 160, 0.35);
+  color: #000000;
 }
 
 /* Toggle */
@@ -137,13 +168,13 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 .profile-switch input:checked + .profile-switch-slider {
-  background: var(--primary);
+  background: #e8956a;
 }
 .profile-switch input:checked + .profile-switch-slider::before {
   transform: translateX(20px);
 }
 .profile-switch input:focus-visible + .profile-switch-slider {
-  box-shadow: 0 0 0 3px rgba(163, 198, 23, 0.35);
+  box-shadow: 0 0 0 3px rgba(255, 195, 160, 0.45);
 }
 
 [data-theme='dark'] .profile-switch-slider {
@@ -157,9 +188,35 @@
 
 .profile-logout-btn {
   width: 100%;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: 10px;
   padding: 14px 20px;
-  border-radius: var(--radius-sm);
+  border-radius: 14px;
+  border: none;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #f9b895;
+  color: #000000;
+  transition: opacity 0.2s, transform 0.12s;
+}
+
+.profile-logout-btn:hover {
+  opacity: 0.94;
+}
+
+.profile-logout-btn:active {
+  transform: scale(0.99);
+}
+
+.profile-page .card {
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .avatar-card {
@@ -180,20 +237,22 @@
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid var(--primary);
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 .profile-avatar-placeholder {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: var(--primary);
+  background: #d0d2f8;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 40px;
   font-weight: 800;
-  color: #fff;
-  border: 3px solid var(--primary-light);
+  color: #ffffff;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 .avatar-upload-btn {
   position: absolute;
@@ -202,17 +261,17 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #1a1d24;
-  color: white;
+  background: #1a1a1a;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 2px solid var(--bg-card);
-  transition: background 0.2s;
+  border: 2px solid #ffffff;
+  transition: background 0.2s, transform 0.12s;
 }
 .avatar-upload-btn:hover {
-  background: var(--primary-dark);
+  background: #333333;
 }
 
 [data-theme='dark'] .avatar-upload-btn {
@@ -223,22 +282,23 @@
 .profile-name {
   font-size: 20px;
   font-weight: 800;
+  color: #000000;
 }
 .profile-role-badge {
   padding: 5px 14px;
   border-radius: 20px;
-  background: var(--primary-light);
-  color: var(--text-dark);
+  background: #f2f2f2;
+  color: #000000;
   font-size: 13px;
   font-weight: 600;
 }
 .profile-email {
   font-size: 14px;
-  color: var(--text-light);
+  color: #8e8e8e;
 }
 .profile-age {
   font-size: 14px;
-  color: var(--text-mid);
+  color: #8e8e8e;
   font-weight: 600;
 }
 
@@ -310,9 +370,169 @@
   background: var(--border);
 }
 
-.save-btn {
-  align-self: flex-start;
-  padding: 12px 28px;
+/* Кнопка «Сохранить»: градиент персик → лаванда, текст чёрный */
+.profile-btn-save {
+  align-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: #000000;
+  cursor: pointer;
+  background: linear-gradient(90deg, #f9b895 0%, #d0d2f8 100%);
+  transition: opacity 0.2s, transform 0.12s, box-shadow 0.2s;
+  box-shadow: 0 2px 12px rgba(208, 210, 248, 0.35);
+}
+
+.profile-btn-save:hover:not(:disabled) {
+  opacity: 0.95;
+  box-shadow: 0 4px 16px rgba(208, 210, 248, 0.45);
+}
+
+.profile-btn-save:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.profile-btn-save:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.profile-btn-save svg {
+  color: #000000;
+  stroke: #000000;
+}
+
+/* Поля ввода: светлый фон */
+.edit-card .form-group label {
+  color: #000000;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.edit-card .input {
+  background: #f2f2f2;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  color: #000000;
+}
+
+.edit-card .input:focus {
+  border-color: #d0d2f8;
+  box-shadow: 0 0 0 2px rgba(208, 210, 248, 0.45);
+  background: #fafafa;
+}
+
+.edit-card .input::placeholder {
+  color: #9ca3af;
+}
+
+/* Тёмная тема: те же компоновки, приглушённые акценты */
+[data-theme='dark'] .profile-page {
+  background: transparent;
+}
+
+[data-theme='dark'] .profile-page .page-title {
+  color: #f3f4f6;
+}
+
+[data-theme='dark'] .profile-page .page-sub,
+[data-theme='dark'] .profile-settings-hint {
+  color: #9ca3af;
+}
+
+[data-theme='dark'] .profile-page .card {
+  background: #18181c;
+  border-color: #2a2a32;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme='dark'] .profile-card-title,
+[data-theme='dark'] .profile-setting-label {
+  color: #f3f4f6;
+}
+
+[data-theme='dark'] .profile-name {
+  color: #f3f4f6;
+}
+
+[data-theme='dark'] .profile-email,
+[data-theme='dark'] .profile-age,
+[data-theme='dark'] .profile-setting-desc {
+  color: #9ca3af;
+}
+
+[data-theme='dark'] .profile-role-badge {
+  background: #2a2a32;
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .edit-card .form-group label {
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .edit-card .input {
+  background: #141418;
+  border-color: #333338;
+  color: #f3f4f6;
+}
+
+[data-theme='dark'] .edit-card .input:focus {
+  border-color: #6a6a8a;
+  box-shadow: 0 0 0 2px rgba(106, 106, 138, 0.35);
+}
+
+[data-theme='dark'] .profile-avatar-placeholder {
+  background: #5c5c78;
+  color: #fff;
+}
+
+[data-theme='dark'] .profile-btn-save {
+  background: linear-gradient(90deg, #7a5a4a 0%, #5a5a78 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .profile-btn-save svg {
+  color: #ffffff;
+  stroke: #ffffff;
+}
+
+[data-theme='dark'] .profile-logout-btn {
+  background: #7a5a4a;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .profile-setting-row {
+  border-bottom-color: #2a2a32;
+}
+
+[data-theme='dark'] .profile-setting-icon {
+  background: color-mix(in srgb, #f9b895 32%, #2a2a2e);
+  color: #f0f0f0;
+}
+
+[data-theme='dark'] .profile-switch input:checked + .profile-switch-slider {
+  background: #c4774a;
+}
+
+[data-theme='dark'] .profile-setting-action:hover {
+  background: rgba(255, 195, 160, 0.12);
+  color: #f3f4f6;
+}
+
+@media (max-width: 768px) {
+  .profile-page {
+    padding: 12px 6px 40px;
+  }
 }
 
 @media (max-width: 700px) {

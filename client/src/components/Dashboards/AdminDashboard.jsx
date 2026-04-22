@@ -26,14 +26,14 @@ const LEVEL_LABEL = {
 };
 
 const LEVEL_STYLE = {
-  low: { color: '#5a7c12', bg: 'rgba(163, 198, 23, 0.2)' },
+  low: { color: '#3d4266', bg: 'rgba(208, 210, 248, 0.45)' },
   medium: { color: '#b45309', bg: '#fff8e6' },
   high: { color: '#b91c1c', bg: '#fdecef' },
   unknown: { color: '#64748b', bg: '#f1f5f9' },
 };
 
 const PIE_COLORS = {
-  low: '#84cc16',
+  low: '#9a9fd4',
   medium: '#eab308',
   high: '#ef4444',
   unknown: '#94a3b8',
@@ -201,18 +201,18 @@ const AdminDashboard = () => {
                     <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
                       <defs>
                         <linearGradient id="adVisits" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#a3c617" stopOpacity={0.35} />
-                          <stop offset="100%" stopColor="#a3c617" stopOpacity={0} />
+                          <stop offset="0%" stopColor="#b8bce8" stopOpacity={0.45} />
+                          <stop offset="100%" stopColor="#b8bce8" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#dde4ec" vertical={false} />
-                      <XAxis dataKey="label" tick={{ fill: '#7a8494', fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: '#7a8494', fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
+                      <XAxis dataKey="label" tick={{ fill: '#666666', fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: '#666666', fontSize: 11 }} axisLine={false} tickLine={false} />
                       <Tooltip
-                        contentStyle={{ borderRadius: 10, border: '1px solid #dde4ec' }}
+                        contentStyle={{ borderRadius: 10, border: '1px solid #e0e0e0' }}
                         formatter={(v) => [`${v}`, 'Записей']}
                       />
-                      <Area type="monotone" dataKey="visits" stroke="#7a9014" strokeWidth={2} fill="url(#adVisits)" />
+                      <Area type="monotone" dataKey="visits" stroke="#7c82c4" strokeWidth={2} fill="url(#adVisits)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -241,8 +241,8 @@ const AdminDashboard = () => {
                             <Cell key={e.key} fill={e.color} stroke="#fff" strokeWidth={2} />
                           ))}
                         </Pie>
-                        <Legend verticalAlign="bottom" height={32} formatter={(v) => <span style={{ color: '#5a6578', fontSize: 12 }}>{v}</span>} />
-                        <Tooltip contentStyle={{ borderRadius: 10, border: '1px solid #dde4ec' }} formatter={(v) => [`${v}`, 'Записей']} />
+                        <Legend verticalAlign="bottom" height={32} formatter={(v) => <span style={{ color: '#666666', fontSize: 12 }}>{v}</span>} />
+                        <Tooltip contentStyle={{ borderRadius: 10, border: '1px solid #e0e0e0' }} formatter={(v) => [`${v}`, 'Записей']} />
                       </PieChart>
                     </ResponsiveContainer>
                   )}

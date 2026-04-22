@@ -12,8 +12,8 @@ import {
 } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import {
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -32,13 +32,11 @@ import {
   Zap,
   TrendingUp,
   TrendingDown,
-  Sparkles,
-  AlertCircle,
-  Lightbulb,
   Check,
 } from 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   stressFromCatalogLevel,
   compositeStressPct,
@@ -144,6 +142,15 @@ function deltaToneClass(trend, goodWhenUp) {
 
 const Stats = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const periods = useMemo(
+    () => [
+      { id: 'week', label: t('pages.periodWeek') },
+      { id: 'month', label: t('pages.periodMonth') },
+      { id: 'year', label: t('pages.periodYear') },
+    ],
+    [t]
+  );
   const onboardingPct = user?.onboarding_burnout_percent ?? null;
   const [period, setPeriod] = useState('week');
   const [results, setResults] = useState([]);
@@ -289,6 +296,24 @@ const Stats = () => {
       };
     });
   }, [chartDays, moodByDate, period]);
+
+  const moodBarData = useMemo(() => {
+    return areaData.map((row) => {
+      const cap = (s) => (s ? `${s.charAt(0).toUpperCase()}${s.slice(1)}` : s);
+      return {
+        label: cap(row.label),
+        mood: row.mood != null ? row.mood : 0,
+        moodRaw: row.mood,
+      };
+    });
+  }, [areaData]);
+
+  const moodChartSubtitle =
+    period === 'week'
+      ? 'Средние значения за последние 7 дней'
+      : period === 'month'
+        ? 'Средние значения за последние 30 дней'
+        : 'Средние значения по месяцам за год';
 
   const avgMoodPctRaw = useMemo(() => {
     const vals = diaryInPeriod
@@ -475,7 +500,7 @@ const Stats = () => {
           (moodTrend.text && moodTrend.text !== '—'
             ? `Настроение в динамике: ${moodTrend.text} к прошлому периоду. Продолжайте в том же духе.`
             : 'Вы регулярно отмечаете состояние в дневнике — это основа осознанности.'),
-        icon: Sparkles,
+        sticker: '✨',
       });
     } else if (avgMoodPct > 0) {
       out.push({
@@ -484,7 +509,7 @@ const Stats = () => {
         text:
           sourceLead +
           'Записи в дневнике помогают замечать закономерности. Даже небольшие шаги — это вклад в благополучие.',
-        icon: Sparkles,
+        sticker: '🌟',
       });
     } else {
       out.push({
@@ -493,7 +518,7 @@ const Stats = () => {
         text:
           sourceLead +
           'Добавьте пару записей в ИИ-дневнике и пройдите тест из каталога — графики и обобщение станут точнее.',
-        icon: Sparkles,
+        sticker: '💫',
       });
     }
 
@@ -503,7 +528,7 @@ const Stats = () => {
         title: 'Обратите внимание',
         text:
           'По совокупности тестов, скрининга и дневника заметна повышенная нагрузка. Попробуйте короткие паузы и дыхание; при необходимости обсудите это со специалистом.',
-        icon: AlertCircle,
+        sticker: '⚠️',
       });
     } else {
       out.push({
@@ -513,7 +538,7 @@ const Stats = () => {
           stressPct >= 60
             ? 'Уровень стресса выше комфортного. Полезны прогулки, сон и делегирование задач.'
             : 'Следите за балансом нагрузки и отдыха — это снижает риск накопительной усталости.',
-        icon: AlertCircle,
+        sticker: '🧡',
       });
     }
 
@@ -522,7 +547,7 @@ const Stats = () => {
       title: 'Рекомендация',
       text:
         'Попробуйте дыхательную практику 4–6 перед важными делами или раздел «Практики». Ответы и заметки в ИИ-дневнике тоже учитываются в общей картине активности.',
-      icon: Lightbulb,
+      sticker: '💡',
     });
     return out;
   }, [
@@ -578,22 +603,15 @@ const Stats = () => {
     );
   }
 
-  const chartSubtitle =
-    period === 'week'
-      ? 'Последние 7 дней'
-      : period === 'month'
-        ? 'Последние 30 дней'
-        : 'По месяцам (год)';
-
   return (
     <div className="analytics-page fade-in">
       <header className="analytics-header">
         <div>
-          <h1 className="analytics-title">Аналитика</h1>
-          <p className="analytics-subtitle">Ваш путь к благополучию в цифрах</p>
+          <h1 className="analytics-title">{t('pages.statsTitle')}</h1>
+          <p className="analytics-subtitle">{t('pages.statsSub')}</p>
         </div>
-        <div className="analytics-segment" role="tablist" aria-label="Период">
-          {PERIODS.map((p) => (
+        <div className="analytics-segment" role="tablist" aria-label={t('pages.statsPeriodAria')}>
+          {periods.map((p) => (
             <button
               key={p.id}
               type="button"
@@ -672,65 +690,51 @@ const Stats = () => {
       </section>
 
       <section className="analytics-charts-row">
-        <div className="analytics-card analytics-card--chart-wide">
-          <div className="analytics-card-head">
-            <h2 className="analytics-card-title">Динамика настроения</h2>
-            <span className="analytics-card-meta">{chartSubtitle}</span>
-          </div>
-          <div className="analytics-chart-area">
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={areaData} margin={{ top: 12, right: 12, left: -18, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="analyticsMoodFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#9dc87a" stopOpacity={0.45} />
-                    <stop offset="100%" stopColor="#9dc87a" stopOpacity={0.05} />
-                  </linearGradient>
-                  <linearGradient id="analyticsStressFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#e8a87c" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#e8a87c" stopOpacity={0.05} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="4 8" stroke="#e8ebe4" vertical={false} />
+        <div className="analytics-card analytics-card--mood-chart analytics-card--chart-wide">
+          <h2 className="analytics-mood-chart-title">Динамика настроения</h2>
+          <p className="analytics-mood-chart-sub">{moodChartSubtitle}</p>
+          <div className="analytics-mood-chart-area">
+            <ResponsiveContainer width="100%" height={268}>
+              <BarChart
+                data={moodBarData}
+                margin={{ top: 10, right: 10, left: 4, bottom: 2 }}
+                barCategoryGap={period === 'week' ? '22%' : period === 'month' ? '12%' : '18%'}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#e0e0e0"
+                  strokeWidth={1.35}
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 11, fill: '#7a8a7c' }}
-                  axisLine={false}
+                  tick={{ fontSize: 11, fill: '#999999' }}
+                  axisLine={{ stroke: '#cccccc', strokeWidth: 2 }}
                   tickLine={false}
                 />
-                <YAxis
-                  tick={{ fontSize: 11, fill: '#7a8a7c' }}
-                  axisLine={false}
-                  tickLine={false}
-                  domain={[0, 100]}
-                  width={36}
-                />
+                <YAxis hide domain={[0, 100]} />
                 <Tooltip
-                  contentStyle={{
-                    borderRadius: 14,
-                    border: 'none',
-                    boxShadow: '0 8px 28px rgba(46,62,48,0.12)',
+                  cursor={{ fill: 'rgba(209, 213, 250, 0.12)' }}
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    const p = payload[0].payload;
+                    return (
+                      <div className="analytics-mood-tooltip">
+                        {p.moodRaw == null ? 'Нет данных' : `${Math.round(Number(p.moodRaw))}%`}
+                      </div>
+                    );
                   }}
-                  formatter={(v) => (v == null ? '—' : `${Math.round(v)}%`)}
                 />
-                <Area
-                  type="monotone"
+                <Bar
                   dataKey="mood"
                   name="Настроение"
-                  stroke="#7db05a"
-                  strokeWidth={2.5}
-                  fill="url(#analyticsMoodFill)"
-                  connectNulls
+                  fill="#D1D5FA"
+                  stroke="#b8c0e8"
+                  strokeWidth={2}
+                  radius={[12, 12, 0, 0]}
+                  maxBarSize={period === 'year' ? 36 : 40}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="stress"
-                  name="Напряжение"
-                  stroke="#d4a574"
-                  strokeWidth={2.5}
-                  fill="url(#analyticsStressFill)"
-                  connectNulls
-                />
-              </AreaChart>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -742,19 +746,19 @@ const Stats = () => {
           <div className="analytics-radar-wrap">
             <ResponsiveContainer width="100%" height={280}>
               <RadarChart cx="50%" cy="50%" outerRadius="72%" data={radarData}>
-                <PolarGrid stroke="#e0e8df" />
+                <PolarGrid stroke="rgba(79, 79, 79, 0.2)" strokeWidth={1.25} />
                 <PolarAngleAxis
                   dataKey="subject"
-                  tick={{ fontSize: 11, fill: '#5a6b5c', fontWeight: 600 }}
+                  tick={{ fontSize: 11, fill: '#4F4F4F', fontWeight: 600 }}
                 />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar
                   name="Показатели"
                   dataKey="value"
-                  stroke="#9CAF88"
-                  fill="#9CAF88"
-                  fillOpacity={0.35}
-                  strokeWidth={2}
+                  stroke="#AAB6E0"
+                  fill="#C8CAF2"
+                  fillOpacity={0.45}
+                  strokeWidth={3}
                 />
               </RadarChart>
             </ResponsiveContainer>
@@ -765,18 +769,18 @@ const Stats = () => {
       <section className="analytics-insights">
         <h2 className="analytics-section-title">Персональные инсайты</h2>
         <div className="analytics-insights-grid">
-          {insights.map((item) => {
-            const Icon = item.icon;
-            return (
-              <article key={item.title} className={`analytics-insight analytics-insight--${item.kind}`}>
-                <div className="analytics-insight-icon">
-                  <Icon size={22} strokeWidth={2} />
-                </div>
-                <h3 className="analytics-insight-title">{item.title}</h3>
-                <p className="analytics-insight-text">{item.text}</p>
-              </article>
-            );
-          })}
+          {insights.map((item) => (
+            <article key={item.title} className={`analytics-insight analytics-insight--${item.kind}`}>
+              <div
+                className={`analytics-insight-sticker analytics-insight-sticker--${item.kind}`}
+                aria-hidden
+              >
+                {item.sticker}
+              </div>
+              <h3 className="analytics-insight-title">{item.title}</h3>
+              <p className="analytics-insight-text">{item.text}</p>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -784,15 +788,15 @@ const Stats = () => {
         <h2 className="analytics-section-title">Прогресс активности</h2>
         <div className="analytics-card analytics-donuts-card">
           <div className="analytics-donuts-row">
-            <DonutStat current={entriesCount} max={50} label="Записей создано" color="#9dc87a" />
+            <DonutStat current={entriesCount} max={50} label="Записей создано" color="#FFB28E" />
             <DonutStat
               current={practicesDone}
               max={30}
               label="Практик завершено"
-              color="#c4a5e8"
+              color="#C8CAF2"
             />
-            <DonutStat current={Math.min(streak, 14)} max={14} label="Дней подряд" color="#7eb8da" />
-            <DonutStat current={testsCount} max={10} label="Тестов пройдено" color="#e8a87c" />
+            <DonutStat current={Math.min(streak, 14)} max={14} label="Дней подряд" color="#AAB6E0" />
+            <DonutStat current={testsCount} max={10} label="Тестов пройдено" color="#FFC77A" />
           </div>
         </div>
       </section>

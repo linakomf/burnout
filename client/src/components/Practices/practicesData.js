@@ -1,10 +1,9 @@
 export const PRACTICE_CATEGORIES = [
   { id: 'all', label: 'Все' },
   { id: 'breath', label: 'Дыхание' },
-  { id: 'focus', label: 'Фокус' },
-  { id: 'grounding', label: 'Заземление' },
-  { id: 'restore', label: 'Восстановление' },
-  { id: 'sleep', label: 'Сон' },
+  { id: 'focus', label: 'Медитация' },
+  { id: 'grounding', label: 'Рефлексия' },
+  { id: 'video', label: 'Видео' },
 ];
 
 export const PRACTICES = [

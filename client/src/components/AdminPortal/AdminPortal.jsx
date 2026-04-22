@@ -86,7 +86,7 @@ const AdminPortal = () => {
       <div className="admin-portal-root">
         <div className="admin-portal-login-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-            <BarChart3 size={28} color="#7c5cff" />
+            <BarChart3 size={28} color="#a8acf0" />
             <h2 style={{ margin: 0 }}>Панель статистики</h2>
           </div>
           <p className="hint">
@@ -227,19 +227,19 @@ const AdminPortal = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                    <XAxis dataKey="label" tick={{ fill: '#8b9aab', fontSize: 11 }} />
-                    <YAxis tick={{ fill: '#8b9aab', fontSize: 11 }} allowDecimals={false} />
+                    <XAxis dataKey="label" tick={{ fill: '#9a9ab0', fontSize: 11 }} />
+                    <YAxis tick={{ fill: '#9a9ab0', fontSize: 11 }} allowDecimals={false} />
                     <Tooltip
                       contentStyle={{
-                        background: '#1a2332',
+                        background: '#1a1828',
                         border: '1px solid rgba(255,255,255,0.12)',
                         borderRadius: 8,
                       }}
-                      labelStyle={{ color: '#8b9aab' }}
+                      labelStyle={{ color: '#9a9ab0' }}
                     />
                     <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Bar dataKey="newUsers" name="Новые пользователи" fill="#5b8def" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="testCompletions" name="Завершения тестов" fill="#7c5cff" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="newUsers" name="Новые пользователи" fill="#9a9fd4" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="testCompletions" name="Завершения тестов" fill="#b8bce8" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

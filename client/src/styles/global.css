@@ -115,6 +115,14 @@ body {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+/* Без transform: иначе position:fixed у потомков привязывается к этому узлу, а не к viewport */
+@keyframes fadeInOpacity {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fade-in-page {
+  animation: fadeInOpacity 0.35s ease forwards;
+}
 @keyframes slideIn {
   from { opacity: 0; transform: translateX(-12px); }
   to { opacity: 1; transform: translateX(0); }

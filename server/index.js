@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-require('dotenv').config();
+// Всегда читаем .env из папки server, даже если процесс запущен из корня репозитория
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const { ensurePracticeSchema } = require('./ensurePracticeSchema');
 const { ensureOnboardingSchema } = require('./ensureOnboardingSchema');
 const { ensureTestSchema } = require('./ensureTestSchema');
@@ -11,7 +12,23 @@ const { ensureTestCatalog } = require('./ensureTestCatalog');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+const corsOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
+];
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true);
+      if (corsOrigins.includes(origin)) return cb(null, true);
+      if (process.env.CORS_ORIGIN && origin === process.env.CORS_ORIGIN) return cb(null, true);
+      return cb(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+  })
+);
 app.use('/api', (req, res, next) => {
   const sendJson = res.json.bind(res);
   res.json = (body) => {

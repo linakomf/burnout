@@ -1,0 +1,41 @@
+/* Shared with app shell — same look as дашборд */
+.lang-switch {
+  display: flex;
+  gap: 2px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 999px;
+  padding: 3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.lang-switch-btn {
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 7px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #666666;
+  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  line-height: 1;
+  transition: background 0.2s, color 0.2s;
+}
+
+.lang-switch-btn:hover {
+  background: #f0f0f0;
+  color: #1a1a1a;
+}
+
+.lang-switch-btn.active {
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+/* Лендинг: светлая кнопка на тёмном/цветном фоне */
+.lang-switch--on-light-bg {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #e0e0e0;
+}

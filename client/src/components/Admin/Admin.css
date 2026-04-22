@@ -1,3 +1,4 @@
+/* Палитра в тон лавандовому акценту приложения */
 .admin-section { width: 100%; max-width: none; margin: 0; box-sizing: border-box; }
 
 .section-header {
@@ -29,9 +30,16 @@
 .role-chip {
   padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;
 }
-.role-chip.role-student { background: var(--primary-light); color: var(--primary-dark); }
+.role-chip.role-student {
+  background: rgba(208, 210, 248, 0.55);
+  color: #3d4266;
+}
 .role-chip.role-teacher { background: #fff3e0; color: #e65100; }
 .role-chip.role-admin { background: #fce4ec; color: #c62828; }
+[data-theme='dark'] .role-chip.role-student {
+  background: rgba(208, 210, 248, 0.18);
+  color: #c5c8f5;
+}
 [data-theme='dark'] .role-chip.role-teacher {
   background: #3d3520;
   color: #ffb74d;
@@ -47,7 +55,7 @@
 }
 .cat-card {}
 .cat-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.cat-icon { color: var(--primary-dark); }
+.cat-icon { color: #7c82c4; }
 .cat-actions { display: flex; gap: 6px; }
 .cat-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
 .cat-desc { font-size: 13px; color: var(--text-light); margin-bottom: 10px; }
@@ -65,7 +73,7 @@
   padding: 32px; cursor: pointer; transition: transform 0.2s;
 }
 .admin-stat-card:hover { transform: translateY(-4px); }
-.admin-stat-icon { color: var(--primary-dark); }
+.admin-stat-icon { color: #7c82c4; }
 .admin-stat-val { font-size: 40px; font-weight: 800; color: var(--text-dark); }
 .admin-stat-label { font-size: 14px; color: var(--text-light); font-weight: 600; }
 

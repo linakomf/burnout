@@ -5,18 +5,13 @@ import {
   ChevronLeft,
   CheckCircle,
   BookOpen,
-  Brain,
-  Sparkles,
-  LayoutGrid,
   Zap,
-  CloudRain,
-  SunMedium,
-  UserCircle,
-  MoreHorizontal,
+  Lightbulb,
+  Star,
 } from 'lucide-react';
 import api from '../../utils/api';
+import { useLanguage } from '../../context/LanguageContext';
 import { IntroSplashArt, QuestionSideArt } from './TestsDecor';
-import { IlluHealing, IlluDiscovery, IlluInsight } from './TestsPathsArt';
 import { mergeTestRu } from '../../config/testDisplayRu';
 import './Tests.css';
 
@@ -33,17 +28,19 @@ const TEST_PATHS = [
   {
     key: 'heal',
     preferIds: [5, 2, 4],
-    title: 'Восстановление',
-    lead: '10 вопросов о перегрузке и восстановлении — с прогрессом по каждому шагу.',
-    Illu: IlluHealing,
+    title: 'Вдохновение',
+    lead: 'Короткий опрос о перегрузке и восстановлении — с прогрессом по шагам.',
+    Icon: Lightbulb,
+    panelBg: '#FEEBC8',
     accent: 'heal',
   },
   {
     key: 'discover',
     preferIds: [6, 3],
-    title: 'Исследование',
+    title: 'Импульс',
     lead: 'Тревога и внутреннее напряжение — взглянуть на то, что происходит сейчас.',
-    Illu: IlluDiscovery,
+    Icon: Zap,
+    panelBg: '#FEF3C7',
     accent: 'discover',
   },
   {
@@ -51,7 +48,8 @@ const TEST_PATHS = [
     preferIds: [7, 5],
     title: 'Баланс дня',
     lead: 'Короткий чек-ин: настроение и ресурс — для регулярной динамики.',
-    Illu: IlluInsight,
+    Icon: Star,
+    panelBg: '#FEE2E2',
     accent: 'insight',
   },
 ];
@@ -64,13 +62,13 @@ export function bucketToAccent(bucket) {
   return 'plain';
 }
 
-const TEST_FILTER_CHIPS = [
-  { id: 'all', label: 'Все', Icon: LayoutGrid },
-  { id: 'stress', label: 'Стресс и перегрузка', Icon: Zap },
-  { id: 'anxiety', label: 'Тревога', Icon: CloudRain },
-  { id: 'mood', label: 'Настроение и день', Icon: SunMedium },
-  { id: 'esteem', label: 'Самооценка', Icon: UserCircle },
-  { id: 'other', label: 'Другое', Icon: MoreHorizontal },
+const CATALOG_FILTER_CHIPS = [
+  { id: 'all', label: 'Все' },
+  { id: 'quick', label: 'Быстрые опросники' },
+  { id: 'basic', label: 'Базовые' },
+  { id: 'clinical', label: 'Клинические тесты' },
+  { id: 'practices', label: 'Практики' },
+  { id: 'other', label: 'Другие' },
 ];
 
 export function getTestBucket(test) {
@@ -81,6 +79,45 @@ export function getTestBucket(test) {
   if (/настроен|счаст|эмоцион|стабильн|радост/i.test(s)) return 'mood';
   if (/самооцен/i.test(s)) return 'esteem';
   return 'other';
+}
+
+/** Группа для фильтров каталога (макет: быстрые / базовые / клинические / …) */
+export function getCatalogFilter(test) {
+  const qc = Number(test.question_count) || 0;
+  const blob = `${test.title || ''} ${test.description || ''} ${test.category_name || ''}`.toLowerCase();
+
+  if (/практик|медитац|дыхани|релакс|mindful/i.test(blob)) return 'practices';
+
+  if (
+    /gad-7|\bgad\b|mbi|phq|pss|клиническ|диагностическ|шкал|выгоран|синдром|тревожн.*расстрой/i.test(blob)
+  ) {
+    return 'clinical';
+  }
+
+  if (qc > 0 && qc <= 7) return 'quick';
+  if (/ежедневн|чек-ин|5 вопросов|быстр|коротк/i.test(blob)) return 'quick';
+
+  if (qc >= 8 && qc <= 24) return 'basic';
+  if (qc > 0) return 'basic';
+  return 'other';
+}
+
+function audienceLabel(test) {
+  const r = String(test.target_role || '').toLowerCase();
+  if (/student|студент/i.test(r)) return 'Для студентов';
+  if (/staff|персонал|препод|teacher/i.test(r)) return 'Для преподавателей';
+  if (test.category_name && String(test.category_name).trim()) return String(test.category_name).trim();
+  return 'Общий доступ';
+}
+
+function questionCountLabel(qc) {
+  const n = Number(qc) || 0;
+  const m = n % 10;
+  const f = n % 100;
+  let word = 'вопросов';
+  if (m === 1 && f !== 11) word = 'вопрос';
+  else if (m >= 2 && m <= 4 && (f < 12 || f > 14)) word = 'вопроса';
+  return `${n} ${word}`;
 }
 
 function resultAccentColor(level) {
@@ -107,6 +144,7 @@ function parseQuestionOptions(raw) {
 }
 
 export const TestsList = () => {
+  const { t } = useLanguage();
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -123,27 +161,29 @@ export const TestsList = () => {
   const enriched = tests.map((t) => ({
     ...t,
     bucket: getTestBucket(t),
+    catalogFilter: getCatalogFilter(t),
   }));
 
   const filterCounts = enriched.reduce(
     (acc, t) => {
       acc.all += 1;
-      acc[t.bucket] = (acc[t.bucket] || 0) + 1;
+      const f = t.catalogFilter;
+      acc[f] = (acc[f] || 0) + 1;
       return acc;
     },
-    { all: 0, stress: 0, anxiety: 0, mood: 0, esteem: 0, other: 0 }
+    { all: 0, quick: 0, basic: 0, clinical: 0, practices: 0, other: 0 }
   );
 
   const filtered =
     filter === 'all'
       ? enriched
-      : enriched.filter((t) => t.bucket === filter);
+      : enriched.filter((t) => t.catalogFilter === filter);
 
   const sortedFiltered = [...filtered].sort((a, b) => Number(a.test_id) - Number(b.test_id));
 
   if (loading) {
     return (
-      <div className="tests-catalog-page">
+      <div className="tests-catalog-page tests-mock">
         <div className="tests-loading">
           <div className="loading-spinner" />
         </div>
@@ -152,72 +192,60 @@ export const TestsList = () => {
   }
 
   return (
-    <div className="tests-catalog-page tests-paths-page fade-in">
-      <header className="tests-paths-hero">
-        <div className="tests-paths-hero-glow" aria-hidden />
-        <h1 className="tests-paths-title">
-          <span className="tests-paths-title-ico" aria-hidden>
-            <Brain size={28} strokeWidth={2} />
-          </span>
-          Тесты
-        </h1>
-        <p className="tests-paths-lead">
-          Выберите направление — дальше откроется опрос с шагами и полосой прогресса. Результат ориентировочный, не
-          диагноз.
+    <div className="tests-catalog-page tests-mock fade-in">
+      <header className="tests-mock-hero">
+        <h1 className="tests-mock-title">{t('pages.testsTitle')}</h1>
+        <p className="tests-mock-lead">
+          {t('pages.testsLead')}
         </p>
       </header>
 
-      <div className="tests-filter-bar" role="tablist" aria-label="Фильтр по типу опроса">
-        {TEST_FILTER_CHIPS.map(({ id, label, Icon }) => {
+      <div className="tests-mock-chips" role="tablist" aria-label={t('pages.testsFilter')}>
+        {CATALOG_FILTER_CHIPS.map(({ id }) => {
           const count = filterCounts[id] ?? 0;
           const active = filter === id;
+          const showCount = id !== 'all';
           return (
             <button
               key={id}
               type="button"
               role="tab"
               aria-selected={active}
-              className={`tests-filter-chip ${active ? 'tests-filter-chip--active' : ''}`}
+              className={`tests-mock-chip ${active ? 'tests-mock-chip--active' : ''}`}
               onClick={() => setFilter(id)}
             >
-              <span className="tests-filter-chip-ico" aria-hidden>
-                <Icon size={16} strokeWidth={2.2} />
-              </span>
-              <span className="tests-filter-chip-label">{label}</span>
-              <span className="tests-filter-chip-count">{count}</span>
+              {t(`testsFilter.${id}`)}
+              {showCount ? ` (${count})` : ''}
             </button>
           );
         })}
       </div>
 
-      <section className="tests-section-block" aria-label="Быстрый старт">
-        <h2 className="tests-section-title">Быстрый старт</h2>
-        <p className="tests-section-lead">Три направления — откроется первый доступный для вас тест в теме.</p>
-        <div className="tests-paths-grid">
+      <section className="tests-mock-section" aria-label={t('testsUi.quickStartAria')}>
+        <h2 className="tests-mock-section-title">{t('pages.testsQuick')}</h2>
+        <p className="tests-mock-section-lead">{t('pages.testsQuickLead')}</p>
+        <div className="tests-mock-paths">
           {TEST_PATHS.map((path, i) => {
             const chosen = pickTest(tests, path.preferIds);
-            const Illu = path.Illu;
+            const Icon = path.Icon;
             return (
               <article
                 key={path.key}
-                className={`tests-path-card tests-path-card--${path.accent}`}
+                className="tests-mock-path-card"
                 style={{ animationDelay: `${0.06 + i * 0.07}s` }}
               >
-                <div className="tests-path-card-illu" aria-hidden>
-                  <Illu className="tests-path-card-svg" />
-                  <span className="tests-path-card-spark" aria-hidden>
-                    <Sparkles size={18} strokeWidth={2} />
-                  </span>
+                <div className="tests-mock-path-panel" style={{ background: path.panelBg }} aria-hidden>
+                  <Icon className="tests-mock-path-icon" size={40} strokeWidth={2} />
                 </div>
-                <h3 className="tests-path-card-title">{path.title}</h3>
-                <p className="tests-path-card-desc">{path.lead}</p>
+                <h3 className="tests-mock-path-card-title">{t(`testsPath.${path.key}.title`)}</h3>
+                <p className="tests-mock-path-card-desc">{t(`testsPath.${path.key}.lead`)}</p>
                 <button
                   type="button"
-                  className="btn btn-primary tests-path-card-btn"
+                  className="tests-mock-path-btn"
                   disabled={!chosen}
                   onClick={() => chosen && navigate(`/tests/${chosen.test_id}`)}
                 >
-                  Начать опрос
+                  {t('testsUi.goTest')}
                   <ChevronRight size={18} strokeWidth={2.2} />
                 </button>
               </article>
@@ -227,45 +255,45 @@ export const TestsList = () => {
       </section>
 
       {!tests.length && (
-        <p className="tests-paths-fallback">Сейчас нет доступных тестов для вашей роли. Зайдите позже или обратитесь к администратору.</p>
+        <p className="tests-mock-fallback">
+          {t('testsUi.noTests')}
+        </p>
       )}
 
       {tests.length > 0 && (
-        <section className="tests-catalog-section" aria-label="Каталог опросов">
-          <h2 className="tests-section-title">Каталог опросов</h2>
-          <p className="tests-section-lead">
-            Те же карточки, что и выше: тема, число вопросов и категория. Используйте фильтр сверху, чтобы сузить список.
+        <section className="tests-mock-catalog-wrap" aria-label={t('pages.testsCatalog')}>
+          <h2 className="tests-mock-section-title">{t('pages.testsCatalog')}</h2>
+          <p className="tests-mock-section-lead">
+            {t('pages.testsCatalogHint')}
           </p>
 
           {sortedFiltered.length === 0 ? (
-            <p className="tests-catalog-empty">Нет опросов в этой категории. Выберите другой фильтр.</p>
+            <p className="tests-mock-empty">{t('testsUi.emptyFilter')}</p>
           ) : (
-            <div className="tests-catalog-grid">
-              {sortedFiltered.map((t, i) => {
-                const qc = t.question_count != null ? Number(t.question_count) : 0;
+            <div className="tests-mock-catalog-grid">
+              {sortedFiltered.map((row, i) => {
+                const qc = row.question_count != null ? Number(row.question_count) : 0;
                 const disabled = qc === 0;
-                const accent = bucketToAccent(t.bucket);
-                const cat = t.category_name ? String(t.category_name) : 'Опрос';
                 return (
                   <article
-                    key={t.test_id}
-                    className={`tests-catalog-card tests-catalog-card--${accent}`}
+                    key={row.test_id}
+                    className="tests-mock-catalog-card"
                     style={{ animationDelay: `${0.04 + (i % 12) * 0.035}s` }}
                   >
                     <button
                       type="button"
-                      className="tests-catalog-card-inner"
+                      className="tests-mock-catalog-inner"
                       disabled={disabled}
-                      onClick={() => !disabled && navigate(`/tests/${t.test_id}`)}
+                      onClick={() => !disabled && navigate(`/tests/${row.test_id}`)}
                     >
-                      <div className="tests-catalog-card-top" aria-hidden>
-                        <span className="tests-catalog-card-strip" />
-                      </div>
-                      <h3 className="tests-catalog-card-title">{t.title}</h3>
-                      <p className="tests-catalog-card-desc">
-                        {disabled ? 'Вопросы не загружены' : `${qc} вопросов · ${cat}`}
+                      <h3 className="tests-mock-catalog-title">{row.title}</h3>
+                      <p className="tests-mock-catalog-meta">
+                        {disabled ? 'Вопросы не загружены' : questionCountLabel(qc)}
                       </p>
-                      <span className="tests-catalog-card-cta">
+                      <p className="tests-mock-catalog-meta tests-mock-catalog-meta--sub">
+                        {disabled ? '—' : audienceLabel(row)}
+                      </p>
+                      <span className="tests-mock-catalog-cta">
                         {disabled ? 'Недоступно' : 'Открыть'}
                         {!disabled && <ChevronRight size={16} strokeWidth={2.2} />}
                       </span>

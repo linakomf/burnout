@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
 import {
   Camera,
@@ -11,7 +12,6 @@ import {
   Bell,
   Shield,
   Moon,
-  Palette,
   LogOut,
   ChevronRight,
 } from 'lucide-react';
@@ -22,6 +22,7 @@ const NOTIF_KEY = 'burnout_notifications';
 
 const Profile = () => {
   const { user, updateUser, logout } = useAuth();
+  const { t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -88,12 +89,16 @@ const Profile = () => {
     navigate('/login');
   };
 
-  const roleLabel = { student: '🎓 Студент', teacher: '👨‍🏫 Преподаватель', admin: '⚙️ Администратор' };
+  const roleLabel = {
+    student: t('auth.roleStudent'),
+    teacher: t('auth.roleTeacher'),
+    admin: t('pages.roleAdmin'),
+  };
 
   return (
     <div className="profile-page fade-in">
-      <h1 className="page-title">Профиль</h1>
-      <p className="page-sub">Данные аккаунта, настройки приложения и выход</p>
+      <h1 className="page-title">{t('pages.profileTitle')}</h1>
+      <p className="page-sub">{t('pages.profileSub')}</p>
 
       {msg && (
         <div className={`profile-msg profile-msg--banner ${msg.type}`}>
@@ -188,8 +193,8 @@ const Profile = () => {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary save-btn" disabled={loading}>
-              <Save size={16} />
+            <button type="submit" className="profile-btn-save" disabled={loading}>
+              <Save size={16} strokeWidth={2.2} />
               {loading ? 'Сохранение...' : 'Сохранить изменения'}
             </button>
           </form>
@@ -251,31 +256,11 @@ const Profile = () => {
                 <span className="profile-switch-slider" />
               </label>
             </li>
-
-            <li className="profile-setting-row">
-              <span className="profile-setting-icon" aria-hidden>
-                <Palette size={20} strokeWidth={2} />
-              </span>
-              <div className="profile-setting-text">
-                <span className="profile-setting-label">Тема оформления</span>
-                <span className="profile-setting-desc">Акцентные цвета интерфейса</span>
-              </div>
-              <button
-                type="button"
-                className="profile-setting-action"
-                onClick={() =>
-                  setMsg({ type: 'info', text: 'Выбор палитры будет доступен позже. Сейчас доступна тёмная тема выше.' })
-                }
-                aria-label="Тема оформления"
-              >
-                <ChevronRight size={22} />
-              </button>
-            </li>
           </ul>
 
           <div className="profile-settings-footer">
-            <button type="button" className="btn btn-danger profile-logout-btn" onClick={handleLogout}>
-              <LogOut size={18} />
+            <button type="button" className="profile-logout-btn" onClick={handleLogout}>
+              <LogOut size={18} strokeWidth={2.2} />
               Выйти из аккаунта
             </button>
           </div>

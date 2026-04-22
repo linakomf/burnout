@@ -6,12 +6,17 @@
   min-width: 0;
   min-height: 100%;
   min-height: 100dvh;
-  background: linear-gradient(180deg, #e8eef5 0%, #f0f4f8 40%, #eef2f6 100%);
+  /* Единый светло-серый холст с разделами вроде практик/профиля (#f5f5f5) */
+  background: #f5f5f5;
   overflow-x: hidden;
 }
 
 [data-theme='dark'] .layout {
   background: linear-gradient(180deg, #0e1210 0%, #121816 45%, #0f1512 100%);
+}
+
+[data-theme='dark'] .main-content {
+  background: transparent;
 }
 
 .main-content {
@@ -26,7 +31,9 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: fadeIn 0.4s ease;
+  /* opacity-only: иначе transform у анимации ломает position:fixed у потомков (привязка к main) */
+  animation: fadeInOpacity 0.4s ease;
+  background: #f5f5f5;
 }
 
 .layout:has(.sidebar.collapsed) .main-content {

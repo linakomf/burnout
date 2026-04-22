@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 import Layout from './components/Layout/Layout';
 import Landing from './components/Auth/Landing';
 import Login from './components/Auth/Login';
@@ -83,6 +84,7 @@ const App = () => {
   return (
     <div className="app-shell">
     <ThemeProvider>
+    <LanguageProvider>
     <BrowserRouter>
       <div className="app-fill">
       <AuthProvider>
@@ -180,6 +182,7 @@ const App = () => {
       </AuthProvider>
       </div>
     </BrowserRouter>
+    </LanguageProvider>
     </ThemeProvider>
     </div>
   );

@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -12,13 +11,11 @@
     "date-fns": "^3.0.6",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.303.0",
-    "postcss": "^8.5.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.21.1",
     "react-scripts": "5.0.1",
     "recharts": "^2.10.3",
-    "tailwindcss": "^4.2.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

@@ -1,11 +1,26 @@
-/* Аналитика — макет cream / sage / мягкие карточки */
+/* Аналитика — палитра: #4F4F4F #FFC77A #FFB28E #AAB6E0 #F5F4F3 #FFEBB1 #FFD2AD #C8CAF2 */
+
 .analytics-page {
+  --a-text: #4f4f4f;
+  --a-text-soft: #6e6e6e;
+  --a-bg: #f5f4f3;
+  --a-card: #ffffff;
+  --a-peach: #ffb28e;
+  --a-apricot: #ffd2ad;
+  --a-cream: #ffebb1;
+  --a-gold: #ffc77a;
+  --a-peri: #aab6e0;
+  --a-lav: #c8caf2;
+  --a-line: rgba(79, 79, 79, 0.1);
+
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 12px 8px 48px;
+  padding: 16px 12px 48px;
   box-sizing: border-box;
+  /* Фон совпадает с main-content — без отдельного «блока» */
   background: transparent;
+  border-radius: 0;
   min-height: calc(100dvh - 48px);
 }
 
@@ -14,6 +29,8 @@
   align-items: center;
   justify-content: center;
   min-height: 50vh;
+  background: transparent;
+  border-radius: 0;
 }
 
 .analytics-header {
@@ -28,55 +45,55 @@
 .analytics-title {
   font-size: 32px;
   font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text-dark);
+  letter-spacing: -0.03em;
+  color: var(--a-text);
   margin: 0 0 6px;
 }
 
 .analytics-subtitle {
   margin: 0;
   font-size: 15px;
-  color: var(--text-light);
+  color: var(--a-text-soft);
   font-weight: 500;
 }
 
 .analytics-segment {
   display: inline-flex;
-  padding: 4px;
-  background: var(--bg-card);
-  border-radius: 14px;
-  box-shadow: 0 2px 14px rgba(26, 29, 36, 0.06);
-  border: 1px solid var(--border);
+  padding: 5px;
+  background: var(--a-card);
+  border-radius: 16px;
+  box-shadow: none;
+  border: 1px solid var(--a-line);
 }
 
 .analytics-segment-btn {
   border: none;
   background: transparent;
   padding: 10px 20px;
-  border-radius: 11px;
+  border-radius: 12px;
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-mid);
+  color: var(--a-text-soft);
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
 
 .analytics-segment-btn:hover {
-  color: var(--text-dark);
+  color: var(--a-text);
 }
 
 .analytics-segment-btn.active {
-  background: var(--text-dark);
-  color: var(--bg);
-  box-shadow: 0 4px 14px rgba(26, 29, 36, 0.2);
+  background: var(--a-text);
+  color: #ffffff;
+  box-shadow: none;
 }
 
-/* KPI */
+/* KPI — мягкие градиенты по карточкам */
 .analytics-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
+  gap: 16px;
   margin-bottom: 22px;
 }
 
@@ -93,18 +110,33 @@
 }
 
 .analytics-kpi-card {
-  background: var(--bg-card);
-  border-radius: 22px;
-  padding: 20px 22px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 24px rgba(26, 29, 36, 0.06);
+  border-radius: 24px;
+  padding: 20px 20px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: none;
+}
+
+.analytics-kpi-grid .analytics-kpi-card:nth-child(1) {
+  background: linear-gradient(155deg, #ffd2ad 0%, #c8caf2 100%);
+}
+
+.analytics-kpi-grid .analytics-kpi-card:nth-child(2) {
+  background: linear-gradient(155deg, #ffebb1 0%, #c8caf2 95%);
+}
+
+.analytics-kpi-grid .analytics-kpi-card:nth-child(3) {
+  background: linear-gradient(155deg, #ffb28e 0%, #ffc77a 100%);
+}
+
+.analytics-kpi-grid .analytics-kpi-card:nth-child(4) {
+  background: linear-gradient(155deg, #aab6e0 0%, #ffd2ad 100%);
 }
 
 .analytics-kpi-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .analytics-kpi-icon {
@@ -114,41 +146,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--a-text);
+  box-shadow: none;
 }
 
-.analytics-kpi-icon--mood {
-  background: rgba(163, 198, 23, 0.18);
-  color: #6a8010;
-}
-
-.analytics-kpi-icon--stress {
-  background: rgba(255, 179, 71, 0.2);
-  color: #c97d3a;
-}
-
-.analytics-kpi-icon--anxiety {
-  background: rgba(157, 139, 255, 0.18);
-  color: #6b5bb5;
-}
-
+.analytics-kpi-icon--mood,
+.analytics-kpi-icon--stress,
+.analytics-kpi-icon--anxiety,
 .analytics-kpi-icon--energy {
-  background: rgba(199, 91, 138, 0.12);
-  color: #b04a78;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--a-text);
 }
 
 .analytics-kpi-label {
   margin: 0 0 6px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-light);
+  color: var(--a-text);
+  opacity: 0.85;
 }
 
 .analytics-kpi-value {
   margin: 0;
   font-size: 30px;
   font-weight: 800;
-  color: var(--text-dark);
-  letter-spacing: -0.02em;
+  color: var(--a-text);
+  letter-spacing: -0.03em;
 }
 
 .analytics-kpi-delta {
@@ -162,20 +186,20 @@
 }
 
 .analytics-kpi-delta.pos {
-  background: rgba(163, 198, 23, 0.2);
-  color: #5a7010;
+  background: rgba(255, 255, 255, 0.75);
+  color: #3d5a3a;
 }
 
 .analytics-kpi-delta.neg {
-  background: #fdeaea;
-  color: #b54545;
+  background: rgba(255, 255, 255, 0.8);
+  color: #8b4a4a;
 }
 
-/* Charts row */
+/* Charts */
 .analytics-charts-row {
   display: grid;
   grid-template-columns: 1.55fr 1fr;
-  gap: 20px;
+  gap: 18px;
   margin-bottom: 28px;
   align-items: stretch;
 }
@@ -187,11 +211,83 @@
 }
 
 .analytics-card {
-  background: var(--bg-card);
+  background: var(--a-card);
+  border-radius: 24px;
+  padding: 22px 22px 20px;
+  border: 1px solid var(--a-line);
+  box-shadow: none;
+}
+
+/* Блок «Динамика настроения» — как макет: светлая карточка, столбцы #D1D5FA */
+.analytics-card--mood-chart {
+  background: #f9f9f9;
+  border: 1px solid #1a1a1a;
   border-radius: 22px;
-  padding: 22px 24px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 24px rgba(26, 29, 36, 0.06);
+  padding: 20px 18px 18px;
+  box-shadow: none;
+}
+
+.analytics-mood-chart-title {
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  color: #111111;
+  margin: 0 0 10px;
+}
+
+.analytics-mood-chart-sub {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 500;
+  color: #888888;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.analytics-mood-chart-area {
+  margin-top: 16px;
+  margin-left: 2px;
+  padding: 4px 4px 0 10px;
+  border-left: 2px solid #c8c8c8;
+  border-bottom: 2px solid #c8c8c8;
+  min-height: 268px;
+}
+
+.analytics-mood-tooltip {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111111;
+  box-shadow: none;
+}
+
+[data-theme='dark'] .analytics-card--mood-chart {
+  background: color-mix(in srgb, var(--a-card) 94%, #000);
+  border-color: var(--border);
+}
+
+[data-theme='dark'] .analytics-mood-chart-title {
+  color: var(--a-text);
+}
+
+[data-theme='dark'] .analytics-mood-chart-sub {
+  color: var(--a-text-soft);
+}
+
+[data-theme='dark'] .analytics-mood-chart-area {
+  border-left-color: var(--border);
+  border-bottom-color: var(--border);
+}
+
+[data-theme='dark'] .analytics-mood-tooltip {
+  background: var(--bg-card);
+  border-color: var(--border);
+  color: var(--a-text);
 }
 
 .analytics-card-head {
@@ -200,14 +296,15 @@
 
 .analytics-card-title {
   margin: 0 0 4px;
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--a-text);
+  letter-spacing: -0.02em;
 }
 
 .analytics-card-meta {
   font-size: 13px;
-  color: var(--text-light);
+  color: var(--a-text-soft);
   font-weight: 500;
 }
 
@@ -221,12 +318,12 @@
   min-height: 280px;
 }
 
-/* Insights */
 .analytics-section-title {
-  font-size: 18px;
+  font-size: 21px;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--a-text);
   margin: 0 0 16px;
+  letter-spacing: -0.025em;
 }
 
 .analytics-insights {
@@ -236,7 +333,7 @@
 .analytics-insights-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
+  gap: 16px;
 }
 
 @media (max-width: 900px) {
@@ -246,70 +343,77 @@
 }
 
 .analytics-insight {
-  border-radius: 20px;
+  border-radius: 22px;
   padding: 20px 22px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 20px rgba(26, 29, 36, 0.05);
+  border: 1px solid var(--a-line);
+  box-shadow: none;
 }
 
 .analytics-insight--good {
-  background: linear-gradient(145deg, var(--primary-light) 0%, var(--bg-card) 100%);
+  background: linear-gradient(160deg, #ffebb1 0%, #ffffff 72%);
 }
 
 .analytics-insight--warn {
-  background: linear-gradient(145deg, color-mix(in srgb, var(--secondary) 40%, var(--bg-card)) 0%, var(--bg-card) 100%);
+  background: linear-gradient(160deg, #ffd2ad 0%, #ffffff 75%);
 }
 
 .analytics-insight--tip {
-  background: linear-gradient(145deg, color-mix(in srgb, var(--bg) 70%, var(--border)) 0%, var(--bg-card) 100%);
+  background: linear-gradient(160deg, #c8caf2 0%, #ffffff 78%);
 }
 
-.analytics-insight-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+.analytics-insight-sticker {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  font-size: 28px;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  transform: rotate(-3deg);
 }
 
-.analytics-insight--good .analytics-insight-icon {
-  background: rgba(163, 198, 23, 0.18);
-  color: #6a8010;
+.analytics-insight--good .analytics-insight-sticker {
+  background: linear-gradient(145deg, #fff8e0 0%, #ffebb1 100%);
+  box-shadow: none;
 }
 
-.analytics-insight--warn .analytics-insight-icon {
-  background: #fff0e0;
-  color: #c97d3a;
+.analytics-insight--warn .analytics-insight-sticker {
+  background: linear-gradient(145deg, #fff0e0 0%, #ffd2ad 100%);
+  box-shadow: none;
+  transform: rotate(2deg);
 }
 
-.analytics-insight--tip .analytics-insight-icon {
-  background: rgba(157, 139, 255, 0.15);
-  color: #6b5bb5;
+.analytics-insight--tip .analytics-insight-sticker {
+  background: linear-gradient(145deg, #f0f0ff 0%, #c8caf2 100%);
+  box-shadow: none;
+  transform: rotate(-2deg);
 }
 
 .analytics-insight-title {
   margin: 0 0 8px;
   font-size: 16px;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--a-text);
 }
 
 .analytics-insight-text {
   margin: 0;
   font-size: 14px;
   line-height: 1.55;
-  color: var(--text-mid);
+  color: var(--a-text-soft);
 }
 
-/* Donuts */
 .analytics-activity {
   margin-bottom: 28px;
 }
 
 .analytics-donuts-card {
-  padding: 28px 20px 32px;
+  padding: 28px 18px 32px;
 }
 
 .analytics-donuts-row {
@@ -340,13 +444,13 @@
 
 .analytics-donut-track {
   fill: none;
-  stroke: var(--border);
-  stroke-width: 10;
+  stroke: rgba(79, 79, 79, 0.12);
+  stroke-width: 12;
 }
 
 .analytics-donut-fill {
   fill: none;
-  stroke-width: 10;
+  stroke-width: 12;
   stroke-linecap: round;
   transition: stroke-dasharray 0.5s ease;
 }
@@ -364,25 +468,24 @@
 .analytics-donut-ratio {
   font-size: 15px;
   font-weight: 800;
-  color: var(--text-dark);
+  color: var(--a-text);
 }
 
 .analytics-donut-pct {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-light);
+  color: var(--a-text-soft);
 }
 
 .analytics-donut-label {
   margin-top: 12px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-mid);
+  color: var(--a-text-soft);
   max-width: 140px;
   line-height: 1.35;
 }
 
-/* Week summary */
 .analytics-week-summary {
   margin-bottom: 24px;
 }
@@ -391,10 +494,10 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0;
-  background: var(--bg-card);
-  border-radius: 22px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 24px rgba(26, 29, 36, 0.06);
+  background: var(--a-card);
+  border-radius: 24px;
+  border: 1px solid var(--a-line);
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -405,25 +508,31 @@
 }
 
 .analytics-summary-col {
-  padding: 26px 28px;
+  padding: 26px 26px;
 }
 
 .analytics-summary-col--good {
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--a-line);
+  background: linear-gradient(180deg, rgba(255, 235, 177, 0.25) 0%, transparent 55%);
 }
 
 @media (max-width: 720px) {
   .analytics-summary-col--good {
     border-right: none;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--a-line);
   }
+}
+
+.analytics-summary-col--goals {
+  background: linear-gradient(180deg, rgba(200, 202, 242, 0.2) 0%, transparent 50%);
 }
 
 .analytics-summary-heading {
   margin: 0 0 16px;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--a-text);
+  letter-spacing: -0.02em;
 }
 
 .analytics-summary-list {
@@ -441,12 +550,12 @@
   gap: 10px;
   font-size: 14px;
   line-height: 1.45;
-  color: var(--text-mid);
+  color: var(--a-text-soft);
 }
 
 .analytics-summary-check {
   flex-shrink: 0;
-  color: #a3c617;
+  color: var(--a-peri);
   margin-top: 2px;
 }
 
@@ -458,15 +567,74 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #e8a87c;
+  background: var(--a-peach);
   flex-shrink: 0;
 }
 
-[data-theme='dark'] .analytics-kpi-delta.neg {
-  background: #3d2224;
-  color: #f0a0a0;
+/* Тёмная тема */
+[data-theme='dark'] .analytics-page {
+  --a-text: var(--text-dark, #f1f5f9);
+  --a-text-soft: var(--text-mid, #94a3b8);
+  --a-bg: color-mix(in srgb, var(--bg-card, #1e293b) 40%, var(--bg, #0f172a));
+  --a-card: var(--bg-card, #1e293b);
+  --a-line: var(--border, rgba(255, 255, 255, 0.1));
 }
-[data-theme='dark'] .analytics-insight--warn .analytics-insight-icon {
-  background: color-mix(in srgb, #c97d3a 25%, var(--bg-card));
-  color: #e8b88a;
+
+[data-theme='dark'] .analytics-kpi-grid .analytics-kpi-card:nth-child(1) {
+  background: linear-gradient(155deg, color-mix(in srgb, #ffd2ad 35%, var(--bg-card)) 0%, color-mix(in srgb, #c8caf2 25%, var(--bg-card)) 100%);
+}
+
+[data-theme='dark'] .analytics-kpi-grid .analytics-kpi-card:nth-child(2) {
+  background: linear-gradient(155deg, color-mix(in srgb, #ffebb1 30%, var(--bg-card)) 0%, color-mix(in srgb, #c8caf2 22%, var(--bg-card)) 100%);
+}
+
+[data-theme='dark'] .analytics-kpi-grid .analytics-kpi-card:nth-child(3) {
+  background: linear-gradient(155deg, color-mix(in srgb, #ffb28e 35%, var(--bg-card)) 0%, color-mix(in srgb, #ffc77a 25%, var(--bg-card)) 100%);
+}
+
+[data-theme='dark'] .analytics-kpi-grid .analytics-kpi-card:nth-child(4) {
+  background: linear-gradient(155deg, color-mix(in srgb, #aab6e0 30%, var(--bg-card)) 0%, color-mix(in srgb, #ffd2ad 20%, var(--bg-card)) 100%);
+}
+
+[data-theme='dark'] .analytics-kpi-delta.pos {
+  background: rgba(34, 60, 40, 0.5);
+  color: #b8e0b8;
+}
+
+[data-theme='dark'] .analytics-kpi-delta.neg {
+  background: rgba(80, 40, 40, 0.45);
+  color: #f0b0b0;
+}
+
+[data-theme='dark'] .analytics-insight--good {
+  background: linear-gradient(160deg, color-mix(in srgb, #ffebb1 25%, var(--bg-card)) 0%, var(--bg-card) 72%);
+}
+
+[data-theme='dark'] .analytics-insight--warn {
+  background: linear-gradient(160deg, color-mix(in srgb, #ffd2ad 28%, var(--bg-card)) 0%, var(--bg-card) 75%);
+}
+
+[data-theme='dark'] .analytics-insight--tip {
+  background: linear-gradient(160deg, color-mix(in srgb, #c8caf2 22%, var(--bg-card)) 0%, var(--bg-card) 78%);
+}
+
+[data-theme='dark'] .analytics-insight-sticker {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--bg-card) 88%, #fff);
+  box-shadow: none;
+}
+
+[data-theme='dark'] .analytics-summary-col--good {
+  background: linear-gradient(180deg, rgba(255, 235, 177, 0.08) 0%, transparent 55%);
+}
+
+[data-theme='dark'] .analytics-summary-col--goals {
+  background: linear-gradient(180deg, rgba(200, 202, 242, 0.1) 0%, transparent 50%);
+}
+
+/* Recharts: убираем тень у встроенного тултипа */
+.analytics-page .recharts-tooltip-wrapper,
+.analytics-page .recharts-default-tooltip {
+  box-shadow: none !important;
+  filter: none !important;
 }

@@ -114,7 +114,11 @@ export function deriveOverallMood({ joy, anxiety, stress }) {
     return { emoji: '😊', label: 'Хорошо', sub: 'Позитивный настрой заметен' };
   }
   if (stress < 40 && anxiety < 40 && joy >= 35) {
-    return { emoji: '😌', label: 'Спокойно', sub: 'Состояние ровное' };
+    return {
+      emoji: '😌',
+      label: 'Спокойно',
+      sub: 'Эмоции ровные. Стресс не превышает норму.',
+    };
   }
   if (joy > stress && joy > anxiety) {
     return { emoji: '🙂', label: 'Стабильно', sub: 'Больше ресурса, чем давления' };

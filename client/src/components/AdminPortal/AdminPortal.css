@@ -1,7 +1,9 @@
+/* Админ-портал: тёмный фон + лавандовый акцент (единая гамма с приложением) */
+
 .admin-portal-root {
   min-height: 100vh;
-  background: linear-gradient(160deg, #0f1419 0%, #1a2332 45%, #121820 100%);
-  color: #e8eaed;
+  background: linear-gradient(160deg, #101018 0%, #1a1828 40%, #12101c 100%);
+  color: #e8e8f0;
   font-family: 'Plus Jakarta Sans', 'Nunito', system-ui, sans-serif;
 }
 
@@ -30,12 +32,12 @@
   font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: #f5f5fb;
 }
 
 .admin-portal-brand p {
   font-size: 0.9rem;
-  color: #8b9aab;
+  color: #9a9ab0;
   max-width: 520px;
   line-height: 1.5;
 }
@@ -67,34 +69,35 @@
 }
 
 .admin-portal-btn-primary {
-  background: linear-gradient(135deg, #5b8def 0%, #7c5cff 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #c4c8fa 0%, #8b90e0 100%);
+  color: #121218;
 }
 
 .admin-portal-btn-ghost {
-  background: rgba(255, 255, 255, 0.08);
-  color: #e8eaed;
+  background: rgba(208, 210, 248, 0.1);
+  color: #e0e0f4;
+  border: 1px solid rgba(208, 210, 248, 0.18);
 }
 
 .admin-portal-login-card {
   max-width: 400px;
   margin: 48px auto;
   padding: 32px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(208, 210, 248, 0.14);
   border-radius: 16px;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
 }
 
 .admin-portal-login-card h2 {
   font-size: 1.25rem;
   margin-bottom: 8px;
-  color: #fff;
+  color: #f5f5fb;
 }
 
 .admin-portal-login-card .hint {
   font-size: 0.8rem;
-  color: #6b7c8f;
+  color: #8b8b9d;
   margin-bottom: 22px;
   line-height: 1.45;
 }
@@ -109,7 +112,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #8b9aab;
+  color: #9a9ab0;
   margin-bottom: 8px;
 }
 
@@ -117,17 +120,17 @@
   width: 100%;
   padding: 12px 14px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.25);
-  color: #fff;
+  border: 1px solid rgba(208, 210, 248, 0.15);
+  background: rgba(0, 0, 0, 0.28);
+  color: #f5f5fb;
   font-size: 1rem;
   font-family: inherit;
 }
 
 .admin-portal-field input:focus {
   outline: none;
-  border-color: #7c5cff;
-  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.2);
+  border-color: #a8acf0;
+  box-shadow: 0 0 0 3px rgba(200, 204, 248, 0.18);
 }
 
 .admin-portal-error {
@@ -144,8 +147,8 @@
 }
 
 .admin-portal-stat {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(208, 210, 248, 0.12);
   border-radius: 14px;
   padding: 18px 20px;
 }
@@ -153,20 +156,20 @@
 .admin-portal-stat .val {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #fff;
+  color: #f5f5fb;
   letter-spacing: -0.02em;
 }
 
 .admin-portal-stat .lbl {
   font-size: 0.8rem;
-  color: #8b9aab;
+  color: #9a9ab0;
   margin-top: 6px;
   font-weight: 600;
 }
 
 .admin-portal-section {
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(208, 210, 248, 0.1);
   border-radius: 16px;
   padding: 22px;
   margin-bottom: 20px;
@@ -175,7 +178,7 @@
 .admin-portal-section h3 {
   font-size: 1rem;
   font-weight: 800;
-  color: #fff;
+  color: #f5f5fb;
   margin-bottom: 16px;
 }
 
@@ -192,18 +195,18 @@
 .admin-portal-table th {
   text-align: left;
   padding: 10px 12px;
-  color: #8b9aab;
+  color: #9a9ab0;
   font-weight: 700;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(208, 210, 248, 0.12);
 }
 
 .admin-portal-table td {
   padding: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  color: #d1d6de;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #d4d4e5;
 }
 
 .admin-portal-table tr:last-child td {
@@ -219,8 +222,8 @@
 }
 
 .admin-portal-chip.student {
-  background: rgba(91, 141, 239, 0.2);
-  color: #9dbefc;
+  background: rgba(154, 159, 212, 0.22);
+  color: #c5c8fa;
 }
 
 .admin-portal-chip.teacher {
@@ -241,7 +244,7 @@
 .admin-portal-loading {
   text-align: center;
   padding: 48px;
-  color: #8b9aab;
+  color: #9a9ab0;
 }
 
 .admin-portal-two-col {

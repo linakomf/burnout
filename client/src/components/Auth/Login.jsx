@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
+import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
 import { Brain, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import './Auth.css';
 
@@ -10,6 +12,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -24,7 +27,7 @@ const Login = () => {
       else if (!user.onboarding_burnout_completed) navigate('/onboarding/burnout', { replace: true });
       else navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Ошибка входа');
+      setError(err.response?.data?.message || t('auth.errLogin'));
     } finally {
       setLoading(false);
     }
@@ -39,13 +42,16 @@ const Login = () => {
       </div>
 
       <div className="auth-card fade-in">
+        <div className="auth-lang-bar">
+          <LanguageSwitcher className="lang-switch--on-light-bg" />
+        </div>
         <div className="auth-logo">
           <div className="auth-logo-icon"><Brain size={26} /></div>
           <span>Burnout</span>
         </div>
 
-        <h1 className="auth-title">Добро пожаловать</h1>
-        <p className="auth-subtitle">Войдите в систему психологической поддержки</p>
+        <h1 className="auth-title">{t('auth.loginTitle')}</h1>
+        <p className="auth-subtitle">{t('auth.loginSubtitle')}</p>
 
         {error && (
           <div className="auth-error">
@@ -56,7 +62,7 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label>Email</label>
+            <label>{t('auth.labelEmail')}</label>
             <input
               className="input"
               type="email"
@@ -69,13 +75,13 @@ const Login = () => {
           </div>
 
           <div className="form-group">
-            <label>Пароль</label>
+            <label>{t('auth.labelPassword')}</label>
             <div className="input-wrapper">
               <input
                 className="input"
                 type={showPass ? 'text' : 'password'}
                 name="password"
-                placeholder="Ваш пароль"
+                placeholder={t('auth.phPassword')}
                 value={form.password}
                 onChange={handleChange}
                 required
@@ -87,13 +93,13 @@ const Login = () => {
           </div>
 
           <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
-            {loading ? 'Вход...' : 'Войти'}
+            {loading ? t('auth.submitLoginL') : t('auth.submitLogin')}
           </button>
         </form>
 
         <p className="auth-switch">
-          Нет аккаунта?{' '}
-          <Link to="/register">Зарегистрироваться</Link>
+          {t('auth.noAccount')}{' '}
+          <Link to="/register">{t('auth.linkReg')}</Link>
         </p>
       </div>
     </div>

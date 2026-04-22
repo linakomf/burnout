@@ -8,15 +8,15 @@ export function IlluHealing({ className }) {
         <linearGradient id={`h-bg-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#fff5f7" />
           <stop offset="50%" stopColor="#f0f9ff" />
-          <stop offset="100%" stopColor="#f7fee7" />
+          <stop offset="100%" stopColor="#f0edfa" />
         </linearGradient>
         <radialGradient id={`h-blob1-${uid}`} cx="40%" cy="35%" r="55%">
           <stop offset="0%" stopColor="#fecdd3" stopOpacity="0.55" />
           <stop offset="100%" stopColor="#fecdd3" stopOpacity="0" />
         </radialGradient>
         <radialGradient id={`h-blob2-${uid}`} cx="70%" cy="60%" r="50%">
-          <stop offset="0%" stopColor="#d9f99d" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#d9f99d" stopOpacity="0" />
+          <stop offset="0%" stopColor="#c7d2fe" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#c7d2fe" stopOpacity="0" />
         </radialGradient>
         <linearGradient id={`h-heart-${uid}`} x1="30%" y1="0%" x2="70%" y2="100%">
           <stop offset="0%" stopColor="#fda4af" />
@@ -32,7 +32,7 @@ export function IlluHealing({ className }) {
         opacity="0.88"
       />
       <circle cx="52" cy="56" r="4" fill="#fda4af" opacity="0.5" />
-      <circle cx="152" cy="64" r="3" fill="#a3c617" opacity="0.4" />
+      <circle cx="152" cy="64" r="3" fill="#8b7ec8" opacity="0.45" />
       <circle cx="44" cy="140" r="3.5" fill="#93c5fd" opacity="0.45" />
     </svg>
   );
@@ -44,8 +44,8 @@ export function IlluDiscovery({ className }) {
     <svg className={className} viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <defs>
         <linearGradient id={`d-bg-${uid}`} x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#ecfeff" />
-          <stop offset="45%" stopColor="#f0fdf4" />
+          <stop offset="0%" stopColor="#f0f4ff" />
+          <stop offset="45%" stopColor="#f5f3ff" />
           <stop offset="100%" stopColor="#fffbeb" />
         </linearGradient>
         <linearGradient id={`d-sun-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -53,8 +53,8 @@ export function IlluDiscovery({ className }) {
           <stop offset="100%" stopColor="#fde68a" />
         </linearGradient>
         <linearGradient id={`d-hill-${uid}`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#bbf7d0" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="#86efac" stopOpacity="0.25" />
+          <stop offset="0%" stopColor="#c4b8e8" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#a5b4fc" stopOpacity="0.2" />
         </linearGradient>
       </defs>
       <rect width="200" height="200" rx="36" fill={`url(#d-bg-${uid})`} />
@@ -69,7 +69,7 @@ export function IlluDiscovery({ className }) {
       })}
       <circle cx="48" cy="118" r="6" fill="#a5f3fc" opacity="0.6" />
       <circle cx="152" cy="124" r="5" fill="#c4b5fd" opacity="0.45" />
-      <circle cx="100" cy="148" r="4" fill="#a3c617" opacity="0.35" />
+      <circle cx="100" cy="148" r="4" fill="#8b7ec8" opacity="0.4" />
     </svg>
   );
 }
@@ -81,7 +81,7 @@ export function IlluInsight({ className }) {
       <defs>
         <linearGradient id={`i-bg-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#eff6ff" />
-          <stop offset="50%" stopColor="#f0fdf4" />
+          <stop offset="50%" stopColor="#f5f3ff" />
           <stop offset="100%" stopColor="#fff7ed" />
         </linearGradient>
         <radialGradient id={`i-glow-${uid}`} cx="50%" cy="42%" r="45%">
@@ -89,8 +89,8 @@ export function IlluInsight({ className }) {
           <stop offset="100%" stopColor="#fef08a" stopOpacity="0" />
         </radialGradient>
         <linearGradient id={`i-star-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#ecfccb" />
-          <stop offset="100%" stopColor="#a3c617" />
+          <stop offset="0%" stopColor="#e8e4fc" />
+          <stop offset="100%" stopColor="#7a6bc9" />
         </linearGradient>
       </defs>
       <rect width="200" height="200" rx="36" fill={`url(#i-bg-${uid})`} />
@@ -103,8 +103,8 @@ export function IlluInsight({ className }) {
       <circle cx="52" cy="64" r="3" fill="#7dd3fc" opacity="0.55" />
       <circle cx="156" cy="72" r="2.5" fill="#fda4af" opacity="0.5" />
       <circle cx="44" cy="120" r="2.5" fill="#c4b5fd" opacity="0.45" />
-      <circle cx="160" cy="132" r="3" fill="#a3c617" opacity="0.35" />
-      <ellipse cx="100" cy="168" rx="40" ry="8" fill="rgba(163,198,23,0.12)" />
+      <circle cx="160" cy="132" r="3" fill="#8b7ec8" opacity="0.4" />
+      <ellipse cx="100" cy="168" rx="40" ry="8" fill="rgba(106, 95, 201, 0.14)" />
     </svg>
   );
 }

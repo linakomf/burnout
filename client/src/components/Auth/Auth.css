@@ -59,6 +59,12 @@
   box-sizing: border-box;
 }
 
+.auth-lang-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
 .auth-logo {
   display: flex;
   align-items: center;

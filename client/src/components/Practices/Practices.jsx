@@ -1,41 +1,37 @@
 import React, { useMemo, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Flower2, LayoutGrid, Moon, Sparkles, Wind, Zap } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 import PracticeCard from './PracticeCard';
 import PracticeModal from './PracticeModal';
 import { PRACTICE_CATEGORIES, PRACTICES } from './practicesData';
-import '../Tests/Tests.css';
 import './Practices.css';
 
-const CATEGORY_ICONS = {
-  all: LayoutGrid,
-  breath: Wind,
-  focus: Zap,
-  grounding: Sparkles,
-  restore: Flower2,
-  sleep: Moon,
+const CHIP_PASTEL = {
+  all: null,
+  breath: 'practices-chip--breath',
+  focus: 'practices-chip--meditation',
+  grounding: 'practices-chip--reflection',
+  video: 'practices-chip--video',
 };
 
+function matchCategory(practice, activeCategory) {
+  if (activeCategory === 'all') return true;
+  if (activeCategory === 'video') {
+    return practice.category === 'restore' || practice.category === 'sleep';
+  }
+  return practice.category === activeCategory;
+}
+
 function Practices() {
+  const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState('all');
   const [favorites, setFavorites] = useState(() => new Set(['night-exhale', 'focus-single']));
   const [selectedPractice, setSelectedPractice] = useState(null);
 
   const practicesByCategory = useMemo(
-    () =>
-      PRACTICES.filter(
-        (practice) => activeCategory === 'all' || practice.category === activeCategory
-      ),
+    () => PRACTICES.filter((practice) => matchCategory(practice, activeCategory)),
     [activeCategory]
   );
-
-  const categoryCounts = useMemo(() => {
-    const counts = { all: PRACTICES.length };
-    PRACTICES.forEach((practice) => {
-      counts[practice.category] = (counts[practice.category] || 0) + 1;
-    });
-    return counts;
-  }, []);
 
   const toggleFavorite = (practiceId) => {
     setFavorites((prev) => {
@@ -47,69 +43,46 @@ function Practices() {
   };
 
   return (
-    <div className="tests-catalog-page tests-paths-page fade-in">
-      <header className="tests-paths-hero">
-        <div className="tests-paths-hero-glow" aria-hidden />
-        <h1 className="tests-paths-title">
-          <span className="tests-paths-title-ico" aria-hidden>
-            <Flower2 size={28} strokeWidth={2} />
-          </span>
-          Практики
-        </h1>
-        <p className="tests-paths-lead">
-          Формат такой же, как в тестах: фильтры, аккуратные карточки и быстрый запуск.
-        </p>
+    <div className="practices-page fade-in">
+      <header className="practices-hero">
+        <h1 className="practices-title">{t('pages.practicesTitle')}</h1>
+        <p className="practices-subtitle">{t('pages.practicesSub')}</p>
       </header>
 
-      <div className="tests-filter-bar" role="tablist" aria-label="Фильтр практик">
+      <div className="practices-chips" role="tablist" aria-label={t('pages.practicesFilter')}>
         {PRACTICE_CATEGORIES.map((category) => {
-          const Icon = CATEGORY_ICONS[category.id] || LayoutGrid;
           const isActive = activeCategory === category.id;
+          const pastel = CHIP_PASTEL[category.id];
           return (
             <button
               key={category.id}
               type="button"
               role="tab"
               aria-selected={isActive}
-              className={`tests-filter-chip ${isActive ? 'tests-filter-chip--active' : ''}`}
+              className={`practices-chip ${pastel || ''} ${isActive ? 'practices-chip--active' : ''}`}
               onClick={() => setActiveCategory(category.id)}
             >
-              <span className="tests-filter-chip-ico" aria-hidden>
-                <Icon size={16} strokeWidth={2.2} />
-              </span>
-              <span className="tests-filter-chip-label">{category.label}</span>
-              <span className="tests-filter-chip-count">{categoryCounts[category.id] || 0}</span>
+              {t(`practiceCats.${category.id}`)}
             </button>
           );
         })}
       </div>
 
-      <section className="tests-catalog-section practices-catalog-section" aria-label="Каталог практик">
-        <h2 className="tests-section-title">Каталог практик</h2>
-        <p className="tests-section-lead">Выбирайте карточку как в разделе тестов, но с запуском мини-сессии.</p>
+      <div className="practices-section-head">
+        <h2 className="practices-section-title">{t('pages.practicesShort')}</h2>
+      </div>
 
-        <div className="tests-catalog-grid">
-          {practicesByCategory.map((practice, index) => (
-            <PracticeCard
-              key={practice.id}
-              practice={practice}
-              isFavorite={favorites.has(practice.id)}
-              onToggleFavorite={toggleFavorite}
-              onPlay={setSelectedPractice}
-              index={index}
-            />
-          ))}
-        </div>
-      </section>
-
-      <div className="practices-footer-note card">
-        <div className="practices-footer-row">
-          <Flower2 size={16} />
-          <span>{PRACTICES.length} практик в библиотеке</span>
-          <span className="practices-dot" />
-          <Wind size={16} />
-          <span>{favorites.size} в избранном</span>
-        </div>
+      <div className="practices-grid">
+        {practicesByCategory.map((practice, index) => (
+          <PracticeCard
+            key={practice.id}
+            practice={practice}
+            isFavorite={favorites.has(practice.id)}
+            onToggleFavorite={toggleFavorite}
+            onPlay={setSelectedPractice}
+            index={index}
+          />
+        ))}
       </div>
 
       <AnimatePresence>
