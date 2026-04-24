@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const { ensurePracticeSchema } = require('./ensurePracticeSchema');
+const { ensurePsychologistSchema } = require('./ensurePsychologistSchema');
 const { ensureOnboardingSchema } = require('./ensureOnboardingSchema');
 const { ensurePersonalizationSchema } = require('./ensurePersonalizationSchema');
 const { ensureTestSchema } = require('./ensureTestSchema');
@@ -51,6 +52,7 @@ app.get('/api/health', (req, res) => {
 Promise.resolve()
   .then(() => pool.query('SELECT 1'))
   .then(() => ensurePracticeSchema())
+  .then(() => ensurePsychologistSchema())
   .then(() => ensureOnboardingSchema())
   .then(() => ensurePersonalizationSchema())
   .then(() => ensureTestSchema())

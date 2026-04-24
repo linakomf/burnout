@@ -19,7 +19,6 @@ function PracticeTimer({ practice, onComplete, onStop }) {
     setIsPaused(false);
     setIsDone(false);
   }, [practice.id]);
-
   useEffect(() => {
     if (isPaused || isDone) return undefined;
     const id = setInterval(() => {

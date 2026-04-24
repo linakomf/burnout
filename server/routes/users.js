@@ -20,6 +20,7 @@ const PERSONALIZATION_ALLOWED = new Set([
   'nature',
   'structure',
 ]);
+const PSY_REQUEST_CONTACT_METHODS = new Set(['phone', 'telegram', 'email', 'whatsapp', 'other']);
 
 function parseUserId(value) {
   const userId = parseInt(String(value), 10);
@@ -52,6 +53,10 @@ function validateDailyLikes(likes) {
     return 'Неизвестный вариант';
   }
   return null;
+}
+
+function normalizeString(value, maxLen = 255) {
+  return String(value || '').trim().slice(0, maxLen);
 }
 
 // Multer setup for avatar uploads
@@ -208,6 +213,45 @@ router.post('/daily-personalization', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('[daily-personalization]', err.code, err.message);
     res.status(500).json({ message: buildSaveErrorMessage(err) });
+  }
+});
+
+// POST /api/users/psychologist-request — отправка заявки на связь с психологом
+router.post('/psychologist-request', authMiddleware, async (req, res) => {
+  const userId = parseUserId(req.user.user_id);
+  if (userId == null) {
+    return res.status(400).json({ message: 'Некорректная сессия — войдите снова' });
+  }
+
+  const contactMethod = normalizeString(req.body?.contactMethod, 20).toLowerCase();
+  const contactValue = normalizeString(req.body?.contactValue, 160);
+  const preferredTime = normalizeString(req.body?.preferredTime, 120);
+  const message = normalizeString(req.body?.message, 2000);
+
+  if (!PSY_REQUEST_CONTACT_METHODS.has(contactMethod)) {
+    return res.status(400).json({ message: 'Выберите способ связи' });
+  }
+  if (!contactValue) {
+    return res.status(400).json({ message: 'Укажите контакт для обратной связи' });
+  }
+  if (message.length < 10) {
+    return res.status(400).json({ message: 'Опишите запрос чуть подробнее (минимум 10 символов)' });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO psychologist_requests (user_id, contact_method, contact_value, preferred_time, message)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING request_id, status, created_at`,
+      [userId, contactMethod, contactValue, preferredTime || null, message]
+    );
+    return res.status(201).json({
+      message: 'Заявка отправлена. Мы свяжемся с вами в ближайшее время.',
+      request: result.rows[0],
+    });
+  } catch (err) {
+    console.error('[psychologist-request]', err);
+    return res.status(500).json({ message: 'Ошибка сервера при отправке заявки' });
   }
 });
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   Camera,
   Save,
@@ -11,7 +12,7 @@ import {
   Bell,
   Shield,
   Moon,
-  Palette,
+  Languages,
   LogOut,
   ChevronRight,
 } from 'lucide-react';
@@ -23,6 +24,7 @@ const NOTIF_KEY = 'burnout_notifications';
 const Profile = () => {
   const { user, updateUser, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -34,6 +36,14 @@ const Profile = () => {
   });
   const [msg, setMsg] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [requestLoading, setRequestLoading] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
+  const [requestForm, setRequestForm] = useState({
+    contactMethod: 'telegram',
+    contactValue: '',
+    preferredTime: '',
+    message: '',
+  });
   const [notifOn, setNotifOn] = useState(() => {
     try {
       return localStorage.getItem(NOTIF_KEY) !== '0';
@@ -87,6 +97,28 @@ const Profile = () => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleRequestChange = (e) => {
+    const { name, value } = e.target;
+    setRequestForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const submitPsychologistRequest = async (e) => {
+    e.preventDefault();
+    if (requestLoading) return;
+    setRequestLoading(true);
+    setMsg(null);
+    try {
+      const res = await api.post('/users/psychologist-request', requestForm);
+      setRequestSent(true);
+      setMsg({ type: 'success', text: res.data?.message || 'Заявка отправлена' });
+      setRequestForm((prev) => ({ ...prev, message: '' }));
+    } catch (err) {
+      setMsg({ type: 'error', text: err.response?.data?.message || 'Не удалось отправить заявку' });
+    } finally {
+      setRequestLoading(false);
+    }
   };
 
   const roleLabel = { student: '🎓 Студент', teacher: '👨‍🏫 Преподаватель', admin: '⚙️ Администратор' };
@@ -255,22 +287,21 @@ const Profile = () => {
 
             <li className="profile-setting-row">
               <span className="profile-setting-icon" aria-hidden>
-                <Palette size={20} strokeWidth={2} />
+                <Languages size={20} strokeWidth={2} />
               </span>
               <div className="profile-setting-text">
-                <span className="profile-setting-label">Тема оформления</span>
-                <span className="profile-setting-desc">Акцентные цвета интерфейса</span>
+                <span className="profile-setting-label">Язык</span>
+                <span className="profile-setting-desc">Русский или казахский интерфейс</span>
               </div>
-              <button
-                type="button"
-                className="profile-setting-action"
-                onClick={() =>
-                  setMsg({ type: 'info', text: 'Выбор палитры будет доступен позже. Сейчас доступна тёмная тема выше.' })
-                }
-                aria-label="Тема оформления"
+              <select
+                className="profile-setting-select"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                aria-label="Язык интерфейса"
               >
-                <ChevronRight size={22} />
-              </button>
+                <option value="ru">Русский</option>
+                <option value="kz">Қазақша</option>
+              </select>
             </li>
           </ul>
 
@@ -280,6 +311,82 @@ const Profile = () => {
               Выйти из аккаунта
             </button>
           </div>
+        </div>
+
+        <div className="card profile-contact-card">
+          <h2 className="card-title profile-card-title">Связаться с психологом</h2>
+          <p className="profile-settings-hint">
+            Можно отправить заявку и получить обратную связь от специалиста.
+          </p>
+
+          <form className="profile-form" onSubmit={submitPsychologistRequest}>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="contactMethod">Способ связи</label>
+                <select
+                  id="contactMethod"
+                  name="contactMethod"
+                  className="input"
+                  value={requestForm.contactMethod}
+                  onChange={handleRequestChange}
+                  disabled={requestLoading}
+                >
+                  <option value="telegram">Telegram</option>
+                  <option value="phone">Телефон</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="email">Email</option>
+                  <option value="other">Другое</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="contactValue">Контакт</label>
+                <input
+                  id="contactValue"
+                  name="contactValue"
+                  className="input"
+                  value={requestForm.contactValue}
+                  onChange={handleRequestChange}
+                  placeholder="@username / +7..."
+                  disabled={requestLoading}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="preferredTime">Удобное время для связи (опционально)</label>
+              <input
+                id="preferredTime"
+                name="preferredTime"
+                className="input"
+                value={requestForm.preferredTime}
+                onChange={handleRequestChange}
+                placeholder="Например: после 18:00"
+                disabled={requestLoading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="message">Кратко опишите, с чем нужна помощь</label>
+              <textarea
+                id="message"
+                name="message"
+                className="input profile-contact-textarea"
+                value={requestForm.message}
+                onChange={handleRequestChange}
+                placeholder="Например: тревожность, эмоциональная усталость, сложности со сном..."
+                disabled={requestLoading}
+                minLength={10}
+                required
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary save-btn" disabled={requestLoading}>
+              <Save size={16} />
+              {requestLoading ? 'Отправка...' : requestSent ? 'Отправить ещё заявку' : 'Отправить заявку'}
+            </button>
+          </form>
         </div>
       </div>
     </div>

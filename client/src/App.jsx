@@ -1,7 +1,8 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 import Layout from './components/Layout/Layout';
 import Landing from './components/Auth/Landing';
 import Login from './components/Auth/Login';
@@ -14,7 +15,6 @@ import Diary from './components/Diary/Diary';
 import Practices from './components/Practices/Practices';
 import { AdminOverview, AdminUsers, AdminCategories, AdminTests } from './components/Admin/Admin';
 import AdminPortal from './components/AdminPortal/AdminPortal';
-import UserDashboard from './components/Dashboards/UserDashboard';
 import AdminDashboard from './components/Dashboards/AdminDashboard';
 import AIChat from './components/AI/AIChat';
 import OnboardingBurnout from './components/Onboarding/OnboardingBurnout';
@@ -45,18 +45,6 @@ function RequireAdminDashboard({ children }) {
   return children;
 }
 
-function RequireUserDashboard({ children }) {
-  const { user, loading } = useAuth();
-  if (loading) return (
-    <div className="app-loading-fullscreen">
-      <div className="loading-spinner" />
-    </div>
-  );
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
-  return children;
-}
-
 /** Публичные страницы: вошедший студент/преподаватель без теста → онбординг; остальные → кабинет */
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -84,20 +72,15 @@ function RequireOnboardingDone({ children }) {
 const UserLayout = ({ children }) => (
   <Layout>
     {children}
-    <AIChatRouteAware />
+    <AIChat />
   </Layout>
 );
-
-function AIChatRouteAware() {
-  const { pathname } = useLocation();
-  if (pathname === '/dashboard') return null;
-  return <AIChat />;
-}
 
 const App = () => {
   return (
     <div className="app-shell">
     <ThemeProvider>
+    <LanguageProvider>
     <BrowserRouter>
       <div className="app-fill">
       <AuthProvider>
@@ -196,6 +179,7 @@ const App = () => {
       </AuthProvider>
       </div>
     </BrowserRouter>
+    </LanguageProvider>
     </ThemeProvider>
     </div>
   );
