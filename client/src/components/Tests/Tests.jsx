@@ -20,7 +20,7 @@ function pickTest(tests, preferIds) {
 const TEST_PATHS = [
 {
   key: 'heal',
-  preferIds: [5, 2, 4],
+  preferIds: [2, 5, 4],
   title: 'Вдохновение',
   lead: 'Короткий опрос о перегрузке и восстановлении — с прогрессом по шагам.',
   accent: 'heal'
@@ -60,7 +60,7 @@ const CATALOG_FILTER_CHIPS = [
 export function getTestBucket(test) {
   const s = `${test.title || ''} ${test.category_name || ''} ${test.description || ''}`.toLowerCase();
   if (/gad-7|\bgad\b|тревог|тревож|паник|беспокой|социальн/i.test(s)) return 'anxiety';
-  if (/ежедневн|чек-ин|5 вопросов/i.test(s)) return 'mood';
+  if (/ежедневн|чек-ин|9 вопросов/i.test(s)) return 'mood';
   if (/стресс|выгоран|устал|перегруз|mbi|pss|напряжен|академическ/i.test(s)) return 'stress';
   if (/настроен|счаст|эмоцион|стабильн|радост/i.test(s)) return 'mood';
   if (/самооцен/i.test(s)) return 'esteem';
@@ -80,8 +80,8 @@ export function getCatalogFilter(test) {
     return 'clinical';
   }
 
-  if (qc > 0 && qc <= 7) return 'quick';
-  if (/ежедневн|чек-ин|5 вопросов|быстр|коротк/i.test(blob)) return 'quick';
+  if (qc > 0 && qc <= 9) return 'quick';
+  if (/ежедневн|чек-ин|9 вопросов|быстр|коротк/i.test(blob)) return 'quick';
 
   if (qc >= 8 && qc <= 24) return 'basic';
   if (qc > 0) return 'basic';
@@ -374,7 +374,7 @@ export const TakeTest = () => {
           <h1>{test.title}</h1>
           <p className="test-intro-lead">{test.description}</p>
           <div className="test-intro-meta">
-            <span>{questions.length} вопросов</span>
+            <span>{questionCountLabel(questions.length)}</span>
             <span>~{Math.ceil(questions.length * 0.5)} мин</span>
           </div>
           <button
@@ -466,7 +466,9 @@ export const TakeTest = () => {
           </div>
           <div className="test-survey-progress-meta">
             <span className="test-survey-meta-label">{t('testsUi.surveyLabel')}</span>
-            <span className="test-survey-meta-pct">{Math.round(progress)}%</span>
+            <span className="test-survey-meta-counter">
+              {t('testsUi.questionOf', { current: step, total: questions.length })}
+            </span>
           </div>
         </div>
 
@@ -481,9 +483,6 @@ export const TakeTest = () => {
                 aria-label={t('testsUi.backQuestion')}>
                 <ChevronLeft size={20} strokeWidth={2.2} />
               </button>
-              <span className="test-survey-counter">
-                {t('testsUi.questionOf', { current: step, total: questions.length })}
-              </span>
             </div>
 
             <div key={step} className="test-survey-card tests-q-slide">

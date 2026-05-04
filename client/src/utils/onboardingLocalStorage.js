@@ -17,7 +17,7 @@ export function readPendingOnboarding(userId) {
     const raw = localStorage.getItem(key(userId));
     if (!raw) return null;
     const data = JSON.parse(raw);
-    if (!Array.isArray(data.answers) || data.answers.length !== 10) return null;
+    if (!Array.isArray(data.answers) || data.answers.length !== 9) return null;
     return data;
   } catch {
     return null;

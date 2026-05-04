@@ -15,6 +15,7 @@ const CATEGORIES = [
     description:
       'Подборки для тревожности, выгорания и восстановления — смотрите сразу в приложении.',
     image: natureAt(10),
+    featured: false,
   },
   {
     id: 'meditation',
@@ -22,6 +23,7 @@ const CATEGORIES = [
     title: 'Медитации',
     description: 'Короткие практики дыхания, фокуса и заземления для ежедневного баланса.',
     videoSrc: MEDITATION_VIDEO,
+    featured: true,
   },
   {
     id: 'podcasts',
@@ -29,6 +31,7 @@ const CATEGORIES = [
     title: 'Подкасты',
     description: 'Спокойные выпуски про тревогу, выгорание и мягкую саморегуляцию.',
     image: natureAt(11),
+    featured: false,
   },
   {
     id: 'music',
@@ -36,6 +39,7 @@ const CATEGORIES = [
     title: 'Музыка',
     description: 'Плейлисты для фокуса, сна и спокойствия — слушайте прямо в разделе.',
     image: natureAt(12),
+    featured: false,
   },
   {
     id: 'events',
@@ -43,6 +47,7 @@ const CATEGORIES = [
     title: 'События',
     description: 'Идеи микрособытий и планов, которые возвращают ощущение жизни вне рутины.',
     image: natureAt(13),
+    featured: false,
   },
   {
     id: 'articles',
@@ -50,6 +55,7 @@ const CATEGORIES = [
     title: 'Статьи',
     description: 'Выгорание на работе и в учёбе: признаки, восстановление и профилактика — для взрослых и студентов.',
     image: natureAt(14),
+    featured: false,
   },
 ];
 
@@ -264,32 +270,38 @@ function PracticesHome() {
             <motion.button
               key={cat.id}
               type="button"
-              className="practices-landing-tile"
+              className={`practices-landing-tile${cat.featured ? ' practices-landing-tile--featured' : ''}`}
               variants={tileMotion}
               onClick={() => navigate(cat.path)}
               aria-label={`${cat.title}. ${cat.description}`}
             >
-              <span className="practices-landing-tile-media" aria-hidden>
-                {cat.videoSrc ? (
-                  <video
-                    className="practices-landing-tile-video"
-                    src={cat.videoSrc}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                  />
-                ) : (
-                  <span
-                    className="practices-landing-tile-cover"
-                    style={{ backgroundImage: `url(${cat.image})` }}
-                    aria-hidden
-                  />
-                )}
-              </span>
-              <span className="practices-landing-tile-body">
-                <strong>{cat.title}</strong>
-                <span className="practices-landing-tile-desc">{cat.description}</span>
+              <span className="practices-landing-tile-card">
+                <span className="practices-landing-tile-mediaWrap" aria-hidden>
+                  <span className="practices-landing-tile-media">
+                    {cat.videoSrc ? (
+                      <video
+                        className="practices-landing-tile-video"
+                        src={cat.videoSrc}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                      />
+                    ) : (
+                      <span
+                        className="practices-landing-tile-cover"
+                        style={{ backgroundImage: `url(${cat.image})` }}
+                      />
+                    )}
+                  </span>
+                  {cat.featured && (
+                    <span className="practices-landing-tile-badge">{t('pages.practicesTilePopular')}</span>
+                  )}
+                </span>
+                <span className="practices-landing-tile-body">
+                  <strong>{cat.title}</strong>
+                  <span className="practices-landing-tile-desc">{cat.description}</span>
+                </span>
               </span>
             </motion.button>
           ))}

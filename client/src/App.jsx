@@ -53,6 +53,9 @@ const PublicRoute = ({ children }) => {
 
   if (user) {
     if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
+    if (!user.onboarding_burnout_completed) {
+      return <Navigate to="/onboarding/burnout" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
   return children;

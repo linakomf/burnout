@@ -1,23 +1,25 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { format, addDays, startOfWeek } from 'date-fns';
+import { enUS, ru } from 'date-fns/locale';
 import {
-  AlertCircle,
   ArrowRight,
   Bell,
   BookOpen,
+  Calendar,
   Clapperboard,
-  ClipboardList,
+  CloudLightning,
   Flower2,
-  Heart,
   Moon,
+  Mountain,
   Music,
   Save,
-  Sparkles,
+  Sun,
   Trees,
-  X } from
+  X,
+  Zap } from
 'lucide-react';
 import api from '../../utils/api';
 import {
@@ -31,12 +33,28 @@ import {
   setCheckinForDate,
   emitCheckinSaved } from
 '../../utils/dailyCheckinStorage';
+import { pickRecommendedTestId } from '../../utils/recommendedTestId';
 import { weekPillLines } from '../../utils/weekPillLines';
 import { natureAt } from '../Practices/spaceNatureImagery';
 import supportNearbyArt from '../../assets/dash-support-nearby.png';
+import adviceFilmsCover from '../../assets/advice-films.png';
+import adviceReadingCover from '../../assets/advice-reading.png';
+import adviceMeditationCover from '../../assets/advice-meditation.png';
+import adviceMusicCover from '../../assets/advice-music.png';
+import adviceActivityCover from '../../assets/advice-activity.png';
+import testsNavIcon from '../../assets/tests-nav-icon.png';
+import { resolveHomeBannerVideoSrc } from '../../config/homeBannerVideo';
 import './Dashboard.css';
 
 const ONBOARD_KEY = 'burnout_onboarding_v1';
+
+const ADVICE_COVER_BY_KEY = {
+  films: adviceFilmsCover,
+  read: adviceReadingCover,
+  meditate: adviceMeditationCover,
+  music: adviceMusicCover,
+  walk: adviceActivityCover
+};
 
 const ADVICE_CARD_DEFS = [
   { key: 'music', path: '/practices/music', natureIdx: 4, theme: 'purple', Icon: Music },
@@ -46,13 +64,77 @@ const ADVICE_CARD_DEFS = [
   { key: 'meditate', path: '/practices/meditation', natureIdx: 9, theme: 'violet', Icon: Moon }
 ];
 
-const MOOD_PILLS = [
-{ id: 0, emoji: '😁', labelClass: 'mood-pill--excellent' },
-{ id: 1, emoji: '🙂', labelClass: 'mood-pill--good' },
-{ id: 2, emoji: '😐', labelClass: 'mood-pill--ok' },
-{ id: 3, emoji: '😔', labelClass: 'mood-pill--sad' },
-{ id: 4, emoji: '😰', labelClass: 'mood-pill--anxious' }];
+/** Flat emoji PNGs (Twemoji) — одинаково на всех ОС, без «пластиковых» системных смайлов */
+const CHECKIN_MOOD_EMOJI_CDN =
+  'https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.0.3/assets/72x72';
 
+/** Иконки строк в модалке «Подробнее» (настроение / стресс / энергия) */
+const DETAILS_ROW_TWEMOJI = {
+  mood: '2600',
+  stress: '1f329',
+  energy: '26a1'
+};
+
+const MOOD_PILLS = [
+  { id: 0, emojiFile: '1f601', labelClass: 'mood-pill--excellent' },
+  { id: 1, emojiFile: '1f642', labelClass: 'mood-pill--good' },
+  { id: 2, emojiFile: '1f610', labelClass: 'mood-pill--ok' },
+  { id: 3, emojiFile: '1f614', labelClass: 'mood-pill--sad' },
+  { id: 4, emojiFile: '1f630', labelClass: 'mood-pill--anxious' }
+];
+
+function moodStateBand(pct) {
+  if (pct >= 66) return 'high';
+  if (pct >= 40) return 'mid';
+  return 'low';
+}
+
+function stressStateBand(pct) {
+  if (pct <= 35) return 'low';
+  if (pct <= 65) return 'mid';
+  return 'high';
+}
+
+function energyStateBand(pct) {
+  if (pct >= 66) return 'high';
+  if (pct >= 40) return 'mid';
+  return 'low';
+}
+
+function MiniSparkline({ value, stroke }) {
+  const w = 120;
+  const h = 40;
+  const pad = 6;
+  const n = 14;
+  const parts = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const x = pad + t * (w - 2 * pad);
+    const norm = Math.min(100, Math.max(0, value)) / 100;
+    const yBase = h - pad - norm * (h - 2 * pad) * (0.2 + 0.8 * t);
+    const y = yBase + Math.sin(t * Math.PI * 2.6 + norm * 1.4) * 3.5;
+    const yy = Math.max(pad, Math.min(h - pad, y));
+    parts.push(`${x.toFixed(1)},${yy.toFixed(1)}`);
+  }
+  return (
+    <svg
+      className="dash-state-spark"
+      viewBox={`0 0 ${w} ${h}`}
+      preserveAspectRatio="none"
+      aria-hidden="true">
+      
+      <polyline
+        fill="none"
+        stroke={stroke}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points={parts.join(' ')}
+      />
+    </svg>
+  );
+
+}
 
 function moodIndexToPercent(idx) {
   return [100, 82, 60, 38, 18][idx] ?? 50;
@@ -67,11 +149,20 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('today');
   const [selectedDay, setSelectedDay] = useState(today);
   const [testResults, setTestResults] = useState([]);
+  const [testCatalog, setTestCatalog] = useState([]);
   const [loading, setLoading] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkinModalOpen, setCheckinModalOpen] = useState(false);
+  const [supportModalOpen, setSupportModalOpen] = useState(false);
+  const [supportSent, setSupportSent] = useState(false);
+  const [supportForm, setSupportForm] = useState({
+    name: '',
+    contact: '',
+    message: ''
+  });
   const [checkinVersion, setCheckinVersion] = useState(0);
+  const heroBgVideoRef = useRef(null);
   const [checkinForm, setCheckinForm] = useState({
     moodIndex: 2,
     energy: 5,
@@ -80,16 +171,53 @@ const Dashboard = () => {
   });
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  const heroBannerVideoSrc = useMemo(
+    () => resolveHomeBannerVideoSrc(user),
+    [user?.user_id, user?.role, user?.gender]
+  );
+
   const todayStr = format(today, 'yyyy-MM-dd');
   const selectedDayStr = format(selectedDay, 'yyyy-MM-dd');
   const isViewingToday = selectedDayStr === todayStr;
 
   useEffect(() => {
-    api.get('/tests/results/my').
-    then((res) => setTestResults(res.data)).
-    catch(() => {}).
-    finally(() => setLoading(false));
+    let cancelled = false;
+    Promise.all([
+    api.get('/tests/results/my').then((r) => r.data).catch(() => []),
+    api.get('/tests').then((r) => r.data).catch(() => [])]).
+    then(([results, catalog]) => {
+      if (cancelled) return;
+      setTestResults(results || []);
+      setTestCatalog(catalog || []);
+    }).
+    finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  useEffect(() => {
+    const el = heroBgVideoRef.current;
+    if (!el) return;
+    const play = () => {
+      el.muted = true;
+      el.play().catch(() => {});
+    };
+    const restart = () => {
+      el.currentTime = 0;
+      play();
+    };
+    play();
+    el.addEventListener('loadeddata', play);
+    el.addEventListener('ended', restart);
+    return () => {
+      el.removeEventListener('loadeddata', play);
+      el.removeEventListener('ended', restart);
+    };
+  }, [heroBannerVideoSrc]);
 
   useEffect(() => {
     if (loading) return;
@@ -109,16 +237,6 @@ const Dashboard = () => {
   };
 
   const lastResult = testResults[0];
-
-  const testDoneToday = useMemo(() => {
-    const ca = lastResult?.created_at;
-    if (!ca) return false;
-    try {
-      return format(new Date(ca), 'yyyy-MM-dd') === todayStr;
-    } catch {
-      return false;
-    }
-  }, [lastResult, todayStr]);
 
   const stressFromTests = useMemo(() => {
     const lastTestStress = stressFromCatalogLevel(lastResult?.level);
@@ -157,6 +275,18 @@ const Dashboard = () => {
   const energyVal = isViewingToday && todayCheckin ? todayCheckin.energy : energyFromTests;
   const hasTodayCheckin = Boolean(todayCheckin);
 
+  const statePanelDateLine = useMemo(() => {
+    let s;
+    if (lang === 'en') s = format(selectedDay, 'MMMM d, EEEE', { locale: enUS });
+    else if (lang === 'ru') s = format(selectedDay, 'd MMMM, EEEE', { locale: ru });
+    else s = format(selectedDay, 'd MMMM, EEEE', { locale: ru });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }, [selectedDay, lang]);
+
+  const moodBand = moodStateBand(moodVal);
+  const stressBand = stressStateBand(stressVal);
+  const energyBand = energyStateBand(energyVal);
+
   const greetingLine = useMemo(() => {
     const h = new Date().getHours();
     if (h < 12) return t('dash.greeting.morning');
@@ -191,10 +321,54 @@ const Dashboard = () => {
   const supportEmail = (process.env.REACT_APP_SUPPORT_EMAIL || '').trim();
 
   const openSupportContact = () => {
+    setSupportSent(false);
+    setSupportForm((f) => ({
+      ...f,
+      name: user?.name || '',
+      contact: user?.email || '',
+      message: ''
+    }));
+    setSupportModalOpen(true);
+  };
+
+  const submitSupportRequest = () => {
+    const name = supportForm.name.trim();
+    const contact = supportForm.contact.trim();
+    const message = supportForm.message.trim();
+    if (!name || !contact || !message) return;
+
+    const subject = t('dash.supportNearby.mailSubject');
+    const body = [
+      `Имя: ${name}`,
+      `Контакт: ${contact}`,
+      '',
+      'Запрос:',
+      message
+    ].join('\n');
+
     if (supportEmail) {
-      window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(t('dash.supportNearby.mailSubject'))}`;
+      window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+    setSupportSent(true);
+  };
+
+  const recommendedTestId = useMemo(
+    () =>
+    pickRecommendedTestId({
+      role: user?.role,
+      stressVal,
+      moodVal,
+      energyVal,
+      catalogIds: testCatalog.map((t) => t.test_id)
+    }),
+    [user?.role, stressVal, moodVal, energyVal, testCatalog]
+  );
+
+  const openPersonalizedTest = () => {
+    if (recommendedTestId != null) {
+      navigate(`/tests/${recommendedTestId}`);
     } else {
-      navigate('/diary');
+      navigate('/tests');
     }
   };
 
@@ -268,15 +442,27 @@ const Dashboard = () => {
 
       <div className="week-strip">
         {weekDays.map((day, i) => {
-          const isToday = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
-          const isSelected = format(day, 'yyyy-MM-dd') === format(selectedDay, 'yyyy-MM-dd');
+          const dayStr = format(day, 'yyyy-MM-dd');
+          const isToday = dayStr === todayStr;
+          const isSelected = dayStr === selectedDayStr;
+          const hasCheckin = Boolean(getCheckinForDate(dayStr));
+          const showFilledState = isToday || hasCheckin;
+          let btnClass = 'week-day-btn';
+          if (isSelected) {
+            btnClass += showFilledState ? ' selected' : ' selected-soft';
+          } else {
+            if (isToday) btnClass += ' is-today';
+            else if (hasCheckin) btnClass += ' has-mark';
+          }
           const { dateLine, wdayLine } = weekPillLines(day, lang, t);
           return (
             <button
               key={i}
               type="button"
-              className={`week-day-btn ${isToday && !isSelected ? 'is-today' : ''} ${isSelected ? 'selected' : ''}`}
-              onClick={() => setSelectedDay(day)}>
+              className={btnClass}
+              onClick={() => setSelectedDay(day)}
+              aria-pressed={isSelected}
+              aria-current={isToday ? 'date' : undefined}>
               
               <span className="wday-date">{dateLine}</span>
               <span className="wday-name">{wdayLine}</span>
@@ -285,137 +471,151 @@ const Dashboard = () => {
         })}
       </div>
 
-      <div className="hero-banner hero-banner--mock">
-        <div className="hero-banner-atmosphere" aria-hidden />
-        <div className="hero-left">
-          <img
-            src="/photos/hero-character.png"
-            alt={t('dash.heroAlt')}
-            className="hero-character"
-            onError={(e) => {e.target.style.opacity = 0;}} />
-          
+      <div className="hero-banner hero-banner--mock hero-banner--has-video">
+        <div className="hero-banner-video-wrap" aria-hidden>
+          <video
+            key={heroBannerVideoSrc}
+            ref={heroBgVideoRef}
+            className="hero-banner-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            disablePictureInPicture
+            onEnded={(e) => {
+              e.currentTarget.currentTime = 0;
+              e.currentTarget.play().catch(() => {});
+            }}
+          >
+            <source src={heroBannerVideoSrc} type="video/mp4" />
+          </video>
         </div>
-
         <div className="hero-right">
-          {isViewingToday && !hasTodayCheckin ?
-          <div className="checkin-prompt-card">
-              <div className="checkin-prompt-top">
-                <span className="checkin-prompt-icon-badge" aria-hidden>
-                  <Flower2 size={18} strokeWidth={2} className="checkin-prompt-flower" />
-                </span>
-                <h3 className="checkin-prompt-title">{t('dash.checkin.title')}</h3>
-              </div>
-              <p className="checkin-prompt-sub">
-                {t('dash.checkin.sub')}
-              </p>
-              <button
-              type="button"
-              className="checkin-prompt-cta"
-              onClick={openCheckinModal}>
-              
-                {t('dash.checkin.cta')}
-              </button>
-            </div> :
-
-          <div className="stats-indicators-panel">
-              <div className="indicator mood-ind">
-                <div className="ind-top">
-                  <span>{t('dash.stats.mood')}</span>
-                  <span className="ind-pct">{moodVal}%</span>
+          <div
+            className={`checkin-prompt-card ${isViewingToday && !hasTodayCheckin ? '' : 'checkin-prompt-card--state'}`}>
+            {isViewingToday && !hasTodayCheckin ? (
+              <>
+                <div className="checkin-prompt-top">
+                  <span className="checkin-prompt-icon-badge" aria-hidden>
+                    <Flower2 size={18} strokeWidth={2} className="checkin-prompt-flower" />
+                  </span>
+                  <h3 className="checkin-prompt-title">{t('dash.checkin.title')}</h3>
                 </div>
-                <div className="ind-row">
-                  <span className="ind-emoji-s">😟</span>
-                  <div className="ind-track">
-                    <div className="ind-bar mood-bar" style={{ width: `${moodVal}%` }} />
-                  </div>
-                  <span className="ind-emoji-s">😊</span>
-                </div>
-              </div>
-
-              <div className="indicator stress-ind">
-                <div className="ind-top">
-                  <span>{t('dash.stats.stress')}</span>
-                  <span className="ind-pct">{stressVal}%</span>
-                </div>
-                <div className="ind-track">
-                  <div className="ind-bar stress-bar" style={{ width: `${stressVal}%` }} />
-                </div>
-              </div>
-
-              <div className="indicator energy-ind">
-                <div className="ind-top">
-                  <span>{t('dash.stats.energy')}</span>
-                  <span className="ind-pct">{energyVal}%</span>
-                </div>
-                <div className="ind-track">
-                  <div className="ind-bar energy-bar" style={{ width: `${energyVal}%` }} />
-                </div>
-              </div>
-
-              <div className="hero-actions-row hero-actions-row--stats">
-                <button type="button" className="details-btn" onClick={() => setDetailsOpen(true)}>
-                  {t('dash.stats.more')}
+                <p className="checkin-prompt-sub">{t('dash.checkin.sub')}</p>
+                <button type="button" className="checkin-prompt-cta" onClick={openCheckinModal}>
+                  {t('dash.checkin.cta')}
                 </button>
+              </>
+            ) : (
+              <div className="dash-state-panel" role="region" aria-labelledby="dash-state-heading">
+                <header className="dash-state-head">
+                  <div className="dash-state-head-text">
+                    <h2 id="dash-state-heading" className="dash-state-title">
+                      {t('dash.state.title')}
+                    </h2>
+                    <p className="dash-state-sub">{t('dash.state.subtitle')}</p>
+                  </div>
+                  <div className="dash-state-date">
+                    <Calendar size={16} strokeWidth={2} aria-hidden />
+                    <span>{statePanelDateLine}</span>
+                  </div>
+                </header>
+
+                <div className="dash-state-cards">
+                  <article className="dash-state-card dash-state-card--mood">
+                    <div className="dash-state-card__icon">
+                      <Sun size={22} strokeWidth={2.2} aria-hidden />
+                    </div>
+                    <div className="dash-state-card__label">{t('dash.state.labels.mood')}</div>
+                    <div className="dash-state-card__value dash-state-card__value--mood">{moodVal}%</div>
+                    <div className="dash-state-card__badge">
+                      <span>{t(`dash.state.moodStatus.${moodBand}`)}</span>
+                    </div>
+                    <div className="dash-state-card__chart">
+                      <MiniSparkline value={moodVal} stroke="#f8cd8b" />
+                    </div>
+                    <div className="dash-state-card__scale">
+                      <span>{t('dash.state.scaleMin')}</span>
+                      <span>{t('dash.state.scaleMax')}</span>
+                    </div>
+                  </article>
+
+                  <article className="dash-state-card dash-state-card--stress">
+                    <div className="dash-state-card__icon">
+                      <CloudLightning size={22} strokeWidth={2.2} aria-hidden />
+                    </div>
+                    <div className="dash-state-card__label">{t('dash.state.labels.stress')}</div>
+                    <div className="dash-state-card__value dash-state-card__value--stress">{stressVal}%</div>
+                    <div className="dash-state-card__badge">
+                      <span>{t(`dash.state.stressStatus.${stressBand}`)}</span>
+                    </div>
+                    <div className="dash-state-card__chart">
+                      <MiniSparkline value={stressVal} stroke="#ff9567" />
+                    </div>
+                    <div className="dash-state-card__scale">
+                      <span>{t('dash.state.scaleMin')}</span>
+                      <span>{t('dash.state.scaleMax')}</span>
+                    </div>
+                  </article>
+
+                  <article className="dash-state-card dash-state-card--energy">
+                    <div className="dash-state-card__icon">
+                      <Zap size={22} strokeWidth={2.2} aria-hidden />
+                    </div>
+                    <div className="dash-state-card__label">{t('dash.state.labels.energy')}</div>
+                    <div className="dash-state-card__value dash-state-card__value--energy">{energyVal}%</div>
+                    <div className="dash-state-card__badge">
+                      <span>{t(`dash.state.energyStatus.${energyBand}`)}</span>
+                    </div>
+                    <div className="dash-state-card__chart">
+                      <MiniSparkline value={energyVal} stroke="#898de2" />
+                    </div>
+                    <div className="dash-state-card__scale">
+                      <span>{t('dash.state.scaleMin')}</span>
+                      <span>{t('dash.state.scaleMax')}</span>
+                    </div>
+                  </article>
+                </div>
+
+                <div className="dash-state-banner">
+                  <div className="dash-state-banner__icon" aria-hidden>
+                    <Mountain size={22} strokeWidth={2} />
+                  </div>
+                  <div className="dash-state-banner__text">
+                    <div className="dash-state-banner__title">{t('dash.state.bannerTitle')}</div>
+                    <p className="dash-state-banner__sub">{t('dash.state.bannerSub')}</p>
+                  </div>
+                  <button type="button" className="dash-state-banner__btn" onClick={() => setDetailsOpen(true)}>
+                    {t('dash.stats.more')}
+                  </button>
+                </div>
               </div>
-            </div>
-          }
+            )}
+          </div>
         </div>
       </div>
 
       <div className="dash-top-row">
-        <section className="dash-daily-test" aria-labelledby="dash-daily-test-title">
+        <section className="dash-daily-test dash-daily-test--streamlined" aria-labelledby="dash-daily-test-title">
           <div className="dash-daily-test__icon-stack" aria-hidden>
-            <ClipboardList className="dash-daily-test__clipboard" size={46} strokeWidth={1.75} />
-            <Heart className="dash-daily-test__heart" size={22} fill="currentColor" strokeWidth={1.4} />
+            <img src={testsNavIcon} alt="" className="dash-daily-test__clipboard-img" width={96} height={96} />
           </div>
           <div className="dash-daily-test__main">
             <h2 id="dash-daily-test-title" className="dash-daily-test__title">
               {t('dash.dailyTest.title')}
             </h2>
             <p className="dash-daily-test__desc">{t('dash.dailyTest.desc')}</p>
-            <ul className="dash-daily-test__meta">
-              <li>
-                <span className="dash-daily-test__chip-emoji" aria-hidden>
-                  ?
-                </span>
-                {t('dash.dailyTest.metaQuestions')}
-              </li>
-              <li>
-                <span className="dash-daily-test__chip-emoji" aria-hidden>
-                  🕒
-                </span>
-                {t('dash.dailyTest.metaDuration')}
-              </li>
-              <li>
-                <span className="dash-daily-test__chip-emoji" aria-hidden>
-                  ❄️
-                </span>
-                {t('dash.dailyTest.metaInstant')}
-              </li>
-            </ul>
-            <p className={`dash-daily-test__status ${testDoneToday ? 'dash-daily-test__status--done' : ''}`}>
-              <span className="dash-daily-test__status-emoji" aria-hidden>
-                ❄️
-              </span>
-              {testDoneToday ? t('dash.dailyTest.statusDone') : t('dash.dailyTest.statusPending')}
-            </p>
+            <p className="dash-daily-test__meta-inline">{t('dash.dailyTest.metaCompact')}</p>
           </div>
           <div className="dash-daily-test__aside">
-            <div
-              className="dash-daily-test__donut"
-              style={{ '--dash-donut-pct': Math.min(100, Math.max(0, moodVal)) }}
-              aria-hidden
-            />
-            <div className="dash-daily-test__bars" aria-hidden>
-              <span className="dash-daily-test__bar" />
-              <span className="dash-daily-test__bar" />
-              <span className="dash-daily-test__bar" />
-            </div>
             <button
               type="button"
               className="dash-daily-test__cta"
-              onClick={() => navigate('/tests')}
-              aria-label={t('dash.dailyTest.aria')}
+              onClick={openPersonalizedTest}
+              aria-label={
+              recommendedTestId != null ? t('dash.dailyTest.ctaAriaPersonalized') : t('dash.dailyTest.aria')
+              }
             >
               {t('dash.dailyTest.cta')}
             </button>
@@ -445,16 +645,19 @@ const Dashboard = () => {
 
       <section className="dash-advice-panel" aria-label={t('dash.recsTitle')}>
         <header className="dash-advice__head">
+          <div className="dash-advice__badge">💙 {t('dash.advice.dayLabel')}</div>
           <h2 className="dash-advice__title">
-            💡 {t('dash.advice.headline')}
+            {t('dash.advice.titleMain')}{' '}
+            <span className="dash-advice__title-accent">{t('dash.advice.titleAccent')}</span>
           </h2>
-          <p className="dash-advice__lead">{t('dash.advice.sub1')}</p>
-          <p className="dash-advice__lead dash-advice__lead--second">{t('dash.advice.sub2')}</p>
+          <p className="dash-advice__lead">{t('dash.advice.subLine1')}</p>
+          <p className="dash-advice__lead dash-advice__lead--second">{t('dash.advice.subLine2')}</p>
+          <p className="dash-advice__lead dash-advice__lead--second">{t('dash.advice.subLine3')}</p>
         </header>
         <div className="dash-advice__strip">
           {adviceCards.map((card) => {
             const Icon = card.Icon;
-            const cover = natureAt(card.natureIdx);
+            const cover = ADVICE_COVER_BY_KEY[card.key] || natureAt(card.natureIdx);
             return (
               <article key={card.key} className={`dash-advice-card dash-advice-card--${card.theme}`}>
                 <div className="dash-advice-card__top">
@@ -462,7 +665,7 @@ const Dashboard = () => {
                   <span className="dash-advice-card__cat">{card.category}</span>
                 </div>
                 <div
-                  className="dash-advice-card__media"
+                  className={`dash-advice-card__media${card.key === 'meditate' ? ' dash-advice-card__media--meditate' : ''}${card.key === 'walk' ? ' dash-advice-card__media--walk' : ''}${card.key === 'films' ? ' dash-advice-card__media--films' : ''}${card.key === 'read' ? ' dash-advice-card__media--read' : ''}`}
                   style={{ backgroundImage: `url(${cover})` }}
                   role="img"
                   aria-hidden
@@ -519,7 +722,13 @@ const Dashboard = () => {
               onClick={() => setCheckinForm((f) => ({ ...f, moodIndex: m.id }))}
               aria-pressed={checkinForm.moodIndex === m.id}>
               
-                  <span className="checkin-mood-emoji">{m.emoji}</span>
+                  <img
+                    className="checkin-mood-emoji"
+                    src={`${CHECKIN_MOOD_EMOJI_CDN}/${m.emojiFile}.png`}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
                   <span className={`checkin-mood-label ${m.labelClass}`}>{m.label}</span>
                 </button>
             )}
@@ -539,6 +748,7 @@ const Dashboard = () => {
               min={1}
               max={10}
               value={checkinForm.energy}
+              style={{ '--checkin-fill-pct': `${((checkinForm.energy - 1) / 9) * 100}%` }}
               onChange={(e) =>
               setCheckinForm((f) => ({ ...f, energy: Number(e.target.value) }))
               }
@@ -552,9 +762,6 @@ const Dashboard = () => {
 
             <section className="checkin-field">
               <div className="checkin-field-head">
-                <span className="checkin-field-icon checkin-field-icon--stress">
-                  <AlertCircle size={18} strokeWidth={2.2} aria-hidden />
-                </span>
                 <div className="checkin-field-titles">
                   <div className="checkin-field-title">{t('dash.checkinForm.stress')}</div>
                   <div className="checkin-field-sub">{t('dash.checkinForm.stressSub')}</div>
@@ -567,6 +774,7 @@ const Dashboard = () => {
               min={1}
               max={10}
               value={checkinForm.stress}
+              style={{ '--checkin-fill-pct': `${((checkinForm.stress - 1) / 9) * 100}%` }}
               onChange={(e) =>
               setCheckinForm((f) => ({ ...f, stress: Number(e.target.value) }))
               }
@@ -580,9 +788,6 @@ const Dashboard = () => {
 
             <section className="checkin-field checkin-field--notes">
               <div className="checkin-field-head checkin-field-head--notes">
-                <span className="checkin-field-icon checkin-field-icon--notes">
-                  <Sparkles size={16} strokeWidth={2} aria-hidden />
-                </span>
                 <div className="checkin-field-titles">
                   <div className="checkin-field-title">{t('dash.checkinForm.notes')}</div>
                   <div className="checkin-field-sub">{t('dash.checkinForm.notesSub')}</div>
@@ -614,6 +819,90 @@ const Dashboard = () => {
         </div>
       }
 
+      {supportModalOpen &&
+      <div
+        className="modal-overlay checkin-form-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="support-form-title"
+        onClick={() => setSupportModalOpen(false)}>
+        
+          <div className="modal-card checkin-form-card support-form-card" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="modal-close checkin-form-close"
+              onClick={() => setSupportModalOpen(false)}
+              aria-label={t('dash.close')}
+            >
+              <X size={20} />
+            </button>
+            <h2 id="support-form-title" className="checkin-form-h1">
+              Написать специалисту
+            </h2>
+            <p className="checkin-form-lead">
+              Оставьте заявку, и мы свяжемся с вами. Ответим с заботой и без осуждения.
+            </p>
+
+            <section className="checkin-field">
+              <div className="checkin-field-title">Ваше имя</div>
+              <input
+                className="checkin-notes-input support-input"
+                type="text"
+                placeholder="Например, Алия"
+                value={supportForm.name}
+                onChange={(e) => setSupportForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </section>
+
+            <section className="checkin-field">
+              <div className="checkin-field-title">Контакт (email или телефон)</div>
+              <input
+                className="checkin-notes-input support-input"
+                type="text"
+                placeholder="name@email.com или +7..."
+                value={supportForm.contact}
+                onChange={(e) => setSupportForm((f) => ({ ...f, contact: e.target.value }))}
+              />
+            </section>
+
+            <section className="checkin-field checkin-field--notes">
+              <div className="checkin-field-title">Сообщение</div>
+              <textarea
+                className="checkin-notes-input"
+                rows={5}
+                placeholder="Коротко опишите, что вас беспокоит."
+                value={supportForm.message}
+                onChange={(e) => setSupportForm((f) => ({ ...f, message: e.target.value }))}
+              />
+            </section>
+
+            {supportSent && (
+              <p className="support-form-success">
+                Заявка отправлена. Мы скоро свяжемся с вами.
+              </p>
+            )}
+
+            <div className="checkin-form-actions">
+              <button
+                type="button"
+                className="checkin-btn-cancel"
+                onClick={() => setSupportModalOpen(false)}
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                className="checkin-btn-save"
+                onClick={submitSupportRequest}
+                disabled={!supportForm.name.trim() || !supportForm.contact.trim() || !supportForm.message.trim()}
+              >
+                Отправить заявку
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
       {detailsOpen &&
       <div
         className="modal-overlay dash-modal-overlay"
@@ -623,10 +912,17 @@ const Dashboard = () => {
         onClick={() => setDetailsOpen(false)}>
         
           <div className="modal-card dash-details-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 id="dash-details-title">{t('dash.details.title')}</h2>
-              <button type="button" className="modal-close" onClick={() => setDetailsOpen(false)} aria-label={t('dash.close')}>
-                <X size={18} />
+            <div className="modal-header dash-details-header">
+              <h2 id="dash-details-title" className="dash-details-title-text">
+                {t('dash.details.title')}
+              </h2>
+              <button
+                type="button"
+                className="modal-close dash-details-close"
+                onClick={() => setDetailsOpen(false)}
+                aria-label={t('dash.close')}>
+                
+                <X size={18} strokeWidth={2.2} />
               </button>
             </div>
             <p className="dash-details-lead">
@@ -638,33 +934,83 @@ const Dashboard = () => {
             t('dash.details.leadModel')}
               {t('dash.details.leadDisclaim')}
             </p>
-            <ul className="dash-details-list">
-              <li>
-                <strong>
-                  {t('dash.details.liMood')} ({moodVal}%)
-                </strong>{' '}
-                {t('dash.details.liMoodExp')}
+
+            <ul className="dash-details-rows">
+              <li className="dash-details-row dash-details-row--mood">
+                <img
+                  className="dash-details-emoji"
+                  src={`${CHECKIN_MOOD_EMOJI_CDN}/${DETAILS_ROW_TWEMOJI.mood}.png`}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+                <p className="dash-details-row__para">
+                  <span className="dash-details-row__dot" aria-hidden />
+                  <strong className="dash-details-row__strong">
+                    {t('dash.details.liMood')} ({moodVal}%)
+                  </strong>{' '}
+                  <span className="dash-details-row__exp">{t('dash.details.liMoodExp')}</span>
+                </p>
               </li>
-              <li>
-                <strong>
-                  {t('dash.details.liStress')} ({stressVal}%)
-                </strong>{' '}
-                {t('dash.details.liStressExp')}
+              <li className="dash-details-row dash-details-row--stress">
+                <img
+                  className="dash-details-emoji"
+                  src={`${CHECKIN_MOOD_EMOJI_CDN}/${DETAILS_ROW_TWEMOJI.stress}.png`}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+                <p className="dash-details-row__para">
+                  <span className="dash-details-row__dot" aria-hidden />
+                  <strong className="dash-details-row__strong">
+                    {t('dash.details.liStress')} ({stressVal}%)
+                  </strong>{' '}
+                  <span className="dash-details-row__exp">{t('dash.details.liStressExp')}</span>
+                </p>
               </li>
-              <li>
-                <strong>
-                  {t('dash.details.liEnergy')} ({energyVal}%)
-                </strong>{' '}
-                {t('dash.details.liEnergyExp')}
+              <li className="dash-details-row dash-details-row--energy">
+                <img
+                  className="dash-details-emoji"
+                  src={`${CHECKIN_MOOD_EMOJI_CDN}/${DETAILS_ROW_TWEMOJI.energy}.png`}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+                <p className="dash-details-row__para">
+                  <span className="dash-details-row__dot" aria-hidden />
+                  <strong className="dash-details-row__strong">
+                    {t('dash.details.liEnergy')} ({energyVal}%)
+                  </strong>{' '}
+                  <span className="dash-details-row__exp">{t('dash.details.liEnergyExp')}</span>
+                </p>
               </li>
             </ul>
-            <p className="dash-details-note">
-              {t('dash.details.foot')}
-            </p>
-            <div className="modal-actions">
-              <button type="button" className="btn btn-ghost" onClick={() => setDetailsOpen(false)}>{t('dash.details.close')}</button>
-              <button type="button" className="btn btn-primary" onClick={() => {setDetailsOpen(false);navigate('/stats');}}>
+
+            <div className="dash-details-hint" role="note">
+              <div className="dash-details-hint__icon" aria-hidden>
+                <Mountain size={22} strokeWidth={2} />
+              </div>
+              <p className="dash-details-hint__text">{t('dash.details.foot')}</p>
+            </div>
+
+            <div className="dash-details-actions">
+              <button
+                type="button"
+                className="dash-details-btn dash-details-btn--secondary"
+                onClick={() => setDetailsOpen(false)}>
+                
+                {t('dash.details.close')}
+              </button>
+              <button
+                type="button"
+                className="dash-details-btn dash-details-btn--primary"
+                onClick={() => {
+                  setDetailsOpen(false);
+                  navigate('/stats');
+                }}>
+                
                 {t('dash.details.analytics')}
+                <ArrowRight size={18} strokeWidth={2.2} aria-hidden />
               </button>
             </div>
           </div>

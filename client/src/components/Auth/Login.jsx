@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
 import { Brain, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { formatAuthAxiosError, mergeField, readFormField } from '../../utils/authFormRead';
 import './Auth.css';
 
 const Login = () => {
@@ -15,19 +16,29 @@ const Login = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setError('');
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    const formEl = e.currentTarget;
+    const email = mergeField(readFormField(formEl, 'email'), form.email, true);
+    const password = mergeField(readFormField(formEl, 'password'), form.password, false);
+    if (!email || !password) {
+      setError(t('auth.errRequiredLogin'));
+      return;
+    }
     setLoading(true);
     try {
-      const user = await login(form.email, form.password);
+      const user = await login(email, password);
       if (user.role === 'admin') navigate('/admin');else
       if (!user.onboarding_burnout_completed) navigate('/onboarding/burnout', { replace: true });else
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || t('auth.errLogin'));
+      setError(formatAuthAxiosError(err, t) || t('auth.errLogin'));
     } finally {
       setLoading(false);
     }
@@ -60,13 +71,14 @@ const Login = () => {
           </div>
         }
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} className="auth-form" noValidate>
           <div className="form-group">
             <label>{t('auth.labelEmail')}</label>
             <input
               className="input"
               type="email"
               name="email"
+              autoComplete="email"
               placeholder="your@email.com"
               value={form.email}
               onChange={handleChange}
@@ -81,6 +93,7 @@ const Login = () => {
                 className="input"
                 type={showPass ? 'text' : 'password'}
                 name="password"
+                autoComplete="current-password"
                 placeholder={t('auth.phPassword')}
                 value={form.password}
                 onChange={handleChange}

@@ -1,11 +1,35 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
+import {
+  syncBannerProfileFromUser,
+  clearBannerProfileCache } from
+'../config/homeBannerVideo';
 import {
   readPendingOnboarding,
   clearPendingOnboarding } from
 '../utils/onboardingLocalStorage';
 
 const AuthContext = createContext(null);
+
+/** Устаревший ответ GET /users/me (запрос ушёл до PUT профиля) не должен затирать gender/avatar. */
+function mergeMeResponse(server, prev) {
+  if (!prev) return server;
+  const profileStale =
+    (prev.gender && prev.avatar) && (!server.gender || !server.avatar);
+  if (profileStale) {
+    const role =
+    prev.role === 'teacher' || prev.role === 'student' ?
+    prev.role :
+    server.role || prev.role;
+    return {
+      ...server,
+      gender: prev.gender,
+      avatar: prev.avatar,
+      role
+    };
+  }
+  return { ...prev, ...server };
+}
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -32,30 +56,36 @@ export const AuthProvider = ({ children }) => {
 
         if (server.onboarding_burnout_completed) {
           clearPendingOnboarding(server.user_id);
-          setUser(server);
-          localStorage.setItem('user', JSON.stringify(server));
+          setUser((prev) => {
+            const merged = mergeMeResponse(server, prev);
+            syncBannerProfileFromUser(merged);
+            localStorage.setItem('user', JSON.stringify(merged));
+            return merged;
+          });
           return;
         }
 
-        let u = server;
-        if (pending) {
-          u = {
-            ...server,
-            onboarding_burnout_completed: true,
-            onboarding_burnout_percent: pending.percent ?? server.onboarding_burnout_percent
-          };
-        }
-        setUser(u);
-        localStorage.setItem('user', JSON.stringify(u));
+        // Не помечаем опрос пройденным из localStorage до успешного POST — иначе новый user_id
+        // с «чужим» pending или тестовым ключом сразу уходит на /dashboard без опроса.
+        setUser((prev) => {
+          const merged = mergeMeResponse(server, prev);
+          syncBannerProfileFromUser(merged);
+          localStorage.setItem('user', JSON.stringify(merged));
+          return merged;
+        });
 
-        if (pending?.answers?.length === 10) {
+        if (pending?.answers?.length === 9) {
           api.
           post('/users/onboarding-burnout', { answers: pending.answers }).
           then((r) => {
             clearPendingOnboarding(server.user_id);
-            const merged = { ...server, ...r.data.user };
-            setUser(merged);
-            localStorage.setItem('user', JSON.stringify(merged));
+            setUser((prev) => {
+              const base = mergeMeResponse(server, prev);
+              const merged = { ...base, ...r.data.user };
+              syncBannerProfileFromUser(merged);
+              localStorage.setItem('user', JSON.stringify(merged));
+              return merged;
+            });
           }).
           catch(() => {});
         }
@@ -63,6 +93,7 @@ export const AuthProvider = ({ children }) => {
       catch(() => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        clearBannerProfileCache();
         setUser(null);
       }).
       finally(() => setLoading(false));
@@ -73,31 +104,45 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
+    const u = res.data.user;
     localStorage.setItem('token', res.data.token);
-    localStorage.setItem('user', JSON.stringify(res.data.user));
-    setUser(res.data.user);
-    return res.data.user;
+    localStorage.setItem('user', JSON.stringify(u));
+    setUser(u);
+    syncBannerProfileFromUser(u);
+    return u;
   };
 
   const register = async (data) => {
     const res = await api.post('/auth/register', data);
+    const newUser = res.data.user;
+    clearPendingOnboarding(newUser?.user_id);
     localStorage.setItem('token', res.data.token);
-    localStorage.setItem('user', JSON.stringify(res.data.user));
-    setUser(res.data.user);
-    return res.data.user;
+    localStorage.setItem('user', JSON.stringify(newUser));
+    setUser(newUser);
+    syncBannerProfileFromUser(newUser);
+    return newUser;
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    clearBannerProfileCache();
     setUser(null);
   };
 
-  const updateUser = (newData) => {
-    const updated = { ...user, ...newData };
-    setUser(updated);
-    localStorage.setItem('user', JSON.stringify(updated));
-  };
+  const updateUser = useCallback((newData) => {
+    if (!newData || typeof newData !== 'object') return;
+    const { token: newToken, ...rest } = newData;
+    if (newToken) localStorage.setItem('token', newToken);
+    setUser((prev) => {
+      const base = prev || {};
+      const updated = { ...base, ...rest };
+      if (Object.prototype.hasOwnProperty.call(updated, 'token')) delete updated.token;
+      syncBannerProfileFromUser(updated);
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, login, register, logout, updateUser, loading }}>

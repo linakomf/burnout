@@ -18,6 +18,13 @@ async function ensureCoreSchema() {
     );
   `);
 
+  try {
+    await pool.query(`ALTER TABLE users ALTER COLUMN email TYPE VARCHAR(254)`);
+    await pool.query(`ALTER TABLE users ALTER COLUMN name TYPE VARCHAR(120)`);
+  } catch (e) {
+    console.warn('ensureCoreSchema widen users columns:', e.message);
+  }
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS categories (
       category_id SERIAL PRIMARY KEY,

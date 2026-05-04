@@ -4856,61 +4856,88 @@
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 52px 48px;
-  padding: 8px 12px 16px;
+  gap: 48px 40px;
+  padding: 8px 12px 24px;
   justify-items: center;
+  align-items: start;
 }
 
 .practices-landing-tile {
   border: none;
   padding: 0;
   width: 100%;
-  max-width: 228px;
+  max-width: 280px;
   cursor: pointer;
   text-align: left;
   background: transparent;
   font-family: var(--font-sans);
-  transition: transform 0.25s ease;
-}
-
-/* Ряд из 3: крайние ниже, центр выше */
-.practices-landing-tile:nth-child(3n + 1),
-.practices-landing-tile:nth-child(3n + 3) {
-  transform: translateY(26px);
-}
-
-.practices-landing-tile:nth-child(3n + 2) {
-  transform: translateY(-4px);
-}
-
-.practices-landing-tile:nth-child(3n + 1):hover,
-.practices-landing-tile:nth-child(3n + 3):hover {
-  transform: translateY(20px);
-}
-
-.practices-landing-tile:nth-child(3n + 2):hover {
-  transform: translateY(-10px);
+  transition: transform 0.28s ease;
 }
 
 .practices-landing-tile:focus-visible {
-  outline: 2px solid #3b82f6;
-  outline-offset: 5px;
-  border-radius: 32px;
+  outline: 2px solid #82a5eb;
+  outline-offset: 6px;
+  border-radius: 40px;
+}
+
+/* Карточка: фото сверху, круг с иконкой на стыке, текст и точки снизу */
+.practices-landing-tile-card {
+  display: block;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 36px;
+  overflow: visible;
+  box-shadow:
+    0 20px 48px rgba(100, 130, 160, 0.12),
+    0 4px 16px rgba(130, 165, 235, 0.06),
+    0 0 0 1px rgba(226, 232, 240, 0.9);
+  transition:
+    box-shadow 0.28s ease,
+    transform 0.28s ease;
+}
+
+.practices-landing-tile--featured .practices-landing-tile-card {
+  transform: scale(1.045);
+  box-shadow:
+    0 28px 56px rgba(100, 130, 160, 0.14),
+    0 8px 24px rgba(130, 165, 235, 0.1),
+    0 0 0 1px rgba(190, 210, 250, 0.95);
+  z-index: 1;
+}
+
+.practices-landing-tile-mediaWrap {
+  position: relative;
+  display: block;
+  border-radius: 36px 36px 0 0;
 }
 
 .practices-landing-tile-media {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 5;
-  border-radius: 28px;
+  /* Ниже прежнего 4/5 — заметно короче по высоте (~на порядок «4 см» на типичной карточке) */
+  aspect-ratio: 4 / 3.35;
+  border-radius: 36px 36px 0 0;
   overflow: hidden;
   isolation: isolate;
-  box-shadow:
-    0 24px 52px rgba(100, 130, 160, 0.12),
-    0 0 0 1px rgba(226, 232, 240, 0.95);
-  transition: box-shadow 0.25s ease, transform 0.35s ease, filter 0.35s ease;
-  filter: brightness(1.07) saturate(0.88) contrast(0.93);
+  transition: filter 0.28s ease;
+  filter: brightness(1.05) saturate(0.9) contrast(0.94);
+}
+
+.practices-landing-tile-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: #82a5eb;
+  box-shadow: 0 4px 14px rgba(130, 165, 235, 0.45);
 }
 
 .practices-landing-tile-cover {
@@ -4930,7 +4957,6 @@
   object-position: center;
 }
 
-/* Лёгкая «дымка» и холодный оттенок — high-key как на макете */
 .practices-landing-tile-media::after {
   content: '';
   position: absolute;
@@ -4939,33 +4965,43 @@
   pointer-events: none;
   background: linear-gradient(
     165deg,
-    rgba(255, 255, 255, 0.38) 0%,
+    rgba(255, 255, 255, 0.35) 0%,
     transparent 42%,
-    rgba(224, 242, 254, 0.22) 100%
+    rgba(224, 242, 254, 0.2) 100%
   );
 }
 
-.practices-landing-tile:hover .practices-landing-tile-media {
+.practices-landing-tile:hover .practices-landing-tile-card {
+  transform: translateY(-6px);
   box-shadow:
-    0 32px 60px rgba(100, 130, 160, 0.16),
-    0 0 0 1px rgba(191, 219, 254, 0.9);
-  transform: scale(1.02);
-  filter: brightness(1.1) saturate(0.9) contrast(0.94);
+    0 28px 56px rgba(100, 130, 160, 0.16),
+    0 8px 22px rgba(130, 165, 235, 0.1),
+    0 0 0 1px rgba(191, 219, 254, 0.95);
+}
+
+.practices-landing-tile--featured:hover .practices-landing-tile-card {
+  transform: translateY(-6px) scale(1.045);
+}
+
+.practices-landing-tile:hover .practices-landing-tile-media {
+  filter: brightness(1.08) saturate(0.92) contrast(0.95);
 }
 
 .practices-landing-tile-body {
   display: block;
-  padding: 16px 4px 0;
+  padding: 14px 16px 14px;
   text-align: center;
+  background: #ffffff;
+  border-radius: 0 0 36px 36px;
 }
 
 .practices-landing-tile-body strong {
   display: block;
-  font-size: clamp(15px, 1.8vw, 18px);
-  font-weight: 700;
+  font-size: clamp(16px, 1.9vw, 19px);
+  font-weight: 800;
   letter-spacing: -0.02em;
-  color: #1f2937;
-  margin-bottom: 6px;
+  color: #1e3a5f;
+  margin-bottom: 8px;
 }
 
 .practices-landing-tile-desc {
@@ -4974,44 +5010,22 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   font-size: 12px;
-  line-height: 1.45;
-  color: #6b7280;
+  line-height: 1.5;
+  color: #64748b;
   font-weight: 600;
+  margin-bottom: 0;
 }
 
 @media (max-width: 900px) {
   .practices-landing-stagger {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 44px 36px;
-    padding: 8px 8px 12px;
+    gap: 40px 28px;
+    padding: 8px 8px 16px;
   }
 
   .practices-landing-tile {
-    max-width: 220px;
+    max-width: min(280px, 100%);
   }
-
-  .practices-landing-tile:nth-child(3n + 1),
-  .practices-landing-tile:nth-child(3n + 2),
-  .practices-landing-tile:nth-child(3n + 3) {
-    transform: none;
-  }
-
-  .practices-landing-tile:nth-child(odd) {
-    transform: translateY(20px);
-  }
-
-  .practices-landing-tile:nth-child(even) {
-    transform: translateY(-4px);
-  }
-
-  .practices-landing-tile:nth-child(odd):hover {
-    transform: translateY(14px);
-  }
-
-  .practices-landing-tile:nth-child(even):hover {
-    transform: translateY(-10px);
-  }
-
 }
 
 @media (max-width: 720px) {
@@ -5053,15 +5067,7 @@
   }
 
   .practices-landing-tile {
-    max-width: min(248px, 88vw);
-  }
-
-  .practices-landing-tile:nth-child(n) {
-    transform: none;
-  }
-
-  .practices-landing-tile:nth-child(n):hover {
-    transform: translateY(-4px);
+    max-width: min(300px, 92vw);
   }
 }
 
@@ -5542,6 +5548,17 @@
   color: rgba(125, 211, 252, 0.22);
 }
 
+[data-theme='dark'] .practices-landing-tile-card {
+  background: var(--bg-card, #1a2220);
+  box-shadow:
+    0 20px 48px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .practices-landing-tile-body {
+  background: var(--bg-card, #1a2220);
+}
+
 [data-theme='dark'] .practices-landing-tile-body strong {
   color: var(--text-dark, #f1f5f9);
 }
@@ -5551,9 +5568,6 @@
 }
 
 [data-theme='dark'] .practices-landing-tile-media {
-  box-shadow:
-    0 20px 44px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
   filter: brightness(0.92) saturate(0.85) contrast(1.02);
 }
 
@@ -5571,7 +5585,7 @@
 }
 
 [data-theme='dark'] .practices-landing-tile:focus-visible {
-  outline-color: #60a5fa;
+  outline-color: #82a5eb;
 }
 
 [data-theme='dark'] .practices-sub-head h1 {

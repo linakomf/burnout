@@ -2,10 +2,7 @@ const pool = require('./db');
 const { BY_ID, META_FOR_ENSURE } = require('./testCanonical');
 
 const LIKERT5_NEVER_ALWAYS = ['Никогда', 'Редко', 'Иногда', 'Часто', 'Всегда'];
-const LIKERT5_PSS = ['Никогда', 'Почти никогда', 'Иногда', 'Довольно часто', 'Очень часто'];
 const GAD7_OPTS = ['Ни разу', 'Несколько дней', 'Более половины дней', 'Почти каждый день'];
-const DAILY5_A = ['Совсем нет', 'Слегка', 'Умеренно', 'Сильно', 'Очень сильно'];
-const DAILY5_MOOD = ['Совсем легко', 'Скорее легко', 'Средне', 'Скорее тяжело', 'Очень тяжело'];
 
 const TEST_META = META_FOR_ENSURE.map(({ id, scoring_type }) => ({
   id,
@@ -16,6 +13,55 @@ const TEST_META = META_FOR_ENSURE.map(({ id, scoring_type }) => ({
 
 function optsJson(arr) {
   return JSON.stringify(arr);
+}
+
+function optionsEqual(dbOpts, expectedArr) {
+  let parsed = dbOpts;
+  if (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      return false;
+    }
+  }
+  if (!Array.isArray(parsed) || parsed.length !== expectedArr.length) return false;
+  return parsed.every((v, i) => String(v) === String(expectedArr[i]));
+}
+
+async function replaceQuestionsFromSeed(testId) {
+  const block = EXTRA_QUESTION_SEEDS.find((b) => b.testId === testId);
+  if (!block) return;
+  await pool.query('DELETE FROM questions WHERE test_id = $1', [testId]);
+  let order = 1;
+  for (const [text, options] of block.questions) {
+    await pool.query(
+      `INSERT INTO questions (test_id, question_text, options, order_num)
+       VALUES ($1, $2, $3::jsonb, $4)`,
+      [testId, text, optsJson(options), order]
+    );
+    order += 1;
+  }
+  console.log(`✅ Синхронизированы вопросы test_id=${testId} (${block.questions.length} шт.)`);
+}
+
+async function ensureQuestionsMatchSeed(testId) {
+  const block = EXTRA_QUESTION_SEEDS.find((b) => b.testId === testId);
+  if (!block) return;
+  const { rows } = await pool.query(
+    'SELECT question_text, options FROM questions WHERE test_id = $1 ORDER BY order_num',
+    [testId]
+  );
+  const expected = block.questions;
+  if (rows.length !== expected.length) {
+    await replaceQuestionsFromSeed(testId);
+    return;
+  }
+  for (let i = 0; i < rows.length; i++) {
+    if (rows[i].question_text !== expected[i][0] || !optionsEqual(rows[i].options, expected[i][1])) {
+      await replaceQuestionsFromSeed(testId);
+      return;
+    }
+  }
 }
 
 const TEST_CATEGORY_ID = {
@@ -70,7 +116,8 @@ const EXTRA_QUESTION_SEEDS = [
   ['Мне кажется, что я отстаю от программы', LIKERT5_NEVER_ALWAYS],
   ['Я раздражаюсь из-за мелочей, связанных с учёбой', LIKERT5_NEVER_ALWAYS],
   ['Мне трудно концентрироваться на лекциях и текстах', LIKERT5_NEVER_ALWAYS],
-  ['Я чувствую вину, если отдыхаю вместо учёбы', LIKERT5_NEVER_ALWAYS]]
+  ['Я чувствую вину, если отдыхаю вместо учёбы', LIKERT5_NEVER_ALWAYS],
+  ['Мне трудно верить, что смогу стабильно тянуть учёбу до конца семестра', LIKERT5_NEVER_ALWAYS]]
 
 },
 {
@@ -90,16 +137,15 @@ const EXTRA_QUESTION_SEEDS = [
 {
   testId: 5,
   questions: [
-  ['Мне кажется, что на меня свалилось слишком много задач', LIKERT5_PSS],
-  ['Я не успеваю восстанавливаться между рабочими или учебными днями', LIKERT5_PSS],
-  ['Мне трудно сказать «нет» новым обязанностям', LIKERT5_PSS],
-  ['Из-за нагрузки я жертвую сном', LIKERT5_PSS],
-  ['Я чувствую постоянное ощущение спешки', LIKERT5_PSS],
-  ['Мне не хватает времени на семью, друзей и хобби', LIKERT5_PSS],
-  ['Я раздражаюсь, когда меня отвлекают от дел', LIKERT5_PSS],
-  ['В конце недели я чувствую себя полностью вымотанным', LIKERT5_PSS],
-  ['Я чувствую, что теряю интерес к тому, что раньше мотивировало', LIKERT5_PSS],
-  ['Мне сложно ощущать радость от маленьких достижений', LIKERT5_PSS]]
+  ['Мне кажется, что на меня свалилось слишком много задач', LIKERT5_NEVER_ALWAYS],
+  ['Я не успеваю восстанавливаться между рабочими или учебными днями', LIKERT5_NEVER_ALWAYS],
+  ['Мне трудно сказать «нет» новым обязанностям', LIKERT5_NEVER_ALWAYS],
+  ['Из-за нагрузки я жертвую сном', LIKERT5_NEVER_ALWAYS],
+  ['Я чувствую постоянное ощущение спешки', LIKERT5_NEVER_ALWAYS],
+  ['Мне не хватает времени на семью, друзей и хобби', LIKERT5_NEVER_ALWAYS],
+  ['Я раздражаюсь, когда меня отвлекают от дел', LIKERT5_NEVER_ALWAYS],
+  ['В конце недели я чувствую себя полностью вымотанным', LIKERT5_NEVER_ALWAYS],
+  ['Я чувствую, что теряю интерес к тому, что раньше мотивировало', LIKERT5_NEVER_ALWAYS]]
 
 },
 {
@@ -120,11 +166,15 @@ const EXTRA_QUESTION_SEEDS = [
 {
   testId: 7,
   questions: [
-  ['Насколько вы сейчас устали (физически и эмоционально)?', DAILY5_A],
-  ['Насколько сложно сосредоточиться на задачах?', DAILY5_A],
-  ['Насколько вы чувствуете тревогу или напряжение?', DAILY5_A],
-  ['Насколько вы откладываете дела или избегаете их?', DAILY5_A],
-  ['Насколько день ощущается тяжёлым или неприятным?', DAILY5_MOOD]]
+  ['Я чувствую усталость (физическую и эмоциональную)', LIKERT5_NEVER_ALWAYS],
+  ['Мне трудно сосредоточиться на задачах', LIKERT5_NEVER_ALWAYS],
+  ['Я испытываю тревогу или напряжение', LIKERT5_NEVER_ALWAYS],
+  ['Я откладываю дела или избегаю их', LIKERT5_NEVER_ALWAYS],
+  ['День ощущается тяжёлым или неприятным', LIKERT5_NEVER_ALWAYS],
+  ['Мне трудно расслабиться', LIKERT5_NEVER_ALWAYS],
+  ['Я раздражителен или легко выхожу из себя', LIKERT5_NEVER_ALWAYS],
+  ['Мне не хватает сил на то, что раньше давалось легче', LIKERT5_NEVER_ALWAYS],
+  ['К вечеру я чувствую опустошённость', LIKERT5_NEVER_ALWAYS]]
 
 }];
 
@@ -217,6 +267,10 @@ async function ensureTestCatalog() {
 
     for (const id of [2, 3, 4, 5, 6, 7]) {
       await ensureQuestionsUpToSeed(id);
+    }
+
+    for (const id of [2, 3, 4, 5, 6, 7]) {
+      await ensureQuestionsMatchSeed(id);
     }
   } catch (e) {
     console.warn('ensureTestCatalog:', e.message);

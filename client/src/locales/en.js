@@ -11,16 +11,32 @@ export default {
       cta: 'Log my state'
     },
     stats: { mood: 'Your mood', stress: 'Stress', energy: 'Energy', more: 'Details' },
+    state: {
+      title: 'Your state',
+      subtitle: 'Track your mood and energy',
+      bannerTitle: "You're on the right track!",
+      bannerSub: 'A small step each day is already self-care.',
+      labels: { mood: 'Mood', stress: 'Stress', energy: 'Energy' },
+      scaleMin: '0',
+      scaleMax: '100',
+      moodStatus: { high: 'Positive', mid: 'Steady', low: 'Harder than usual' },
+      stressStatus: { low: 'Low', mid: 'Moderate', high: 'High' },
+      energyStatus: { high: 'High', mid: 'Medium', low: 'Low' }
+    },
     dailyTest: {
       title: 'Daily test: burnout level',
-      desc: 'Answer a few short questions to better understand how you are doing and get more accurate recommendations.',
-      metaQuestions: '5 questions',
-      metaDuration: '2 minutes',
+      desc: 'A short well-being survey — recommendations adapt to your marks.',
+      metaQuestions: '9 questions',
+      metaDuration: '~5 minutes',
       metaInstant: 'Instant result',
+      metaInline: '9 questions · ~5 min · instant result',
+      metaCompact: '9 questions • ~5 min',
+      pickNote: 'We pick the survey from your stress, mood, and energy on the dashboard.',
       statusPending: 'Not completed today yet',
       statusDone: 'Already completed today',
       cta: 'Take the test',
-      aria: 'Open tests'
+      aria: 'Open tests',
+      ctaAriaPersonalized: 'Take the recommended survey for your current state'
     },
     supportNearby: {
       title: "We're here",
@@ -30,9 +46,13 @@ export default {
       mailSubject: 'Message from the app'
     },
     advice: {
+      dayLabel: 'Advice of the day',
+      titleMain: 'Recover through',
+      titleAccent: 'what feels close to you',
       headline: 'ADVICE OF THE DAY: RECOVER THROUGH WHAT FEELS CLOSE TO YOU',
-      sub1: 'Recommendations are personalized using your current state and test results.',
-      sub2: 'Pick the direction that feels most right for you right now.',
+      subLine1: 'Recommendations are personalized using your current state',
+      subLine2: 'and your test results.',
+      subLine3: 'Pick the direction that feels most right for you right now.',
       cards: {
         music: {
           category: 'Music',
@@ -242,7 +262,7 @@ export default {
     featuresTitleQ: '?',
     featuresSub: 'One calm style, clear steps, and care for your resources — not only the scores',
     f0t: 'Start with a test',
-    f0d: 'Right after sign-up — 10 questions and a burnout % so you know your baseline',
+    f0d: 'Right after sign-up — 9 questions and a burnout % so you know your baseline',
     f1t: 'Mood and journal',
     f1d: 'Calendar, notes, and gentle support in a familiar UI',
     f2t: 'Analytics',
@@ -273,9 +293,15 @@ export default {
     loginTitle: 'Welcome',
     loginSubtitle: 'Sign in to the psychological support app',
     registerTitle: 'Create an account',
-    registerSubtitle: 'After sign-up, take a short burnout test (10 questions)',
+    registerSubtitle: 'After sign-up, set up your profile, then take a short burnout test (9 questions)',
     errLogin: 'Sign-in error',
     errRegister: 'Registration error',
+    errNetwork: 'Cannot reach the server. Start the backend from the server folder (port 5000) and reload.',
+    errApiUnreachable:
+      'The API is not available at this URL. If the API is on another host, set REACT_APP_API_ORIGIN in .env (server URL without /api) and rebuild the client.',
+    errServer: 'The server is temporarily unavailable. Try again later or check backend logs.',
+    errRequired: 'Please enter your name, email, and password.',
+    errRequiredLogin: 'Please enter your email and password.',
     passShort: 'Password must be at least 6 characters',
     labelEmail: 'Email',
     labelPassword: 'Password',
@@ -294,8 +320,29 @@ export default {
     labelAge: 'Age',
     phAge: 'Your age',
     labelRole: 'Role',
+    labelGender: 'Gender',
     roleStudent: '🎓 Student',
-    roleTeacher: '👨‍🏫 Teacher'
+    roleTeacher: '👨‍🏫 Teacher',
+    regNext: 'Continue',
+    regBack: 'Back',
+    regStep2Title: 'Choose your avatar',
+    regStep2Subtitle: 'Choose a character for your profile.',
+    regGenderBoy: 'Boy',
+    regGenderGirl: 'Girl',
+    regGenderHint: 'You can change this later in your profile.',
+    regPickAvatar: 'Avatar',
+    regSubmit: 'Create account',
+    regSubmitL: 'Creating account...'
+  },
+  burnoutOnb: {
+    profileTitle: 'Set up your profile',
+    profileSubtitle: 'Choose your role, gender, and avatar — then continue to the wellbeing questionnaire.',
+    toSurvey: 'Continue to survey',
+    saving: 'Saving…',
+    errSave: 'Could not save. Please try again.',
+    backToRegister: 'Back to sign up',
+    backToRegisterAria: 'Log out and return to the registration form',
+    avatarByRoleHint: 'Your character is set from role (student / teacher) and gender.'
   },
   pages: {
     practicesTitle: 'Space',
@@ -350,6 +397,7 @@ export default {
     practicesSpaceSpotlightTitle: 'A soft start',
     practicesSpaceSpotlightSub: 'Two minutes of breath — light as a cloud',
     practicesSpaceSpotlightAria: 'Open a short meditation in the Meditations section',
+    practicesTilePopular: 'Popular',
     practicesBackToHub: 'Back to Space',
     musicRecoveryTitle: 'Music for recovery',
     musicRecoveryLead:

@@ -18,6 +18,45 @@
   max-width: 560px;
 }
 
+.onb-profile-shell {
+  max-width: 440px;
+}
+
+.onb-profile-shell .auth-form {
+  margin-top: 8px;
+}
+
+.onb-profile-cta {
+  width: 100%;
+  justify-content: center;
+  margin-top: 0;
+}
+
+.onb-profile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.onb-profile-back {
+  width: 100%;
+  justify-content: center;
+}
+
+.onb-avatar-preview {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.onb-avatar-preview-card {
+  width: min(168px, 42vw);
+  max-width: 200px;
+  cursor: default;
+  pointer-events: none;
+}
+
 .onb-header {
   margin-bottom: 20px;
 }

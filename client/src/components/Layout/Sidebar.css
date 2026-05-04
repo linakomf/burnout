@@ -144,6 +144,14 @@
   stroke-linejoin: round;
 }
 
+.nav-icon-img {
+  display: block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .nav-item.active .nav-icon svg {
   color: #1a1a1a;
   stroke: #1a1a1a;

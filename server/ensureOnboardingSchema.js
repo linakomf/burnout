@@ -2,6 +2,9 @@ const pool = require('./db');
 
 async function runOnboardingMigration() {
   await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS gender VARCHAR(20);
+  `);
+  await pool.query(`
     ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_burnout_completed BOOLEAN DEFAULT FALSE;
   `);
   await pool.query(`

@@ -1,8 +1,10 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const pool = require('../db');
 const { runOnboardingMigration } = require('../ensureOnboardingSchema');
 const { authMiddleware } = require('../middleware/auth');
+const { normalizeRegisterAvatar, normalizeGender } = require('../utils/registerProfile');
 const multer = require('multer');
 const path = require('path');
 
@@ -27,7 +29,7 @@ const upload = multer({
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT user_id, name, email, role, avatar, age, created_at,
+      `SELECT user_id, name, email, role, avatar, age, gender, created_at,
         COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
         onboarding_burnout_percent,
         onboarding_burnout_completed_at
@@ -42,7 +44,7 @@ router.get('/me', authMiddleware, async (req, res) => {
 });
 
 router.put('/me', authMiddleware, async (req, res) => {
-  const { name, email, age, currentPassword, newPassword } = req.body;
+  const { name, email, age, currentPassword, newPassword, role, gender, avatar } = req.body;
   const userId = req.user.user_id;
 
   try {
@@ -57,16 +59,75 @@ router.put('/me', authMiddleware, async (req, res) => {
       updatedPassword = newPassword;
     }
 
+    let nextRole = user.role;
+    let roleChanged = false;
+    if (user.role !== 'admin' && Object.prototype.hasOwnProperty.call(req.body, 'role')) {
+      const raw = role;
+      if (raw !== null && raw !== undefined && String(raw).trim() !== '') {
+        const r = String(raw).trim().toLowerCase();
+        if (!['student', 'teacher'].includes(r)) {
+          return res.status(400).json({ message: 'Выберите роль: студент или преподаватель' });
+        }
+        nextRole = r;
+        roleChanged = nextRole !== user.role;
+      }
+    }
+
+    if (user.role !== 'admin' && (!nextRole || !['student', 'teacher'].includes(nextRole))) {
+      nextRole = 'student';
+    }
+
+    let nextGender = user.gender;
+    if (Object.prototype.hasOwnProperty.call(req.body, 'gender')) {
+      const g = normalizeGender(gender);
+      if (!g) {
+        return res.status(400).json({ message: 'Укажите пол: мальчик или девочка' });
+      }
+      nextGender = g;
+    }
+
+    let nextAvatar = user.avatar;
+    if (Object.prototype.hasOwnProperty.call(req.body, 'avatar')) {
+      const av = normalizeRegisterAvatar(avatar);
+      if (!av) {
+        return res.status(400).json({ message: 'Выберите аватар из предложенных или загрузите в профиле' });
+      }
+      nextAvatar = av;
+    }
+
     const result = await pool.query(
-      `UPDATE users SET name=$1, email=$2, age=$3, password=$4 WHERE user_id=$5
-       RETURNING user_id, name, email, role, avatar, age,
+      `UPDATE users SET name=$1, email=$2, age=$3, password=$4, role=$5, gender=$6, avatar=$7 WHERE user_id=$8
+       RETURNING user_id, name, email, role, avatar, age, gender,
          COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
          onboarding_burnout_percent,
          onboarding_burnout_completed_at`,
-      [name || user.name, email || user.email, age || user.age, updatedPassword, userId]
+      [
+        name || user.name,
+        email || user.email,
+        age !== undefined && age !== null && age !== '' ? age : user.age,
+        updatedPassword,
+        nextRole,
+        nextGender,
+        nextAvatar,
+        userId
+      ]
     );
 
-    res.json(result.rows[0]);
+    const updated = result.rows[0];
+    const payload = { ...updated };
+    if (roleChanged && updated.role !== 'admin') {
+      payload.token = jwt.sign(
+        {
+          user_id: updated.user_id,
+          email: updated.email,
+          role: updated.role,
+          name: updated.name
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+    }
+    res.json(payload);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });
@@ -83,15 +144,15 @@ router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
   }
 
   const { answers } = req.body;
-  if (!Array.isArray(answers) || answers.length !== 10) {
-    return res.status(400).json({ message: 'Нужно ответить на 10 вопросов' });
+  if (!Array.isArray(answers) || answers.length !== 9) {
+    return res.status(400).json({ message: 'Нужно ответить на 9 вопросов' });
   }
   const nums = answers.map((a) => parseInt(a, 10));
-  if (nums.some((n) => Number.isNaN(n) || n < 0 || n > 3)) {
-    return res.status(400).json({ message: 'Каждый ответ — число от 0 до 3' });
+  if (nums.some((n) => Number.isNaN(n) || n < 0 || n > 4)) {
+    return res.status(400).json({ message: 'Каждый ответ — число от 0 до 4' });
   }
   const sum = nums.reduce((s, n) => s + n, 0);
-  const percent = Math.min(100, Math.max(0, Math.round(sum / 30 * 100)));
+  const percent = Math.min(100, Math.max(0, Math.round(sum / 36 * 100)));
   try {
     await runOnboardingMigration();
     const result = await pool.query(
@@ -100,7 +161,7 @@ router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
         onboarding_burnout_percent = $1,
         onboarding_burnout_completed_at = CURRENT_TIMESTAMP
        WHERE user_id = $2
-       RETURNING user_id, name, email, role, avatar, age,
+       RETURNING user_id, name, email, role, avatar, age, gender,
          COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
          onboarding_burnout_percent,
          onboarding_burnout_completed_at`,

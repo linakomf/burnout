@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, Brain, ClipboardList, LogOut, Sparkles } from 'lucide-react';
+import { Activity, Brain, LogOut, Sparkles } from 'lucide-react';
+import testsNavIcon from '../../assets/tests-nav-icon.png';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 import './UserDashboard.css';
@@ -95,7 +96,7 @@ const UserDashboard = () => {
 
           <button type="button" className="ud-btn ud-btn-primary" onClick={() => navigate(testTarget)}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-              <ClipboardList size={18} />
+              <img src={testsNavIcon} alt="" width={20} height={20} style={{ objectFit: 'contain' }} />
               Пройти тест на выгорание
             </span>
           </button>

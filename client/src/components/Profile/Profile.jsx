@@ -95,6 +95,10 @@ const Profile = () => {
     teacher: t('auth.roleTeacher'),
     admin: t('pages.roleAdmin')
   };
+  const genderLabel = {
+    boy: t('auth.regGenderBoy'),
+    girl: t('auth.regGenderGirl')
+  };
 
   return (
     <div className="profile-page fade-in">
@@ -141,6 +145,7 @@ const Profile = () => {
           </div>
           <h2 className="profile-name">{user?.name}</h2>
           <span className="profile-role-badge">{roleLabel[user?.role]}</span>
+          {user?.gender && <p className="profile-age">{genderLabel[user.gender] || user.gender}</p>}
           <p className="profile-email">{user?.email}</p>
           {user?.age && <p className="profile-age">{user.age} лет</p>}
         </div>

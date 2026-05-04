@@ -33,12 +33,29 @@ const corsOrigins = [
   'http://[::1]:3001'
 ];
 
+const corsExtra = String(process.env.CORS_EXTRA_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
     origin: (origin, cb) => {
       if (!origin) return cb(null, true);
       if (corsOrigins.includes(origin)) return cb(null, true);
+      if (corsExtra.includes(origin)) return cb(null, true);
       if (process.env.CORS_ORIGIN && origin === process.env.CORS_ORIGIN) return cb(null, true);
+      if (process.env.NODE_ENV !== 'production') {
+        try {
+          const { hostname } = new URL(origin);
+          if (hostname === 'localhost' || hostname === '127.0.0.1') return cb(null, true);
+          if (/^192\.168\.\d+\.\d+$/.test(hostname) || /^10\.\d+\.\d+\.\d+$/.test(hostname)) {
+            return cb(null, true);
+          }
+        } catch {
+          /* ignore */
+        }
+      }
       return cb(new Error('Not allowed by CORS'));
     },
     credentials: true

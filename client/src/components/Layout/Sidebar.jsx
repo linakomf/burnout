@@ -12,11 +12,11 @@ import {
   Users,
   Tag,
   Brain,
-  ClipboardList,
   SlidersHorizontal } from
 'lucide-react';
 import './Sidebar.css';
 import { backendPublicUrl } from '../../utils/assetUrl';
+import testsNavIcon from '../../assets/tests-nav-icon.png';
 
 const publicPrefix = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
 const DEFAULT_AVATAR = encodeURI(`${publicPrefix}/photos/character.png`);
@@ -34,7 +34,11 @@ const Sidebar = () => {
     () => [
     { path: '/dashboard', icon: <Home {...iconProps} />, label: t('nav.home') },
     { path: '/diary', icon: <Calendar {...iconProps} />, label: t('nav.diary') },
-    { path: '/tests', icon: <ClipboardList {...iconProps} />, label: t('nav.tests') },
+    {
+      path: '/tests',
+      icon: <img src={testsNavIcon} alt="" className="nav-icon-img" width={22} height={22} />,
+      label: t('nav.tests')
+    },
     { path: '/practices', icon: <SlidersHorizontal {...iconProps} />, label: t('nav.practices') },
     { path: '/stats', icon: <BarChart2 {...iconProps} />, label: t('nav.stats') }],
 

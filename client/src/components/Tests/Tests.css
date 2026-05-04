@@ -1490,10 +1490,11 @@
   color: var(--survey-muted);
 }
 
-.test-survey-meta-pct {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--survey-purple);
+.test-survey-meta-counter {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--survey-text);
+  letter-spacing: 0.02em;
 }
 
 .test-survey-body {
@@ -1537,14 +1538,6 @@
 .test-survey-back:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-.test-survey-counter {
-  flex: 1;
-  text-align: right;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--survey-muted);
 }
 
 .test-survey-card {
