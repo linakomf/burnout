@@ -1,100 +1,135 @@
 import React, { useMemo, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Flower2 } from 'lucide-react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import PracticeCard from './PracticeCard';
 import PracticeModal from './PracticeModal';
-import { PRACTICE_CATEGORIES, PRACTICES } from './practicesData';
+import FilmsPracticeHub from './FilmsPracticeHub';
+import PodcastsPracticeHub from './PodcastsPracticeHub';
+import MusicPracticeHub from './MusicPracticeHub';
+import ArticlesPracticeHub from './ArticlesPracticeHub';
+import FilmsBannerCollectionPage from './FilmsBannerCollectionPage';
+import FilmDetailPage from './FilmDetailPage';
+import EventsPracticeHub from './EventsPracticeHub';
+import EventDetailPage from './EventDetailPage';
+import PracticesHome from './PracticesHome';
+import { PRACTICES } from './practicesData';
+import { spaceNature } from './spaceNatureImagery';
 import './Practices.css';
 
-const CHIP_PASTEL = {
-  all: null,
-  breath: 'practices-chip--breath',
-  focus: 'practices-chip--meditation',
-  grounding: 'practices-chip--reflection',
-  video: 'practices-chip--video'
-};
-
-function matchCategory(practice, activeCategory) {
-  if (activeCategory === 'all') return true;
-  if (activeCategory === 'video') {
-    return practice.category === 'restore' || practice.category === 'sleep';
+function matchCategory(practice, categoryId) {
+  if (categoryId === 'meditation') {
+    return practice.category === 'focus' || practice.category === 'grounding';
   }
-  return practice.category === activeCategory;
+  return practice.category === categoryId;
 }
 
-function Practices() {
+function MeditationSection() {
   const { t } = useLanguage();
-  const [activeCategory, setActiveCategory] = useState('all');
+  const navigate = useNavigate();
   const [favorites, setFavorites] = useState(() => new Set(['night-exhale', 'focus-single']));
   const [selectedPractice, setSelectedPractice] = useState(null);
 
-  const practicesByCategory = useMemo(
-    () => PRACTICES.filter((practice) => matchCategory(practice, activeCategory)),
-    [activeCategory]
-  );
+  const list = useMemo(() => PRACTICES.filter((p) => matchCategory(p, 'meditation')), []);
+
+  const heroSrc = spaceNature.meditationHero;
 
   const toggleFavorite = (practiceId) => {
     setFavorites((prev) => {
       const next = new Set(prev);
-      if (next.has(practiceId)) next.delete(practiceId);else
-      next.add(practiceId);
+      if (next.has(practiceId)) next.delete(practiceId);
+      else next.add(practiceId);
       return next;
     });
   };
 
   return (
-    <div className="practices-page fade-in">
-      <header className="practices-hero">
-        <h1 className="practices-title">{t('pages.practicesTitle')}</h1>
-        <p className="practices-subtitle">{t('pages.practicesSub')}</p>
+    <div className="meditation-hub meditation-hub--fullbleed fade-in">
+      <button type="button" className="meditation-hub-back" onClick={() => navigate('/practices')}>
+        <ArrowLeft size={18} strokeWidth={2} aria-hidden />
+        {t('pages.practicesBackToHub')}
+      </button>
+
+      <header className="meditation-hub-hero" aria-labelledby="meditation-hero-title">
+        <div className="meditation-hub-hero-copy">
+          <h1 id="meditation-hero-title" className="meditation-hub-title">
+            {t('pages.meditationPageTitle')}
+          </h1>
+          <p className="meditation-hub-lead">{t('pages.meditationPageLead')}</p>
+        </div>
+        <div className="meditation-hub-hero-visual" aria-hidden>
+          <span className="meditation-hub-deco meditation-hub-deco--a" />
+          <span className="meditation-hub-deco meditation-hub-deco--b" />
+          <img src={heroSrc} alt="" className="meditation-hub-hero-img" width={520} height={400} />
+        </div>
       </header>
 
-      <div className="practices-chips" role="tablist" aria-label={t('pages.practicesFilter')}>
-        {PRACTICE_CATEGORIES.map((category) => {
-          const isActive = activeCategory === category.id;
-          const pastel = CHIP_PASTEL[category.id];
-          return (
-            <button
-              key={category.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              className={`practices-chip ${pastel || ''} ${isActive ? 'practices-chip--active' : ''}`}
-              onClick={() => setActiveCategory(category.id)}>
-              
-              {t(`practiceCats.${category.id}`)}
-            </button>);
+      <section className="meditation-hub-body" aria-labelledby="meditation-practices-heading">
+        <h2 id="meditation-practices-heading" className="meditation-hub-section-title">
+          {t('pages.practicesShort')}
+        </h2>
+        <div className="meditation-hub-grid">
+          {list.map((practice, index) => (
+            <PracticeCard
+              key={practice.id}
+              practice={practice}
+              isFavorite={favorites.has(practice.id)}
+              onToggleFavorite={toggleFavorite}
+              onPlay={setSelectedPractice}
+              index={index}
+            />
+          ))}
+        </div>
+      </section>
 
-        })}
-      </div>
-
-      <div className="practices-section-head">
-        <h2 className="practices-section-title">{t('pages.practicesShort')}</h2>
-      </div>
-
-      <div className="practices-grid">
-        {practicesByCategory.map((practice, index) =>
-        <PracticeCard
-          key={practice.id}
-          practice={practice}
-          isFavorite={favorites.has(practice.id)}
-          onToggleFavorite={toggleFavorite}
-          onPlay={setSelectedPractice}
-          index={index} />
-
-        )}
-      </div>
+      <p className="meditation-hub-tagline">
+        <Flower2 className="meditation-hub-tagline-flower" size={18} strokeWidth={2} aria-hidden />
+        <span>{t('pages.meditationFooterTagline')}</span>
+        <Flower2 className="meditation-hub-tagline-flower" size={18} strokeWidth={2} aria-hidden />
+      </p>
 
       <AnimatePresence>
-        {selectedPractice &&
-        <PracticeModal
-          practice={selectedPractice}
-          onClose={() => setSelectedPractice(null)} />
-
-        }
+        {selectedPractice && (
+          <PracticeModal
+            practice={selectedPractice}
+            variant="meditation"
+            favorite={favorites.has(selectedPractice.id)}
+            onToggleFavorite={toggleFavorite}
+            onClose={() => setSelectedPractice(null)}
+          />
+        )}
       </AnimatePresence>
-    </div>);
+    </div>
+  );
+}
 
+function Practices() {
+  const { pathname } = useLocation();
+  const isEventDetailPage = /^\/practices\/events\/.+/.test(pathname);
+  const isFilmDetailPage = /^\/practices\/films\/(?!collections)[^/]+$/.test(pathname);
+
+  return (
+    <div
+      className={`practices-page practices-page--hub fade-in${
+        isEventDetailPage ? ' practices-page--event-detail' : ''
+      }${isFilmDetailPage ? ' practices-page--film-detail' : ''}`}
+    >
+      <Routes>
+        <Route index element={<PracticesHome />} />
+        <Route path="films/collections/:bannerId" element={<FilmsBannerCollectionPage />} />
+        <Route path="films/:filmId" element={<FilmDetailPage />} />
+        <Route path="films" element={<FilmsPracticeHub />} />
+        <Route path="meditation" element={<MeditationSection />} />
+        <Route path="podcasts" element={<PodcastsPracticeHub />} />
+        <Route path="music" element={<MusicPracticeHub />} />
+        <Route path="articles" element={<ArticlesPracticeHub />} />
+        <Route path="events/:eventId" element={<EventDetailPage />} />
+        <Route path="events" element={<EventsPracticeHub />} />
+        <Route path="*" element={<Navigate to="/practices" replace />} />
+      </Routes>
+    </div>
+  );
 }
 
 export default Practices;

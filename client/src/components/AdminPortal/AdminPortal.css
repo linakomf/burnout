@@ -4,7 +4,7 @@
   min-height: 100vh;
   background: linear-gradient(160deg, #101018 0%, #1a1828 40%, #12101c 100%);
   color: #e8e8f0;
-  font-family: 'Plus Jakarta Sans', 'Nunito', system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 
 .admin-portal-inner {
@@ -69,8 +69,8 @@
 }
 
 .admin-portal-btn-primary {
-  background: linear-gradient(135deg, #c4c8fa 0%, #8b90e0 100%);
-  color: #121218;
+  background: linear-gradient(135deg, #cae4bf 0%, #9bbd90 100%);
+  color: #1a1a1a;
 }
 
 .admin-portal-btn-ghost {

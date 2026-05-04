@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   Brain,
   Shield,
-  Zap,
+  ListChecks,
+  Timer,
   Users,
   CheckCircle,
   LayoutDashboard,
@@ -30,7 +31,7 @@ const Landing = () => {
   };
 
   const features = [
-  { color: '#f5c4a8', icon: <Zap size={22} strokeWidth={2.2} />, tKey: 0 },
+  { color: '#f5c4a8', icon: <ListChecks size={22} strokeWidth={2.2} />, tKey: 0 },
   { color: '#e8b4c4', icon: <Heart size={22} strokeWidth={2.2} />, tKey: 1 },
   { color: '#c4d4f8', icon: <BarChart2 size={22} strokeWidth={2.2} />, tKey: 2 },
   { color: '#d4c4f0', icon: <Sparkles size={22} strokeWidth={2.2} />, tKey: 3 }];
@@ -76,7 +77,7 @@ const Landing = () => {
               {t('landing.heroLine1')}{' '}
               <span className="hero-highlight">{t('landing.heroHighlight')}</span>
               <br />
-              {t('landing.heroLine2')}
+              <span className="hero-title-accent">{t('landing.heroLine2')}</span>
             </h1>
             <p className="hero-desc">
               {t('landing.heroDesc')}
@@ -176,7 +177,7 @@ const Landing = () => {
 
       <section className="land-trust">
         <div className="trust-item"><Shield size={22} strokeWidth={2} />{t('landing.tr1')}</div>
-        <div className="trust-item"><Zap size={22} strokeWidth={2} />{t('landing.tr2')}</div>
+        <div className="trust-item"><Timer size={22} strokeWidth={2} />{t('landing.tr2')}</div>
         <div className="trust-item"><Users size={22} strokeWidth={2} />{t('landing.tr3')}</div>
       </section>
 

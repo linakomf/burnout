@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -16,7 +16,6 @@ import Practices from './components/Practices/Practices';
 import { AdminOverview, AdminUsers, AdminCategories, AdminTests } from './components/Admin/Admin';
 import AdminPortal from './components/AdminPortal/AdminPortal';
 import AdminDashboard from './components/Dashboards/AdminDashboard';
-import AIChat from './components/AI/AIChat';
 import OnboardingBurnout from './components/Onboarding/OnboardingBurnout';
 import Personalization from './components/Personalization/Personalization';
 import './styles/global.css';
@@ -70,14 +69,16 @@ function RequireOnboardingDone({ children }) {
 const UserLayout = ({ children }) =>
 <Layout>
     {children}
-    <AIChatRouteAware />
   </Layout>;
 
 
-function AIChatRouteAware() {
+/** При переходе на любой маршрут показываем страницу с начала (как обычная навигация). */
+function ScrollToTopOnRoute() {
   const { pathname } = useLocation();
-  if (pathname === '/dashboard') return null;
-  return <AIChat />;
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
 }
 
 const App = () => {
@@ -86,6 +87,7 @@ const App = () => {
     <ThemeProvider>
     <LanguageProvider>
     <BrowserRouter>
+      <ScrollToTopOnRoute />
       <div className="app-fill">
       <AuthProvider>
         <div className="app-routes-outlet">
@@ -134,7 +136,7 @@ const App = () => {
               </RequireOnboardingDone>
             </PrivateRoute>
                     } />
-          <Route path="/practices" element={
+          <Route path="/practices/*" element={
                     <PrivateRoute>
               <RequireOnboardingDone>
                 <UserLayout><Practices /></UserLayout>

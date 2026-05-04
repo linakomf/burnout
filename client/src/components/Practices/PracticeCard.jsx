@@ -42,13 +42,6 @@ function PracticeCard({ practice, isFavorite, onToggleFavorite, onPlay, index })
         <h3 className="practice-card-title">{practice.title}</h3>
         <p className="practice-card-desc">{practice.description}</p>
 
-        <div className="practice-card-progress" aria-hidden>
-          <span className="practice-card-progress-bar" />
-          <span className="practice-card-progress-dot" />
-          <span className="practice-card-progress-dot" />
-          <span className="practice-card-progress-dot" />
-        </div>
-
         <span className="practice-card-cta">{practice.playLabel}</span>
       </motion.div>
     </article>);

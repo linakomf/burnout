@@ -19,7 +19,7 @@
   border-radius: 999px;
   cursor: pointer;
   color: #666666;
-  font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif;
+  font-family: var(--font-sans);
   line-height: 1;
   transition: background 0.2s, color 0.2s;
 }
@@ -30,8 +30,8 @@
 }
 
 .lang-switch-btn.active {
-  background: #1a1a1a;
-  color: #ffffff;
+  background: #cae4bf;
+  color: #1a1a1a;
 }
 
 

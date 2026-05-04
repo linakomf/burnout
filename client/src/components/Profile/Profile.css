@@ -261,8 +261,8 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #1a1a1a;
-  color: #ffffff;
+  background: #cae4bf;
+  color: #1a1a1a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -271,11 +271,12 @@
   transition: background 0.2s, transform 0.12s;
 }
 .avatar-upload-btn:hover {
-  background: #333333;
+  background: #9bbd90;
 }
 
 [data-theme='dark'] .avatar-upload-btn {
-  background: #2a332e;
+  background: #cae4bf;
+  color: #1a1a1a;
   border-color: var(--bg-card);
 }
 

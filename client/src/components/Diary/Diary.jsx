@@ -10,8 +10,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
-  Pencil,
-  Zap } from
+  Flower2,
+  BookOpen,
+  Pencil } from
 'lucide-react';
 import ChatPanel from '../chat/ChatPanel';
 import api from '../../utils/api';
@@ -22,7 +23,6 @@ import {
   percentToOneToTen } from
 '../../utils/dailyCheckinStorage';
 import './Diary.css';
-
 
 const CHECKIN_CAL_COLORS = ['#4ade80', '#60a5fa', '#9ca3af', '#fb923c', '#f87171'];
 
@@ -82,9 +82,9 @@ const Diary = () => {
 
   const EMOTIONS = useMemo(
     () => [
-    { key: 'joy', label: t('pages.diaryEjoy'), emoji: '😊', barColor: '#c5cae9' },
-    { key: 'anxiety', label: t('pages.diaryEanxiety'), emoji: '😰', barColor: '#ffccbc' },
-    { key: 'stress', label: t('pages.diaryEstress'), emoji: '😫', barColor: '#ffe082' }],
+    { key: 'joy', label: t('pages.diaryEjoy'), emoji: '😄' },
+    { key: 'anxiety', label: t('pages.diaryEanxiety'), emoji: '😰' },
+    { key: 'stress', label: t('pages.diaryEstress'), emoji: '😡' }],
 
     [t]
   );
@@ -159,11 +159,15 @@ const Diary = () => {
 
   return (
     <div className="ai-diary fade-in">
-
-      <div className="diary-top">
-        <h1 className="diary-page-title">{t('pages.diaryTitle')}</h1>
+      <header className="diary-top">
+        <div className="diary-brand">
+          <span className="diary-brand__lotus" aria-hidden>
+            <Flower2 size={28} strokeWidth={1.85} />
+          </span>
+          <h1 className="diary-page-title">{t('pages.diaryTitle')}</h1>
+        </div>
         <p className="diary-page-sub">{t('pages.diaryPageSub')}</p>
-      </div>
+      </header>
 
       <div className="diary-grid">
 
@@ -228,7 +232,13 @@ const Diary = () => {
             </div>
             <div className="state-history-list">
               {checkinHistory.length === 0 ?
-              <p className="history-empty">{t('pages.diaryEmpty')}</p> :
+              <div className="history-empty-state">
+                <div className="history-empty-art" aria-hidden>
+                  <BookOpen className="history-empty-icon" size={52} strokeWidth={1.35} />
+                </div>
+                <p className="history-empty-title">{t('pages.diaryEmpty')}</p>
+                <p className="history-empty-hint">{t('pages.diaryEmptyHint')}</p>
+              </div> :
 
               checkinHistory.map((row) => {
                 const open = expandedCheckinDate === row.date;
@@ -265,9 +275,6 @@ const Diary = () => {
                           </div>
                           <div className="state-history-section">
                             <div className="state-history-sec-top">
-                              <span className="state-history-sec-ic state-history-sec-ic--energy">
-                                <Zap size={16} strokeWidth={2.2} aria-hidden />
-                              </span>
                               <span className="state-history-sec-title">{t('pages.diaryEnergy')}</span>
                               <span className="state-history-sec-val">
                                 {t('pages.diaryOutOf', { n: e })}
@@ -343,12 +350,7 @@ const Diary = () => {
                   <span className="emotion-score">{emotions[em.key]}%</span>
                 </div>
                 <div className="emotion-track">
-                  <div
-                  className="emotion-fill"
-                  style={{
-                    width: `${emotions[em.key]}%`,
-                    background: em.barColor
-                  }} />
+                  <div className="emotion-fill" style={{ width: `${emotions[em.key]}%` }} />
                 
                 </div>
               </div>

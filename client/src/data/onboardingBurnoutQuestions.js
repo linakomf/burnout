@@ -39,7 +39,7 @@ export function computeBurnoutPercentFromAnswers(answers) {
 
 export function burnoutLevelLabel(percent) {
   if (percent <= 25) return { key: 'low', title: 'Низкий уровень', hint: 'Ресурс в норме; поддерживайте баланс и привычки отдыха.' };
-  if (percent <= 50) return { key: 'moderate', title: 'Умеренный уровень', hint: 'Есть признаки нагрузки. Полезны паузы, сон и раздел «Практики».' };
+  if (percent <= 50) return { key: 'moderate', title: 'Умеренный уровень', hint: 'Есть признаки нагрузки. Полезны паузы, сон и раздел «Пространство».' };
   if (percent <= 75) return { key: 'elevated', title: 'Повышенный уровень', hint: 'Выгорание заметно. Рекомендуем регулярно отслеживать состояние и не стесняться поддержки.' };
   return { key: 'high', title: 'Высокий уровень', hint: 'Состояние требует внимания. Обратитесь к специалисту, если дискомфорт сильный или длительный.' };
 }

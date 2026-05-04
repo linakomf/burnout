@@ -29,10 +29,13 @@ import {
   Heart,
   Activity,
   Clock,
-  Zap,
+  Battery,
   TrendingUp,
   TrendingDown,
-  Check } from
+  Check,
+  Sun,
+  AlertTriangle,
+  Lightbulb } from
 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
@@ -46,12 +49,6 @@ import {
   moodPercentFromOnboardingBurnout } from
 '../../utils/wellnessComposite';
 import './Stats.css';
-
-const PERIODS = [
-{ id: 'week', label: 'Неделя' },
-{ id: 'month', label: 'Месяц' },
-{ id: 'year', label: 'Год' }];
-
 
 const DAYS_PERIOD = { week: 7, month: 30, year: 365 };
 
@@ -499,8 +496,7 @@ const Stats = () => {
         sourceLead + (
         moodTrend.text && moodTrend.text !== '—' ?
         `Настроение в динамике: ${moodTrend.text} к прошлому периоду. Продолжайте в том же духе.` :
-        'Вы регулярно отмечаете состояние в дневнике — это основа осознанности.'),
-        sticker: '✨'
+        'Вы регулярно отмечаете состояние в дневнике — это основа осознанности.')
       });
     } else if (avgMoodPct > 0) {
       out.push({
@@ -508,8 +504,7 @@ const Stats = () => {
         title: 'Есть опора',
         text:
         sourceLead +
-        'Записи в дневнике помогают замечать закономерности. Даже небольшие шаги — это вклад в благополучие.',
-        sticker: '🌟'
+        'Записи в дневнике помогают замечать закономерности. Даже небольшие шаги — это вклад в благополучие.'
       });
     } else {
       out.push({
@@ -517,8 +512,7 @@ const Stats = () => {
         title: 'С чистого листа',
         text:
         sourceLead +
-        'Добавьте пару записей в ИИ-дневнике и пройдите тест из каталога — графики и обобщение станут точнее.',
-        sticker: '💫'
+        'Добавьте пару записей в ИИ-дневнике и пройдите тест из каталога — графики и обобщение станут точнее.'
       });
     }
 
@@ -527,8 +521,7 @@ const Stats = () => {
         kind: 'warn',
         title: 'Обратите внимание',
         text:
-        'По совокупности тестов, скрининга и дневника заметна повышенная нагрузка. Попробуйте короткие паузы и дыхание; при необходимости обсудите это со специалистом.',
-        sticker: '⚠️'
+        'По совокупности тестов, скрининга и дневника заметна повышенная нагрузка. Попробуйте короткие паузы и дыхание; при необходимости обсудите это со специалистом.'
       });
     } else {
       out.push({
@@ -537,8 +530,7 @@ const Stats = () => {
         text:
         stressPct >= 60 ?
         'Уровень стресса выше комфортного. Полезны прогулки, сон и делегирование задач.' :
-        'Следите за балансом нагрузки и отдыха — это снижает риск накопительной усталости.',
-        sticker: '🧡'
+        'Следите за балансом нагрузки и отдыха — это снижает риск накопительной усталости.'
       });
     }
 
@@ -546,8 +538,7 @@ const Stats = () => {
       kind: 'tip',
       title: 'Рекомендация',
       text:
-      'Попробуйте дыхательную практику 4–6 перед важными делами или раздел «Практики». Ответы и заметки в ИИ-дневнике тоже учитываются в общей картине активности.',
-      sticker: '💡'
+      'Попробуйте дыхательную практику 4–6 перед важными делами или раздел «Пространство». Ответы и заметки в ИИ-дневнике тоже учитываются в общей картине активности.'
     });
     return out;
   }, [
@@ -675,7 +666,7 @@ const Stats = () => {
         <article className="analytics-kpi-card">
           <div className="analytics-kpi-top">
             <span className="analytics-kpi-icon analytics-kpi-icon--energy">
-              <Zap size={20} strokeWidth={2.2} />
+              <Battery size={20} strokeWidth={2.2} />
             </span>
             {energyTrend.text !== '—' && energyTrend.up != null &&
             <span className={`analytics-kpi-delta ${deltaToneClass(energyTrend, true)}`}>
@@ -700,21 +691,28 @@ const Stats = () => {
                 margin={{ top: 10, right: 10, left: 4, bottom: 2 }}
                 barCategoryGap={period === 'week' ? '22%' : period === 'month' ? '12%' : '18%'}>
                 
+                <defs>
+                  <linearGradient id="analyticsMoodBar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#d8efd2" />
+                    <stop offset="45%" stopColor="#9bbd90" />
+                    <stop offset="100%" stopColor="#5a7d52" />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  stroke="#e0e0e0"
-                  strokeWidth={1.35}
+                  stroke="rgba(90, 125, 82, 0.18)"
+                  strokeWidth={1.25}
                   vertical={false} />
                 
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 11, fill: '#999999' }}
-                  axisLine={{ stroke: '#cccccc', strokeWidth: 2 }}
+                  tick={{ fontSize: 11, fill: '#5a6b58' }}
+                  axisLine={{ stroke: 'rgba(90, 125, 82, 0.35)', strokeWidth: 1.5 }}
                   tickLine={false} />
                 
                 <YAxis hide domain={[0, 100]} />
                 <Tooltip
-                  cursor={{ fill: 'rgba(209, 213, 250, 0.12)' }}
+                  cursor={{ fill: 'rgba(155, 189, 144, 0.2)' }}
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
                     const p = payload[0].payload;
@@ -728,10 +726,10 @@ const Stats = () => {
                 <Bar
                   dataKey="mood"
                   name="Настроение"
-                  fill="#D1D5FA"
-                  stroke="#b8c0e8"
-                  strokeWidth={2}
-                  radius={[12, 12, 0, 0]}
+                  fill="url(#analyticsMoodBar)"
+                  stroke="#6a9362"
+                  strokeWidth={1.25}
+                  radius={[14, 14, 0, 0]}
                   maxBarSize={period === 'year' ? 36 : 40} />
                 
               </BarChart>
@@ -746,19 +744,19 @@ const Stats = () => {
           <div className="analytics-radar-wrap">
             <ResponsiveContainer width="100%" height={280}>
               <RadarChart cx="50%" cy="50%" outerRadius="72%" data={radarData}>
-                <PolarGrid stroke="rgba(79, 79, 79, 0.2)" strokeWidth={1.25} />
+                <PolarGrid stroke="rgba(90, 125, 82, 0.25)" strokeWidth={1.25} />
                 <PolarAngleAxis
                   dataKey="subject"
-                  tick={{ fontSize: 11, fill: '#4F4F4F', fontWeight: 600 }} />
+                  tick={{ fontSize: 11, fill: '#3d5238', fontWeight: 600 }} />
                 
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar
                   name="Показатели"
                   dataKey="value"
-                  stroke="#AAB6E0"
-                  fill="#C8CAF2"
+                  stroke="#5a8a52"
+                  fill="#9bbd90"
                   fillOpacity={0.45}
-                  strokeWidth={3} />
+                  strokeWidth={2.5} />
                 
               </RadarChart>
             </ResponsiveContainer>
@@ -772,10 +770,14 @@ const Stats = () => {
           {insights.map((item) =>
           <article key={item.title} className={`analytics-insight analytics-insight--${item.kind}`}>
               <div
-              className={`analytics-insight-sticker analytics-insight-sticker--${item.kind}`}
+              className={`analytics-insight-icon analytics-insight-icon--${item.kind}`}
               aria-hidden>
               
-                {item.sticker}
+                {item.kind === 'good' ?
+              <Sun size={22} strokeWidth={2.2} /> :
+              item.kind === 'warn' ?
+              <AlertTriangle size={22} strokeWidth={2.2} /> :
+              <Lightbulb size={22} strokeWidth={2.2} />}
               </div>
               <h3 className="analytics-insight-title">{item.title}</h3>
               <p className="analytics-insight-text">{item.text}</p>
@@ -788,15 +790,15 @@ const Stats = () => {
         <h2 className="analytics-section-title">Прогресс активности</h2>
         <div className="analytics-card analytics-donuts-card">
           <div className="analytics-donuts-row">
-            <DonutStat current={entriesCount} max={50} label="Записей создано" color="#FFB28E" />
+            <DonutStat current={entriesCount} max={50} label="Записей создано" color="#7aad6e" />
             <DonutStat
               current={practicesDone}
               max={30}
               label="Практик завершено"
-              color="#C8CAF2" />
+              color="#9bbd90" />
             
-            <DonutStat current={Math.min(streak, 14)} max={14} label="Дней подряд" color="#AAB6E0" />
-            <DonutStat current={testsCount} max={10} label="Тестов пройдено" color="#FFC77A" />
+            <DonutStat current={Math.min(streak, 14)} max={14} label="Дней подряд" color="#5a8a52" />
+            <DonutStat current={testsCount} max={10} label="Тестов пройдено" color="#b8d4a8" />
           </div>
         </div>
       </section>

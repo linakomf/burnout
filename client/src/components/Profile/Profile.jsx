@@ -16,6 +16,7 @@ import {
   ChevronRight } from
 'lucide-react';
 import api from '../../utils/api';
+import { backendPublicUrl } from '../../utils/assetUrl';
 import './Profile.css';
 
 const NOTIF_KEY = 'burnout_notifications';
@@ -118,7 +119,7 @@ const Profile = () => {
           <div className="avatar-wrapper">
             {user?.avatar ?
             <img
-              src={`http://localhost:5000${user.avatar}`}
+              src={backendPublicUrl(user.avatar)}
               alt="avatar"
               className="profile-avatar-img" /> :
 

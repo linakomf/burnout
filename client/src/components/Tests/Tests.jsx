@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  ChevronRight,
-  ChevronLeft,
-  CheckCircle,
-  BookOpen,
-  Zap,
-  Lightbulb,
-  Star } from
+  ChevronLeft } from
 'lucide-react';
 import api from '../../utils/api';
 import { useLanguage } from '../../context/LanguageContext';
-import { IntroSplashArt, QuestionSideArt } from './TestsDecor';
 import { mergeTestRu } from '../../config/testDisplayRu';
 import './Tests.css';
 
@@ -30,8 +23,6 @@ const TEST_PATHS = [
   preferIds: [5, 2, 4],
   title: 'Вдохновение',
   lead: 'Короткий опрос о перегрузке и восстановлении — с прогрессом по шагам.',
-  Icon: Lightbulb,
-  panelBg: '#FEEBC8',
   accent: 'heal'
 },
 {
@@ -39,8 +30,6 @@ const TEST_PATHS = [
   preferIds: [6, 3],
   title: 'Импульс',
   lead: 'Тревога и внутреннее напряжение — взглянуть на то, что происходит сейчас.',
-  Icon: Zap,
-  panelBg: '#FEF3C7',
   accent: 'discover'
 },
 {
@@ -48,11 +37,8 @@ const TEST_PATHS = [
   preferIds: [7, 5],
   title: 'Баланс дня',
   lead: 'Короткий чек-ин: настроение и ресурс — для регулярной динамики.',
-  Icon: Star,
-  panelBg: '#FEE2E2',
   accent: 'insight'
 }];
-
 
 export function bucketToAccent(bucket) {
   if (bucket === 'stress') return 'heal';
@@ -183,22 +169,25 @@ export const TestsList = () => {
 
   if (loading) {
     return (
-      <div className="tests-catalog-page tests-mock">
-        <div className="tests-loading">
-          <div className="loading-spinner" />
+      <div className="tests-mock-page tests-mock-page--loading fade-in">
+        <div className="tests-mock-content">
+          <div className="tests-loading">
+            <div className="loading-spinner" />
+          </div>
         </div>
       </div>);
 
   }
 
   return (
-    <div className="tests-catalog-page tests-mock fade-in">
-      <header className="tests-mock-hero">
-        <h1 className="tests-mock-title">{t('pages.testsTitle')}</h1>
-        <p className="tests-mock-lead">
-          {t('pages.testsLead')}
-        </p>
-      </header>
+    <div className="tests-mock-page fade-in">
+      <div className="tests-mock-content">
+        <header className="tests-mock-hero">
+          <h1 className="tests-mock-title">{t('pages.testsTitle')}</h1>
+          <p className="tests-mock-lead">
+            {t('pages.testsLead')}
+          </p>
+        </header>
 
       <div className="tests-mock-chips" role="tablist" aria-label={t('pages.testsFilter')}>
         {CATALOG_FILTER_CHIPS.map(({ id }) => {
@@ -227,26 +216,21 @@ export const TestsList = () => {
         <div className="tests-mock-paths">
           {TEST_PATHS.map((path, i) => {
             const chosen = pickTest(tests, path.preferIds);
-            const Icon = path.Icon;
             return (
               <article
                 key={path.key}
                 className="tests-mock-path-card"
+                data-accent={path.accent}
                 style={{ animationDelay: `${0.06 + i * 0.07}s` }}>
-                
-                <div className="tests-mock-path-panel" style={{ background: path.panelBg }} aria-hidden>
-                  <Icon className="tests-mock-path-icon" size={40} strokeWidth={2} />
-                </div>
                 <h3 className="tests-mock-path-card-title">{t(`testsPath.${path.key}.title`)}</h3>
                 <p className="tests-mock-path-card-desc">{t(`testsPath.${path.key}.lead`)}</p>
                 <button
                   type="button"
                   className="tests-mock-path-btn"
+                  data-accent={path.accent}
                   disabled={!chosen}
                   onClick={() => chosen && navigate(`/tests/${chosen.test_id}`)}>
-                  
                   {t('testsUi.goTest')}
-                  <ChevronRight size={18} strokeWidth={2.2} />
                 </button>
               </article>);
 
@@ -281,21 +265,19 @@ export const TestsList = () => {
                 style={{ animationDelay: `${0.04 + i % 12 * 0.035}s` }}>
                 
                     <button
-                  type="button"
-                  className="tests-mock-catalog-inner"
-                  disabled={disabled}
-                  onClick={() => !disabled && navigate(`/tests/${row.test_id}`)}>
-                  
+                      type="button"
+                      className="tests-mock-catalog-inner"
+                      disabled={disabled}
+                      onClick={() => !disabled && navigate(`/tests/${row.test_id}`)}>
                       <h3 className="tests-mock-catalog-title">{row.title}</h3>
                       <p className="tests-mock-catalog-meta">
-                        {disabled ? 'Вопросы не загружены' : questionCountLabel(qc)}
+                        {disabled ? t('testsUi.questionsNotLoaded') : questionCountLabel(qc)}
                       </p>
                       <p className="tests-mock-catalog-meta tests-mock-catalog-meta--sub">
                         {disabled ? '—' : audienceLabel(row)}
                       </p>
                       <span className="tests-mock-catalog-cta">
-                        {disabled ? 'Недоступно' : 'Открыть'}
-                        {!disabled && <ChevronRight size={16} strokeWidth={2.2} />}
+                        {disabled ? t('testsUi.unavailable') : t('testsUi.openSurvey')}
                       </span>
                     </button>
                   </article>);
@@ -305,6 +287,7 @@ export const TestsList = () => {
         }
         </section>
       }
+      </div>
     </div>);
 
 };
@@ -312,6 +295,7 @@ export const TestsList = () => {
 export const TakeTest = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [test, setTest] = useState(null);
   const [answers, setAnswers] = useState({});
   const [step, setStep] = useState(0);
@@ -363,7 +347,6 @@ export const TakeTest = () => {
 
   }
 
-  const bucket = getTestBucket(test);
   const currentQ = questions[step - 1];
   const nQ = questions.length;
   const progress =
@@ -388,17 +371,11 @@ export const TakeTest = () => {
         </div>
         <p className="test-progress-hint">После «Начать тест» полоса покажет ход опроса по вопросам.</p>
         <div className="test-intro card test-intro--psych">
-          <div className="test-intro-illu" aria-hidden>
-            <IntroSplashArt bucket={bucket} />
-          </div>
-          <div className="test-intro-icon test-intro-icon--float">
-            <BookOpen size={36} strokeWidth={2} />
-          </div>
           <h1>{test.title}</h1>
           <p className="test-intro-lead">{test.description}</p>
           <div className="test-intro-meta">
-            <span>📝 {questions.length} вопросов</span>
-            <span>⏱ ~{Math.ceil(questions.length * 0.5)} мин</span>
+            <span>{questions.length} вопросов</span>
+            <span>~{Math.ceil(questions.length * 0.5)} мин</span>
           </div>
           <button
             type="button"
@@ -453,7 +430,7 @@ export const TakeTest = () => {
           }
           {showCrisisHint &&
           <div className="result-warning">
-              ⚠️ При сильном дискомфорте обратитесь к специалисту. ИИ и приложение не заменяют очную помощь.
+              При сильном дискомфорте обратитесь к специалисту. ИИ и приложение не заменяют очную помощь.
             </div>
           }
           <div className="result-actions">
@@ -461,7 +438,7 @@ export const TakeTest = () => {
               Все тесты
             </button>
             <button type="button" className="btn btn-secondary" onClick={() => navigate('/practices')}>
-              Практики для меня
+              {t('pages.practicesForMe')}
             </button>
             <button type="button" className="btn btn-primary" onClick={() => navigate('/stats')}>
               Аналитика
@@ -475,79 +452,72 @@ export const TakeTest = () => {
   const opts = parseQuestionOptions(currentQ?.options);
 
   return (
-    <div className="take-test take-test--questions fade-in">
-      <div
-        className="test-progress-bar test-progress-bar--shine"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(progress)}
-        aria-label={`Прогресс опроса: ${Math.round(progress)} процентов`}>
-        
-        <div className="test-progress-fill" style={{ width: `${progress}%` }} />
-      </div>
-      <div className="test-progress-row">
-        <span className="test-progress-label">Опрос</span>
-        <span className="test-progress-pct">{Math.round(progress)}%</span>
-      </div>
-
-      <div className="test-q-layout">
-        <div className="test-q-side" aria-hidden>
-          <QuestionSideArt />
+    <div className="take-test take-test--questions take-test--survey-mock fade-in">
+      <div className="take-test-survey-shell">
+        <div className="test-survey-progress-block">
+          <div
+            className="test-survey-progress-bar"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progress)}
+            aria-label={`${t('testsUi.surveyLabel')}: ${Math.round(progress)}%`}>
+            <div className="test-survey-progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <div className="test-survey-progress-meta">
+            <span className="test-survey-meta-label">{t('testsUi.surveyLabel')}</span>
+            <span className="test-survey-meta-pct">{Math.round(progress)}%</span>
+          </div>
         </div>
 
-        <div className="test-q-main">
-          <div className="test-q-header">
-            <button type="button" className="btn btn-ghost back-btn" onClick={() => setStep((s) => s - 1)}>
-              <ChevronLeft size={16} />
-            </button>
-            <span className="q-counter">
-              Вопрос {step} из {questions.length}
-            </span>
-          </div>
-
-          <div key={step} className="test-question card tests-q-slide tests-q-card">
-            <p className="q-text">{currentQ?.question_text}</p>
-            <div className="q-options q-options--stagger">
-              {opts.map((opt, i) =>
+        <div className="test-survey-body">
+          <div className="test-survey-col">
+            <div className="test-survey-nav">
               <button
-                key={i}
                 type="button"
-                style={{ animationDelay: `${0.04 + i * 0.055}s` }}
-                className={`q-option q-option--enter ${answers[currentQ.question_id] === i ? 'selected' : ''}`}
-                onClick={() => handleAnswer(currentQ.question_id, i)}>
-                
-                  <span className="q-option-dot" />
-                  {opt}
+                className="test-survey-back"
+                disabled={step <= 1}
+                onClick={() => setStep((s) => s - 1)}
+                aria-label={t('testsUi.backQuestion')}>
+                <ChevronLeft size={20} strokeWidth={2.2} />
+              </button>
+              <span className="test-survey-counter">
+                {t('testsUi.questionOf', { current: step, total: questions.length })}
+              </span>
+            </div>
+
+            <div key={step} className="test-survey-card tests-q-slide">
+              <p className="test-survey-qtext">{currentQ?.question_text}</p>
+              <div className="test-survey-options">
+                {opts.map((opt, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    style={{ animationDelay: `${0.04 + i * 0.055}s` }}
+                    className={`test-survey-option q-option--enter ${answers[currentQ.question_id] === i ? 'test-survey-option--selected' : ''}`}
+                    onClick={() => handleAnswer(currentQ.question_id, i)}>
+                    <span className="test-survey-radio" aria-hidden />
+                    <span className="test-survey-option-text">{opt}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="test-survey-actions">
+              {step < questions.length ? (
+                <button
+                  type="button"
+                  className="test-survey-next"
+                  disabled={answers[currentQ.question_id] === undefined}
+                  onClick={() => setStep((s) => s + 1)}>
+                  {t('testsUi.next')}
+                </button>
+              ) : (
+                <button type="button" className="test-survey-next" disabled={!allAnswered || submitting} onClick={handleSubmit}>
+                  {submitting ? t('testsUi.submitting') : t('testsUi.finishTest')}
                 </button>
               )}
             </div>
-          </div>
-
-          <div className="test-q-actions">
-            {step < questions.length ?
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={answers[currentQ.question_id] === undefined}
-              onClick={() => setStep((s) => s + 1)}>
-              
-                Дальше <ChevronRight size={16} />
-              </button> :
-
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={!allAnswered || submitting}
-              onClick={handleSubmit}>
-              
-                {submitting ? 'Считаем результат…' :
-              <>
-                    <CheckCircle size={16} /> Завершить тест
-                  </>
-              }
-              </button>
-            }
           </div>
         </div>
       </div>

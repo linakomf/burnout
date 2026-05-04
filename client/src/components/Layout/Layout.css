@@ -19,6 +19,30 @@
   background: transparent;
 }
 
+[data-theme='dark'] .main-content:has(.tests-mock-page) {
+  background: transparent;
+}
+
+[data-theme='dark'] .main-content:has(.take-test--survey-mock) {
+  background: transparent;
+}
+
+[data-theme='dark'] .main-content:has(.film-detail-page) {
+  background: transparent;
+}
+
+[data-theme='dark'] .main-content:has(.ai-diary) {
+  background: transparent;
+}
+
+[data-theme='dark'] .main-content:has(.analytics-page) {
+  background: transparent;
+}
+
+[data-theme='dark'] .main-content:has(.articles-books--fullbleed) {
+  background: var(--bg-app, #0f1419);
+}
+
 .main-content {
   width: 100%;
   max-width: none;
@@ -36,6 +60,86 @@
   background: #f5f5f5;
 }
 
+.main-content:has(.tests-mock-page) {
+  background: transparent;
+}
+
+.main-content:has(.take-test--survey-mock) {
+  background: transparent;
+}
+
+.main-content:has(.film-detail-page) {
+  background: transparent;
+  padding-top: 12px;
+  padding-left: var(--sidebar-width);
+  padding-right: 0;
+  padding-bottom: 0;
+}
+
+.main-content:has(.analytics-page) {
+  background: transparent;
+}
+
+.main-content:has(.dashboard-new) {
+  background: #f5f7fa;
+}
+
+.main-content:has(.ai-diary) {
+  background: #f5f7fa;
+}
+
+.main-content:has(.films-collection-page) {
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+}
+
+.main-content:has(.articles-books--fullbleed) {
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  background: #fff;
+}
+
+.main-content:has(.meditation-hub--fullbleed) {
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  background: #fff;
+}
+
+[data-theme='dark'] .main-content:has(.meditation-hub--fullbleed) {
+  background: var(--bg-app, #0f1419);
+}
+
+.main-content:has(.music-hub--fullbleed) {
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  background: #fff;
+}
+
+[data-theme='dark'] .main-content:has(.music-hub--fullbleed) {
+  background: var(--bg-app, #0f1419);
+}
+
+.main-content:has(.podcast-hub--fullbleed) {
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  background: #fff;
+}
+
+[data-theme='dark'] .main-content:has(.podcast-hub--fullbleed) {
+  background: var(--bg-app, #0f1419);
+}
+
+.main-content:has(.flix-scope--mindwell.flix-scope--catalog) {
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+}
+
 .layout:has(.sidebar.collapsed) .main-content {
   padding-left: var(--sidebar-collapsed);
 }
@@ -45,4 +149,45 @@
     padding: 16px 12px 20px;
     padding-left: var(--sidebar-collapsed);
   }
+
+  .main-content:has(.films-collection-page) {
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+  }
+
+  .main-content:has(.articles-books--fullbleed) {
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    background: #fff;
+  }
+
+  .main-content:has(.music-hub--fullbleed) {
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    background: #fff;
+  }
+
+  .main-content:has(.podcast-hub--fullbleed) {
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    background: #fff;
+  }
+
+  .main-content:has(.meditation-hub--fullbleed) {
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    background: #fff;
+  }
+
+  .main-content:has(.flix-scope--mindwell.flix-scope--catalog) {
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+  }
+
 }

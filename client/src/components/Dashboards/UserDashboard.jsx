@@ -80,7 +80,7 @@ const UserDashboard = () => {
           </h1>
           <p>
             Это ваш личный кабинет по скринингу выгорания. Пройдите тест или откройте полный функционал приложения
-            — дневник, практики и аналитику.
+            — дневник, раздел «Пространство» и аналитику.
           </p>
 
           <div className={`ud-status ${status.key}`}>
@@ -107,7 +107,7 @@ const UserDashboard = () => {
 
         <section className="ud-section">
           <h2>
-            <Activity size={18} color="#7a9014" />
+            <Activity size={18} color="#9bbd90" />
             История результатов
           </h2>
           {loading ?

@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "MindTrack — Психологическая поддержка для студентов и преподавателей",
   "scripts": {
-    "install:all": "cd server && npm install && cd ../client && npm install",
-    "server": "cd server && npm run dev",
-    "client": "cd client && npm start",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "setup": "node scripts/setup-dev.js",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "server": "node server/index.js",
+    "client": "node scripts/start-client.cjs",
+    "dev": "node node_modules/concurrently/dist/bin/concurrently.js \"node server/index.js\" \"node scripts/start-client.cjs\"",
+    "start:all": "npm run db:up && npm run dev"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

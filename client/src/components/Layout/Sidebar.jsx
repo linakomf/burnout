@@ -16,6 +16,7 @@ import {
   SlidersHorizontal } from
 'lucide-react';
 import './Sidebar.css';
+import { backendPublicUrl } from '../../utils/assetUrl';
 
 const publicPrefix = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
 const DEFAULT_AVATAR = encodeURI(`${publicPrefix}/photos/character.png`);
@@ -52,7 +53,7 @@ const Sidebar = () => {
 
   const links = user?.role === 'admin' ? adminLinks : studentLinks;
 
-  const avatarUrl = user?.avatar ? `http://localhost:5000${user.avatar}` : DEFAULT_AVATAR;
+  const avatarUrl = user?.avatar ? backendPublicUrl(user.avatar) : DEFAULT_AVATAR;
 
   return (
     <aside className={`sidebar sidebar--modern ${collapsed ? 'collapsed' : ''}`}>

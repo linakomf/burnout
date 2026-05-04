@@ -5,18 +5,19 @@ import { useLanguage } from '../../context/LanguageContext';
 import { format, addDays, startOfWeek } from 'date-fns';
 import {
   AlertCircle,
+  ArrowRight,
   Bell,
-  Brain,
-  Clock,
-  Circle,
-  Leaf,
-  PhoneCall,
+  BookOpen,
+  Clapperboard,
+  ClipboardList,
+  Flower2,
+  Heart,
+  Moon,
+  Music,
   Save,
   Sparkles,
-  Star,
-  Wind,
-  X,
-  Zap } from
+  Trees,
+  X } from
 'lucide-react';
 import api from '../../utils/api';
 import {
@@ -31,10 +32,19 @@ import {
   emitCheckinSaved } from
 '../../utils/dailyCheckinStorage';
 import { weekPillLines } from '../../utils/weekPillLines';
+import { natureAt } from '../Practices/spaceNatureImagery';
+import supportNearbyArt from '../../assets/dash-support-nearby.png';
 import './Dashboard.css';
 
 const ONBOARD_KEY = 'burnout_onboarding_v1';
-const PSYCH_REQ_KEY = 'burnout_psych_requests_v1';
+
+const ADVICE_CARD_DEFS = [
+  { key: 'music', path: '/practices/music', natureIdx: 4, theme: 'purple', Icon: Music },
+  { key: 'films', path: '/practices/films', natureIdx: 11, theme: 'orange', Icon: Clapperboard },
+  { key: 'walk', path: '/practices/events', natureIdx: 6, theme: 'green', Icon: Trees },
+  { key: 'read', path: '/practices/articles', natureIdx: 14, theme: 'blue', Icon: BookOpen },
+  { key: 'meditate', path: '/practices/meditation', natureIdx: 9, theme: 'violet', Icon: Moon }
+];
 
 const MOOD_PILLS = [
 { id: 0, emoji: '😁', labelClass: 'mood-pill--excellent' },
@@ -58,8 +68,6 @@ const Dashboard = () => {
   const [selectedDay, setSelectedDay] = useState(today);
   const [testResults, setTestResults] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedActivities, setSelectedActivities] = useState(() => new Set());
-  const [expandedRecIndex, setExpandedRecIndex] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkinModalOpen, setCheckinModalOpen] = useState(false);
@@ -70,15 +78,6 @@ const Dashboard = () => {
     stress: 5,
     notes: ''
   });
-  const [psychModalOpen, setPsychModalOpen] = useState(false);
-  const [psychForm, setPsychForm] = useState({
-    email: '',
-    phone: '',
-    fullName: '',
-    helpText: ''
-  });
-  const [psychSuccess, setPsychSuccess] = useState(false);
-  const [psychError, setPsychError] = useState('');
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const todayStr = format(today, 'yyyy-MM-dd');
@@ -110,6 +109,17 @@ const Dashboard = () => {
   };
 
   const lastResult = testResults[0];
+
+  const testDoneToday = useMemo(() => {
+    const ca = lastResult?.created_at;
+    if (!ca) return false;
+    try {
+      return format(new Date(ca), 'yyyy-MM-dd') === todayStr;
+    } catch {
+      return false;
+    }
+  }, [lastResult, todayStr]);
+
   const stressFromTests = useMemo(() => {
     const lastTestStress = stressFromCatalogLevel(lastResult?.level);
     const v = compositeStressPct({
@@ -154,48 +164,20 @@ const Dashboard = () => {
     return t('dash.greeting.evening');
   }, [t]);
 
-  const tip = useMemo(() => {
-    if (stressVal >= 70) {
-      return {
-        title: t('tip.high.title'),
-        text: t('tip.high.text'),
-        activities: [
-        { icon: '🧘', label: t('tipAct.m1.label'), time: t('tipAct.m1.time') },
-        { icon: '🚶', label: t('tipAct.m2.label'), time: t('tipAct.m2.time') },
-        { icon: '😴', label: t('tipAct.m3.label'), time: t('tipAct.m3.time') }]
-
-      };
-    }
-    if (stressVal >= 40) {
-      return {
-        title: t('tip.mid.title'),
-        text: t('tip.mid.text'),
-        activities: [
-        { icon: '🏃', label: t('tipAct.w1.label'), time: t('tipAct.w1.time') },
-        { icon: '🎨', label: t('tipAct.w2.label'), time: t('tipAct.w2.time') },
-        { icon: '🧘', label: t('tipAct.w3.label'), time: t('tipAct.w3.time') }]
-
-      };
-    }
-    return {
-      title: t('tip.low.title'),
-      text: t('tip.low.text'),
-      activities: [
-      { icon: '🏋️', label: t('tipAct.l1.label'), time: t('tipAct.l1.time') },
-      { icon: '📚', label: t('tipAct.l2.label'), time: t('tipAct.l2.time') },
-      { icon: '🎵', label: t('tipAct.l3.label'), time: t('tipAct.l3.time') }]
-
-    };
-  }, [stressVal, t]);
-
-  useEffect(() => {
-    let idx = -1;
-    if (stressVal >= 70) idx = 0;else
-    if (stressVal >= 40) idx = 2;
-    const act = idx >= 0 ? tip.activities[idx] : null;
-    setSelectedActivities(act ? new Set([act.label]) : new Set());
-    setExpandedRecIndex(null);
-  }, [tip, stressVal]);
+  const adviceCards = useMemo(
+    () =>
+      ADVICE_CARD_DEFS.map((def) => {
+        const copy = tRaw(`dash.advice.cards.${def.key}`) || {};
+        return {
+          ...def,
+          category: copy.category || '',
+          title: copy.title || '',
+          desc: copy.desc || '',
+          duration: copy.duration || ''
+        };
+      }),
+    [tRaw]
+  );
 
   const moodOptions = useMemo(
     () =>
@@ -206,17 +188,14 @@ const Dashboard = () => {
     [t]
   );
 
-  const toggleActivity = (label) => {
-    setSelectedActivities((prev) => {
-      const next = new Set(prev);
-      if (next.has(label)) next.delete(label);else
-      next.add(label);
-      return next;
-    });
-  };
+  const supportEmail = (process.env.REACT_APP_SUPPORT_EMAIL || '').trim();
 
-  const toggleRecCard = (index) => {
-    setExpandedRecIndex((cur) => cur === index ? null : index);
+  const openSupportContact = () => {
+    if (supportEmail) {
+      window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(t('dash.supportNearby.mailSubject'))}`;
+    } else {
+      navigate('/diary');
+    }
   };
 
   const openCheckinModal = () => {
@@ -249,91 +228,28 @@ const Dashboard = () => {
     setCheckinModalOpen(false);
   };
 
-  const openPsychModal = () => {
-    setPsychError('');
-    setPsychSuccess(false);
-    setPsychForm({
-      email: (user?.email || '').trim(),
-      phone: '',
-      fullName: (user?.name || '').trim(),
-      helpText: ''
-    });
-    setPsychModalOpen(true);
-  };
-
-  const closePsychModal = () => {
-    setPsychModalOpen(false);
-    setPsychError('');
-    setPsychSuccess(false);
-  };
-
-  const submitPsychRequest = (e) => {
-    e.preventDefault();
-    const email = psychForm.email.trim();
-    const phone = psychForm.phone.trim();
-    const fullName = psychForm.fullName.trim();
-    const helpText = psychForm.helpText.trim();
-    if (!email || !phone || !fullName || !helpText) {
-      setPsychError(t('dash.psych.fillAll'));
-      return;
-    }
-    const entry = {
-      email,
-      phone,
-      fullName,
-      helpText,
-      createdAt: new Date().toISOString()
-    };
-    try {
-      let list = [];
-      const raw = localStorage.getItem(PSYCH_REQ_KEY);
-      if (raw) {
-        const p = JSON.parse(raw);
-        if (Array.isArray(p)) list = p;
-      }
-      list.push(entry);
-      localStorage.setItem(PSYCH_REQ_KEY, JSON.stringify(list));
-    } catch {
-
-    }
-    setPsychError('');
-    setPsychSuccess(true);
-  };
-
-  const recommendations = useMemo(() => {
-    const recIcons = [Wind, Brain, Sparkles];
-    return [0, 1, 2].map((i) => {
-      const raw = tRaw(`rec.${i}`) || {};
-      return {
-        icon: recIcons[i],
-        title: raw.title,
-        category: raw.category,
-        time: raw.time,
-        desc: raw.desc,
-        detail: raw.detail,
-        hasPlay: i === 2,
-        thumb: i === 2 ? 'dark' : 'light',
-        catVariant: i === 0 ? 'breath' : i === 1 ? 'test' : 'meditation'
-      };
-    });
-  }, [tRaw]);
-
   if (loading) return (
     <div className="dash-loading"><div className="loading-spinner" /></div>);
 
 
+  const firstName = user?.name?.split(' ')[0] || t('dash.greeting.friend');
+
   return (
     <div className="dashboard-new fade-in-page">
 
-      <div className="dash-header">
+      <header className="dash-header">
         <h1 className="dash-greeting">
           {greetingLine},{' '}
-          {(user?.name?.split(' ')[0] || t('dash.greeting.friend')).toUpperCase()}!
+          <span className="dash-greeting-name">{firstName}</span>
+          <span className="dash-greeting-accent" aria-hidden>
+            {' '}
+            🌿
+          </span>
         </h1>
         <button type="button" className="notif-btn" aria-label={t('dash.notif')}>
           <Bell size={20} />
         </button>
-      </div>
+      </header>
 
       <div className="dash-tabs">
         <button
@@ -370,6 +286,7 @@ const Dashboard = () => {
       </div>
 
       <div className="hero-banner hero-banner--mock">
+        <div className="hero-banner-atmosphere" aria-hidden />
         <div className="hero-left">
           <img
             src="/photos/hero-character.png"
@@ -384,7 +301,7 @@ const Dashboard = () => {
           <div className="checkin-prompt-card">
               <div className="checkin-prompt-top">
                 <span className="checkin-prompt-icon-badge" aria-hidden>
-                  <Star size={17} fill="currentColor" strokeWidth={1.5} className="checkin-prompt-star" />
+                  <Flower2 size={18} strokeWidth={2} className="checkin-prompt-flower" />
                 </span>
                 <h3 className="checkin-prompt-title">{t('dash.checkin.title')}</h3>
               </div>
@@ -445,124 +362,128 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="tip-card">
-        <h2 className="tip-title">💡 {tip.title.toUpperCase()}</h2>
-        <p className="tip-body">{tip.text}</p>
-        <p className="activities-label">{t('dash.activitiesLabel')}</p>
-        <div className="activities-grid">
-          {tip.activities.map((act) => {
-            const sel = selectedActivities.has(act.label);
-            return (
-              <button
-                key={act.label}
-                type="button"
-                className={`activity-pill ${sel ? 'selected' : ''}`}
-                onClick={() => toggleActivity(act.label)}
-                aria-pressed={sel}>
-                
-                <span className="act-check" aria-hidden>
-                  {sel ? <span className="act-check-mark">✔</span> : <Circle size={18} />}
+      <div className="dash-top-row">
+        <section className="dash-daily-test" aria-labelledby="dash-daily-test-title">
+          <div className="dash-daily-test__icon-stack" aria-hidden>
+            <ClipboardList className="dash-daily-test__clipboard" size={46} strokeWidth={1.75} />
+            <Heart className="dash-daily-test__heart" size={22} fill="currentColor" strokeWidth={1.4} />
+          </div>
+          <div className="dash-daily-test__main">
+            <h2 id="dash-daily-test-title" className="dash-daily-test__title">
+              {t('dash.dailyTest.title')}
+            </h2>
+            <p className="dash-daily-test__desc">{t('dash.dailyTest.desc')}</p>
+            <ul className="dash-daily-test__meta">
+              <li>
+                <span className="dash-daily-test__chip-emoji" aria-hidden>
+                  ?
                 </span>
-                <span className="act-icon">{act.icon}</span>
-                <span className="act-label">{act.label}</span>
-                <span className="act-time"><Clock size={11} /> {act.time}</span>
-              </button>);
-
-          })}
-        </div>
-      </div>
-
-      <div className="recs-section">
-        <h2 className="recs-title">
-          <Leaf className="recs-title-leaf" size={22} strokeWidth={2.2} aria-hidden />
-          <span>{t('dash.recsTitle')}</span>
-        </h2>
-        <div className="recs-list">
-          {recommendations.map((rec, i) => {
-            const expanded = expandedRecIndex === i;
-            const RecIcon = rec.icon;
-            return (
-              <div
-                key={`rec-${i}`}
-                role="button"
-                tabIndex={0}
-                className={`rec-card ${expanded ? 'expanded' : ''}`}
-                onClick={() => toggleRecCard(i)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    toggleRecCard(i);
-                  }
-                }}
-                aria-expanded={expanded}>
-                
-                <div
-                  className={`rec-img-wrap ${
-                  rec.thumb === 'dark' ? 'rec-img-wrap--dark' : 'rec-img-wrap--light'}`
-                  }>
-                  
-                  <RecIcon className="rec-thumb-icon" size={32} strokeWidth={1.6} aria-hidden />
-                  {rec.hasPlay &&
-                  <div className="rec-play" aria-hidden>
-                      <span className="rec-play-btn" title={t('dash.recPlay')}>▶</span>
-                    </div>
-                  }
-                </div>
-                <div className="rec-body">
-                  <h3 className="rec-name">{rec.title}</h3>
-                  <p className="rec-meta">
-                    <span
-                      className={`rec-cat rec-cat--${rec.catVariant || 'test'}`}>
-                      
-                      {rec.category}
-                    </span>
-                    <span className="rec-time-suffix">
-                      {' '}
-                      — {rec.time}
-                    </span>
-                  </p>
-                  <p className="rec-desc">{rec.desc}</p>
-                  {expanded &&
-                  <div className="rec-expanded" onClick={(e) => e.stopPropagation()}>
-                      <p className="rec-detail">{rec.detail}</p>
-                      <button
-                      type="button"
-                      className="rec-start-btn btn btn-primary"
-                      onClick={() => navigate(i === 1 ? '/tests' : '/practices')}>
-                      
-                        {t('dash.recStart')}
-                      </button>
-                    </div>
-                  }
-                </div>
-              </div>);
-
-          })}
-        </div>
-      </div>
-
-      <section
-        className={psychModalOpen ? 'psych-cta-section psych-cta-section--over-modal' : 'psych-cta-section'}
-        aria-label={t('dash.psych.sectionAria')}>
-        
-        <button
-          type="button"
-          className={psychModalOpen ? 'psych-cta-btn psych-cta-btn--close-only' : 'psych-cta-btn'}
-          onClick={psychModalOpen ? closePsychModal : openPsychModal}
-          aria-label={psychModalOpen ? t('dash.psych.closeRequest') : t('dash.psych.cta')}>
-          
-          {psychModalOpen ?
-          <X className="psych-cta-ic" size={22} strokeWidth={2.2} aria-hidden /> :
-
-          <>
-              <PhoneCall className="psych-cta-ic" size={18} strokeWidth={2.2} aria-hidden />
-              <span className="psych-cta-text">
-                <span className="psych-cta-title">{t('dash.psych.cta')}</span>
-                <span className="psych-cta-sub">{t('dash.psych.ctaSub')}</span>
+                {t('dash.dailyTest.metaQuestions')}
+              </li>
+              <li>
+                <span className="dash-daily-test__chip-emoji" aria-hidden>
+                  🕒
+                </span>
+                {t('dash.dailyTest.metaDuration')}
+              </li>
+              <li>
+                <span className="dash-daily-test__chip-emoji" aria-hidden>
+                  ❄️
+                </span>
+                {t('dash.dailyTest.metaInstant')}
+              </li>
+            </ul>
+            <p className={`dash-daily-test__status ${testDoneToday ? 'dash-daily-test__status--done' : ''}`}>
+              <span className="dash-daily-test__status-emoji" aria-hidden>
+                ❄️
               </span>
-            </>
-          }
-        </button>
+              {testDoneToday ? t('dash.dailyTest.statusDone') : t('dash.dailyTest.statusPending')}
+            </p>
+          </div>
+          <div className="dash-daily-test__aside">
+            <div
+              className="dash-daily-test__donut"
+              style={{ '--dash-donut-pct': Math.min(100, Math.max(0, moodVal)) }}
+              aria-hidden
+            />
+            <div className="dash-daily-test__bars" aria-hidden>
+              <span className="dash-daily-test__bar" />
+              <span className="dash-daily-test__bar" />
+              <span className="dash-daily-test__bar" />
+            </div>
+            <button
+              type="button"
+              className="dash-daily-test__cta"
+              onClick={() => navigate('/tests')}
+              aria-label={t('dash.dailyTest.aria')}
+            >
+              {t('dash.dailyTest.cta')}
+            </button>
+          </div>
+        </section>
+
+        <section className="dash-support-nearby" aria-labelledby="dash-support-nearby-title">
+          <div className="dash-support-nearby__copy">
+            <h2 id="dash-support-nearby-title" className="dash-support-nearby__title">
+              {t('dash.supportNearby.title')}
+            </h2>
+            <p className="dash-support-nearby__desc">{t('dash.supportNearby.desc')}</p>
+            <button
+              type="button"
+              className="dash-support-nearby__cta"
+              onClick={openSupportContact}
+              aria-label={t('dash.supportNearby.ctaAria')}
+            >
+              {t('dash.supportNearby.cta')}
+            </button>
+          </div>
+          <div className="dash-support-nearby__art">
+            <img src={supportNearbyArt} alt="" loading="lazy" decoding="async" />
+          </div>
+        </section>
+      </div>
+
+      <section className="dash-advice-panel" aria-label={t('dash.recsTitle')}>
+        <header className="dash-advice__head">
+          <h2 className="dash-advice__title">
+            💡 {t('dash.advice.headline')}
+          </h2>
+          <p className="dash-advice__lead">{t('dash.advice.sub1')}</p>
+          <p className="dash-advice__lead dash-advice__lead--second">{t('dash.advice.sub2')}</p>
+        </header>
+        <div className="dash-advice__strip">
+          {adviceCards.map((card) => {
+            const Icon = card.Icon;
+            const cover = natureAt(card.natureIdx);
+            return (
+              <article key={card.key} className={`dash-advice-card dash-advice-card--${card.theme}`}>
+                <div className="dash-advice-card__top">
+                  <Icon className="dash-advice-card__cat-icon" size={16} strokeWidth={2.2} aria-hidden />
+                  <span className="dash-advice-card__cat">{card.category}</span>
+                </div>
+                <div
+                  className="dash-advice-card__media"
+                  style={{ backgroundImage: `url(${cover})` }}
+                  role="img"
+                  aria-hidden
+                />
+                <h3 className="dash-advice-card__name">{card.title}</h3>
+                <p className="dash-advice-card__desc">{card.desc}</p>
+                <div className="dash-advice-card__foot">
+                  <span className="dash-advice-card__dur">{card.duration}</span>
+                  <button
+                    type="button"
+                    className="dash-advice-card__go"
+                    onClick={() => navigate(card.path)}
+                    aria-label={card.title}
+                  >
+                    <ArrowRight size={18} strokeWidth={2.4} aria-hidden />
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       </section>
 
       {checkinModalOpen &&
@@ -606,9 +527,6 @@ const Dashboard = () => {
 
             <section className="checkin-field">
               <div className="checkin-field-head">
-                <span className="checkin-field-icon checkin-field-icon--energy">
-                  <Zap size={18} strokeWidth={2.2} aria-hidden />
-                </span>
                 <div className="checkin-field-titles">
                   <div className="checkin-field-title">{t('dash.checkinForm.energy')}</div>
                   <div className="checkin-field-sub">{t('dash.checkinForm.energySub')}</div>
@@ -692,92 +610,6 @@ const Dashboard = () => {
                 {t('dash.checkinForm.save')}
               </button>
             </div>
-          </div>
-        </div>
-      }
-
-      {psychModalOpen &&
-      <div
-        className="modal-overlay psych-modal-overlay"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="psych-modal-title"
-        onClick={closePsychModal}>
-        
-          <div className="modal-card psych-form-card" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="modal-close psych-form-close" onClick={closePsychModal} aria-label={t('dash.close')}>
-              <X size={18} />
-            </button>
-            {psychSuccess ?
-          <div className="psych-form-success">
-                <p className="psych-success-title">{t('dash.psych.successTitle')}</p>
-                <p className="psych-success-text">
-                  {t('dash.psych.successText')}
-                </p>
-                <button type="button" className="psych-form-submit" onClick={closePsychModal}>
-                  {t('dash.close')}
-                </button>
-              </div> :
-
-          <form className="psych-form" onSubmit={submitPsychRequest} noValidate>
-                <h2 id="psych-modal-title" className="psych-form-title">
-                  {t('dash.psych.formTitle')}
-                </h2>
-                <p className="psych-form-lead">
-                  {t('dash.psych.formLead')}
-                </p>
-                {psychError && <p className="psych-form-error" role="alert">{psychError}</p>}
-                <label className="psych-label">
-                  <span>{t('dash.psych.email')}</span>
-                  <input
-                type="email"
-                className="psych-input"
-                autoComplete="email"
-                value={psychForm.email}
-                onChange={(e) => setPsychForm((f) => ({ ...f, email: e.target.value }))}
-                required />
-              
-                </label>
-                <label className="psych-label">
-                  <span>{t('dash.psych.phone')}</span>
-                  <input
-                type="tel"
-                className="psych-input"
-                autoComplete="tel"
-                value={psychForm.phone}
-                onChange={(e) => setPsychForm((f) => ({ ...f, phone: e.target.value }))}
-                placeholder={t('dash.psych.phonePh')}
-                required />
-              
-                </label>
-                <label className="psych-label">
-                  <span>{t('dash.psych.fio')}</span>
-                  <input
-                type="text"
-                className="psych-input"
-                name="name"
-                autoComplete="name"
-                value={psychForm.fullName}
-                onChange={(e) => setPsychForm((f) => ({ ...f, fullName: e.target.value }))}
-                required />
-              
-                </label>
-                <label className="psych-label">
-                  <span>{t('dash.psych.help')}</span>
-                  <textarea
-                className="psych-textarea"
-                rows={3}
-                value={psychForm.helpText}
-                onChange={(e) => setPsychForm((f) => ({ ...f, helpText: e.target.value }))}
-                placeholder={t('dash.psych.helpPh')}
-                required />
-              
-                </label>
-                <button type="submit" className="psych-form-submit">
-                  {t('dash.psych.submit')}
-                </button>
-              </form>
-          }
           </div>
         </div>
       }

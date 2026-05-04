@@ -4,19 +4,34 @@ const path = require('path');
 const fs = require('fs');
 
 require('dotenv').config({ path: path.join(__dirname, '.env') });
+const { ensureCoreSchema } = require('./ensureCoreSchema');
+const { ensureDefaultAdmin } = require('./ensureDefaultAdmin');
 const { ensurePracticeSchema } = require('./ensurePracticeSchema');
 const { ensureOnboardingSchema } = require('./ensureOnboardingSchema');
 const { ensureTestSchema } = require('./ensureTestSchema');
 const { ensureTestCatalog } = require('./ensureTestCatalog');
 
+if (!process.env.JWT_SECRET?.trim()) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL: задайте JWT_SECRET в server/.env');
+    process.exit(1);
+  }
+  process.env.JWT_SECRET = 'dev-insecure-burnout-jwt';
+  console.warn('⚠️ JWT_SECRET не задан — для локального запуска используется временный ключ.');
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 const corsOrigins = [
-'http://localhost:3000',
-'http://127.0.0.1:3000',
-'http://localhost:3001',
-'http://127.0.0.1:3001'];
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://[::1]:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
+  'http://[::1]:3001'
+];
 
 app.use(
   cors({
@@ -51,18 +66,31 @@ app.use('/api/diary', require('./routes/diary'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/practices', require('./routes/practices'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/admin-portal', require('./routes/adminPortal'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-Promise.resolve().
-then(() => ensurePracticeSchema()).
-then(() => ensureOnboardingSchema()).
-then(() => ensureTestSchema()).
-then(() => ensureTestCatalog()).
-finally(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
+async function bootstrap() {
+  await ensureCoreSchema();
+  await ensureDefaultAdmin();
+  await ensurePracticeSchema();
+  await ensureOnboardingSchema();
+  await ensureTestSchema();
+  await ensureTestCatalog();
+}
+
+bootstrap()
+  .then(() => {
+    app.listen(PORT, HOST, () => {
+      console.log(`🚀 Server running at http://127.0.0.1:${PORT} (bind ${HOST})`);
+    });
+  })
+  .catch((err) => {
+    console.error('❌ Сервер не запущен:', err.message);
+    console.error(
+      'Проверьте DATABASE_URL в server/.env и что PostgreSQL запущен (например: из корня проекта выполните docker compose up -d).'
+    );
+    process.exit(1);
   });
-});
