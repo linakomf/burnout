@@ -7,6 +7,7 @@ import {
   Home,
   Calendar,
   BarChart2,
+  BarChart3,
   ChevronLeft,
   ChevronRight,
   Users,
@@ -48,6 +49,7 @@ const Sidebar = () => {
   const adminLinks = useMemo(
     () => [
     { path: '/admin', icon: <Home {...iconProps} />, label: t('nav.adminOverview') },
+    { path: '/admin-dashboard', icon: <BarChart3 {...iconProps} />, label: t('nav.adminCrmDashboard') },
     { path: '/admin/users', icon: <Users {...iconProps} />, label: t('nav.adminUsers') },
     { path: '/admin/categories', icon: <Tag {...iconProps} />, label: t('nav.adminCategories') },
     { path: '/admin/tests', icon: <Brain {...iconProps} />, label: t('nav.adminTests') }],
@@ -69,18 +71,24 @@ const Sidebar = () => {
       </div>
 
       <nav className="sidebar-nav" aria-label={t('nav.mainMenu')}>
-        {links.map((link) =>
-        <button
-          key={link.path}
-          type="button"
-          className={`nav-item ${location.pathname === link.path ? 'active' : ''}`}
-          onClick={() => navigate(link.path)}
-          title={collapsed ? link.label : ''}>
-          
-            <span className="nav-icon">{link.icon}</span>
-            {!collapsed && <span className="nav-label">{link.label}</span>}
-          </button>
-        )}
+        {links.map((link) => {
+          const isActive =
+          link.path === '/admin' ?
+          location.pathname === '/admin' :
+          location.pathname === link.path || location.pathname.startsWith(`${link.path}/`);
+          return (
+            <button
+              key={link.path}
+              type="button"
+              className={`nav-item ${isActive ? 'active' : ''}`}
+              onClick={() => navigate(link.path)}
+              title={collapsed ? link.label : ''}>
+            
+              <span className="nav-icon">{link.icon}</span>
+              {!collapsed && <span className="nav-label">{link.label}</span>}
+            </button>);
+
+        })}
       </nav>
 
       <div className="sidebar-bottom">

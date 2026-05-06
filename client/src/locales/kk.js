@@ -234,6 +234,7 @@ export default {
     expand: 'Менюны жаю',
     collapse: 'Менюны жиыру',
     adminOverview: 'Шолу',
+    adminCrmDashboard: 'CRM дашборд',
     adminUsers: 'Пайдаланушылар',
     adminCategories: 'Санаттар',
     adminTests: 'Тесттер'

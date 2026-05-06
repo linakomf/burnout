@@ -1579,6 +1579,16 @@
   font-weight: 700;
 }
 
+.support-form-error {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .checkin-form-actions {
   display: flex;
   gap: 10px;

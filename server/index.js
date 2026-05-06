@@ -10,6 +10,7 @@ const { ensurePracticeSchema } = require('./ensurePracticeSchema');
 const { ensureOnboardingSchema } = require('./ensureOnboardingSchema');
 const { ensureTestSchema } = require('./ensureTestSchema');
 const { ensureTestCatalog } = require('./ensureTestCatalog');
+const { ensureSupportRequestsSchema } = require('./ensureSupportRequestsSchema');
 
 if (!process.env.JWT_SECRET?.trim()) {
   if (process.env.NODE_ENV === 'production') {
@@ -96,6 +97,7 @@ async function bootstrap() {
   await ensureOnboardingSchema();
   await ensureTestSchema();
   await ensureTestCatalog();
+  await ensureSupportRequestsSchema();
 }
 
 bootstrap()

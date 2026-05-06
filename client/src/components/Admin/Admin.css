@@ -91,3 +91,210 @@
 @media (max-width: 600px) {
   .admin-overview-grid { grid-template-columns: 1fr; }
 }
+
+/* —— Обращения «Мы рядом» на странице обзора (/admin) —— */
+.admin-support-overview {
+  margin-top: 28px;
+  padding: 22px 24px;
+  border: 1px solid rgba(184, 188, 232, 0.55);
+  background: linear-gradient(165deg, rgba(240, 241, 253, 0.95) 0%, var(--surface, #fff) 50%);
+  border-left: 4px solid #b8bce8;
+  box-shadow: 0 8px 28px rgba(123, 130, 200, 0.1);
+}
+
+[data-theme='dark'] .admin-support-overview {
+  background: linear-gradient(165deg, rgba(80, 84, 120, 0.22) 0%, var(--surface, #1a1a22) 50%);
+  border-color: rgba(184, 188, 232, 0.35);
+}
+
+.admin-support-overview-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.125rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+  color: var(--text-dark);
+}
+
+.admin-support-overview-icon {
+  color: #7c82c4;
+  flex-shrink: 0;
+}
+
+.admin-support-overview-lead {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-light);
+  line-height: 1.5;
+  margin: 0 0 16px;
+  max-width: 920px;
+}
+
+.admin-support-overview-error {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 12px;
+  background: rgba(240, 241, 253, 0.9);
+  border: 1px solid rgba(184, 188, 232, 0.8);
+  color: #5c6299;
+}
+
+.admin-support-overview-muted {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.admin-support-overview-muted.sm {
+  font-size: 0.8125rem;
+  margin-top: 6px;
+}
+
+.admin-support-overview-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-support-overview-item {
+  border-radius: 14px;
+  padding: 16px 18px;
+  border: 1px solid rgba(184, 188, 232, 0.45);
+  background: linear-gradient(180deg, rgba(252, 252, 255, 0.98) 0%, rgba(245, 246, 252, 0.92) 100%);
+  box-shadow: 0 4px 16px rgba(123, 130, 200, 0.08);
+}
+
+[data-theme='dark'] .admin-support-overview-item {
+  background: rgba(30, 32, 48, 0.6);
+  border-color: rgba(184, 188, 232, 0.25);
+}
+
+.admin-support-overview-item-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.admin-support-overview-date {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #7c82c4;
+}
+
+.admin-support-overview-req {
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--text-light);
+}
+
+.admin-support-overview-acct {
+  font-size: 0.8125rem;
+  color: var(--text-dark);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.admin-support-overview-mono {
+  font-family: ui-monospace, monospace;
+  font-weight: 800;
+}
+
+.admin-support-overview-dot {
+  margin: 0 6px;
+  color: var(--border);
+}
+
+.admin-support-overview-row {
+  font-size: 0.8125rem;
+  margin-bottom: 6px;
+}
+
+.admin-support-overview-k {
+  color: var(--text-light);
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.admin-support-overview-a {
+  color: #7c82c4;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.admin-support-overview-msg-wrap {
+  margin: 12px 0 14px;
+}
+
+.admin-support-overview-msg {
+  margin: 6px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(208, 210, 248, 0.22);
+  border: 1px solid rgba(184, 188, 232, 0.35);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  color: var(--text-dark);
+}
+
+.admin-support-overview-burnout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 800px) {
+  .admin-support-overview-burnout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-support-overview-burn-card {
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(184, 188, 232, 0.4);
+}
+
+[data-theme='dark'] .admin-support-overview-burn-card {
+  background: rgba(24, 26, 38, 0.85);
+  border-color: rgba(184, 188, 232, 0.28);
+}
+
+.admin-support-overview-burn-h {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #7c82c4;
+  margin-bottom: 8px;
+}
+
+.admin-support-overview-burn-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 8px;
+}
+
+.admin-support-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}

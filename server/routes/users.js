@@ -3,7 +3,10 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const pool = require('../db');
 const { runOnboardingMigration } = require('../ensureOnboardingSchema');
-const { authMiddleware } = require('../middleware/auth');
+const { authMiddleware, adminOnly } = require('../middleware/auth');
+const { computeTestResult } = require('../scoring');
+const { bucketFromPercent, normalizeRiskLevel } = require('../utils/burnoutRisk');
+const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { normalizeRegisterAvatar, normalizeGender } = require('../utils/registerProfile');
 const multer = require('multer');
 const path = require('path');
@@ -178,6 +181,160 @@ router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
       'База не обновлена. Перезапустите сервер приложения.' :
       'Ошибка сервера при сохранении'
     });
+  }
+});
+
+router.use('/with-results', require('./usersWithResults'));
+
+router.post('/support-request', authMiddleware, async (req, res) => {
+  if (req.user.role === 'admin') {
+    return res.status(400).json({ message: 'Для учётной записи администратора заявка не требуется' });
+  }
+  const userId = parseInt(req.user.user_id, 10);
+  if (!Number.isFinite(userId)) {
+    return res.status(400).json({ message: 'Некорректная сессия — войдите снова' });
+  }
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const displayName = String(body.name ?? '').trim().slice(0, 120);
+  const contact = String(body.contact ?? '').trim().slice(0, 254);
+  const message = String(body.message ?? '').trim().slice(0, 8000);
+  if (!displayName || !contact || !message) {
+    return res.status(400).json({ message: 'Заполните имя, контакт и сообщение' });
+  }
+  try {
+    const ins = await pool.query(
+      `INSERT INTO support_requests (user_id, display_name, contact, message)
+       VALUES ($1, $2, $3, $4)
+       RETURNING request_id, created_at`,
+      [userId, displayName, contact, message]
+    );
+    res.status(201).json({ ok: true, request_id: ins.rows[0].request_id, created_at: ins.rows[0].created_at });
+  } catch (err) {
+    console.error('[support-request]', err);
+    const hint = dbErrorToMessage(err);
+    if (hint) return res.status(503).json({ message: hint });
+    if (err.code === '42P01') {
+      return res.status(503).json({ message: 'Таблица заявок не создана. Перезапустите сервер.' });
+    }
+    res.status(500).json({ message: 'Не удалось сохранить заявку' });
+  }
+});
+
+router.get('/support-requests', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const q = await pool.query(`
+      SELECT
+        sr.request_id,
+        sr.user_id,
+        sr.display_name,
+        sr.contact,
+        sr.message,
+        sr.created_at,
+        u.email AS account_email,
+        u.name AS account_name,
+        u.onboarding_burnout_percent,
+        u.onboarding_burnout_completed,
+        u.onboarding_burnout_completed_at,
+        burn.result_id AS burn_result_id,
+        burn.level AS burn_level_stored,
+        burn.created_at AS burn_test_at,
+        burn.test_title,
+        burn.scoring_type,
+        burn.answers,
+        burn.test_id
+      FROM support_requests sr
+      INNER JOIN users u ON u.user_id = sr.user_id
+      LEFT JOIN LATERAL (
+        SELECT tr.result_id, tr.level, tr.created_at, tr.answers, tr.test_id,
+          t.title AS test_title, t.scoring_type
+        FROM test_results tr
+        INNER JOIN tests t ON t.test_id = tr.test_id
+        WHERE tr.user_id = sr.user_id
+          AND (
+            t.scoring_type IN ('mbi_student', 'daily5')
+            OR (t.scoring_type = 'likert_sum' AND t.title ILIKE '%выгоран%')
+          )
+        ORDER BY tr.created_at DESC
+        LIMIT 1
+      ) burn ON true
+      ORDER BY sr.created_at DESC
+      LIMIT 200
+    `);
+
+    const questionsCache = new Map();
+    async function getQuestions(tid) {
+      if (questionsCache.has(tid)) return questionsCache.get(tid);
+      const r = await pool.query(
+        'SELECT * FROM questions WHERE test_id = $1 ORDER BY order_num, question_id',
+        [tid]
+      );
+      questionsCache.set(tid, r.rows);
+      return r.rows;
+    }
+
+    const rows = [];
+    for (const row of q.rows) {
+      let catalogBurnout = null;
+      if (row.burn_result_id && row.test_id) {
+        try {
+          const questions = await getQuestions(row.test_id);
+          const testRow = { scoring_type: row.scoring_type };
+          const answersObj = typeof row.answers === 'string' ? JSON.parse(row.answers || '{}') : row.answers || {};
+          const computed = computeTestResult(testRow, questions, answersObj);
+          const percent = computed.percentage != null ? Number(computed.percentage) : null;
+          const riskLevel =
+            normalizeRiskLevel(computed.level, row.scoring_type) ||
+            normalizeRiskLevel(row.burn_level_stored, row.scoring_type) ||
+            bucketFromPercent(percent, true);
+          catalogBurnout = {
+            test_title: row.test_title,
+            test_date: row.burn_test_at,
+            level: riskLevel,
+            percent,
+            scoring_type: row.scoring_type
+          };
+        } catch (e) {
+          console.warn('[support-requests] burn compute', row.request_id, e.message);
+          catalogBurnout = {
+            test_title: row.test_title,
+            test_date: row.burn_test_at,
+            level:
+              normalizeRiskLevel(row.burn_level_stored, row.scoring_type) || 'unknown',
+            percent: null,
+            scoring_type: row.scoring_type
+          };
+        }
+      }
+
+      const onboardingPercent =
+        row.onboarding_burnout_percent != null ? Number(row.onboarding_burnout_percent) : null;
+      const onboardingCompleted = Boolean(row.onboarding_burnout_completed);
+
+      rows.push({
+        request_id: row.request_id,
+        user_id: row.user_id,
+        display_name: row.display_name,
+        contact: row.contact,
+        message: row.message,
+        created_at: row.created_at,
+        account_email: row.account_email,
+        account_name: row.account_name,
+        onboarding: {
+          completed: onboardingCompleted,
+          percent: onboardingPercent,
+          completed_at: row.onboarding_burnout_completed_at,
+          level: bucketFromPercent(onboardingPercent, onboardingCompleted)
+        },
+        catalog_burnout_test: catalogBurnout
+      });
+    }
+
+    res.json({ rows });
+  } catch (err) {
+    console.error('[support-requests]', err);
+    const hint = dbErrorToMessage(err);
+    if (hint) return res.status(500).json({ message: hint });
+    res.status(500).json({ message: 'Не удалось загрузить обращения' });
   }
 });
 

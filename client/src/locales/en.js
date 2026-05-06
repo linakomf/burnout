@@ -234,6 +234,7 @@ export default {
     expand: 'Expand menu',
     collapse: 'Collapse menu',
     adminOverview: 'Overview',
+    adminCrmDashboard: 'CRM dashboard',
     adminUsers: 'Users',
     adminCategories: 'Categories',
     adminTests: 'Tests'

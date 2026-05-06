@@ -1,8 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Tag, BookOpen, Plus, Trash2, Edit2, X, Save } from 'lucide-react';
+import { Users, Tag, BookOpen, Plus, Trash2, Edit2, X, Save, HeartHandshake } from 'lucide-react';
 import api from '../../utils/api';
 import './Admin.css';
+
+const SUPPORT_LEVEL_LABEL = {
+  low: 'Низкий',
+  medium: 'Средний',
+  high: 'Высокий (риск депрессии)',
+  unknown: 'Нет данных'
+};
+
+const SUPPORT_LEVEL_STYLE = {
+  low: { color: '#3d4266', bg: 'rgba(208, 210, 248, 0.45)' },
+  medium: { color: '#b45309', bg: '#fff8e6' },
+  high: { color: '#b91c1c', bg: '#fdecef' },
+  unknown: { color: '#64748b', bg: '#f1f5f9' }
+};
+
+function supportContactHref(raw) {
+  const t = String(raw || '').trim();
+  if (/^https?:\/\//i.test(t)) return t;
+  if (t.includes('@')) return `mailto:${encodeURIComponent(t)}`;
+  if (/^\+?\d[\d\s()-]{6,}$/.test(t)) return `tel:${t.replace(/\s/g, '')}`;
+  return `mailto:${encodeURIComponent(t)}`;
+}
 
 export const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -550,11 +572,40 @@ export const AdminTests = () => {
 export const AdminOverview = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState({ users: 0, tests: 0, categories: 0 });
+  const [supportRequests, setSupportRequests] = useState([]);
+  const [supportLoading, setSupportLoading] = useState(true);
+  const [supportError, setSupportError] = useState('');
 
   useEffect(() => {
     Promise.all([api.get('/users/all'), api.get('/tests'), api.get('/categories')]).
     then(([u, t, c]) => setStats({ users: u.data.length, tests: t.data.length, categories: c.data.length })).
     catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setSupportLoading(true);
+      setSupportError('');
+      try {
+        const { data } = await api.get('/users/support-requests');
+        if (!cancelled) setSupportRequests(data?.rows || []);
+      } catch (e) {
+        const msg =
+          e?.response?.data?.message ||
+          e?.message ||
+          'Не удалось загрузить обращения';
+        if (!cancelled) {
+          setSupportRequests([]);
+          setSupportError(String(msg));
+        }
+      } finally {
+        if (!cancelled) setSupportLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -578,6 +629,109 @@ export const AdminOverview = () => {
           <div className="admin-stat-val">{stats.categories}</div>
           <div className="admin-stat-label">Категорий</div>
         </div>
+      </div>
+
+      <div className="card admin-support-overview">
+        <h2 className="admin-support-overview-title">
+          <HeartHandshake size={22} className="admin-support-overview-icon" aria-hidden />
+          Обращения «Мы рядом»
+        </h2>
+        <p className="admin-support-overview-lead">
+          Заявки с главной страницы дашборда пользователя. Ниже — скрининг выгорания (онбординг) и последний тест MBI / чек-ин.
+        </p>
+        {supportError ?
+        <div className="admin-support-overview-error">{supportError}</div> :
+        null}
+        {supportLoading ?
+        <p className="admin-support-overview-muted">Загрузка обращений…</p> :
+        null}
+        {!supportLoading && !supportError && supportRequests.length === 0 ?
+        <p className="admin-support-overview-muted">Пока нет обращений</p> :
+        null}
+        {!supportLoading && supportRequests.length > 0 ?
+        <ul className="admin-support-overview-list">
+          {supportRequests.map((r) => {
+            const created = r.created_at ? new Date(r.created_at).toLocaleString('ru') : '—';
+            const onb = r.onboarding || {};
+            const cat = r.catalog_burnout_test;
+            const onbDate = onb.completed_at ?
+            new Date(onb.completed_at).toLocaleDateString('ru') :
+            null;
+            const catDate = cat?.test_date ?
+            new Date(cat.test_date).toLocaleDateString('ru') :
+            null;
+            return (
+              <li key={r.request_id} className="admin-support-overview-item">
+                  <div className="admin-support-overview-item-top">
+                    <span className="admin-support-overview-date">{created}</span>
+                    <span className="admin-support-overview-req">#{r.request_id}</span>
+                  </div>
+                  <div className="admin-support-overview-acct">
+                    <span className="admin-support-overview-mono">ID {r.user_id}</span>
+                    <span className="admin-support-overview-dot">·</span>
+                    <span>{r.account_email}</span>
+                  </div>
+                  <div className="admin-support-overview-row">
+                    <span className="admin-support-overview-k">Имя в форме:</span> {r.display_name}
+                  </div>
+                  <div className="admin-support-overview-row">
+                    <span className="admin-support-overview-k">Контакт:</span>{' '}
+                    <a className="admin-support-overview-a" href={supportContactHref(r.contact)}>
+                      {r.contact}
+                    </a>
+                  </div>
+                  <div className="admin-support-overview-msg-wrap">
+                    <div className="admin-support-overview-k">Сообщение</div>
+                    <p className="admin-support-overview-msg">{r.message}</p>
+                  </div>
+                  <div className="admin-support-overview-burnout">
+                    <div className="admin-support-overview-burn-card">
+                      <div className="admin-support-overview-burn-h">Онбординг (выгорание)</div>
+                      {onb.completed ?
+                    <>
+                        <div className="admin-support-overview-burn-meta">{onbDate}</div>
+                        <span
+                        className="admin-support-badge"
+                        style={{
+                          color: SUPPORT_LEVEL_STYLE[onb.level]?.color,
+                          background: SUPPORT_LEVEL_STYLE[onb.level]?.bg
+                        }}>
+                        
+                          {SUPPORT_LEVEL_LABEL[onb.level]}
+                          {onb.percent != null && onb.level !== 'unknown' ? ` · ${onb.percent}%` : ''}
+                        </span>
+                      </> :
+
+                    <p className="admin-support-overview-muted sm">Не пройден</p>}
+                    </div>
+                    <div className="admin-support-overview-burn-card">
+                      <div className="admin-support-overview-burn-h">Каталог (последний тест)</div>
+                      {cat ?
+                    <>
+                        <div className="admin-support-overview-burn-meta">
+                          <span>{cat.test_title}</span>
+                          {catDate ? <span>· {catDate}</span> : null}
+                        </div>
+                        <span
+                        className="admin-support-badge"
+                        style={{
+                          color: SUPPORT_LEVEL_STYLE[cat.level]?.color,
+                          background: SUPPORT_LEVEL_STYLE[cat.level]?.bg
+                        }}>
+                        
+                          {SUPPORT_LEVEL_LABEL[cat.level]}
+                          {cat.percent != null && cat.level !== 'unknown' ? ` · ${cat.percent}%` : ''}
+                        </span>
+                      </> :
+
+                    <p className="admin-support-overview-muted sm">Нет MBI / чек-ина</p>}
+                    </div>
+                  </div>
+                </li>);
+
+          })}
+        </ul> :
+        null}
       </div>
     </div>);
 

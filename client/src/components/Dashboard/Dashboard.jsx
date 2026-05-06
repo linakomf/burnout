@@ -156,6 +156,8 @@ const Dashboard = () => {
   const [checkinModalOpen, setCheckinModalOpen] = useState(false);
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [supportSent, setSupportSent] = useState(false);
+  const [supportSubmitting, setSupportSubmitting] = useState(false);
+  const [supportSubmitError, setSupportSubmitError] = useState('');
   const [supportForm, setSupportForm] = useState({
     name: '',
     contact: '',
@@ -322,6 +324,7 @@ const Dashboard = () => {
 
   const openSupportContact = () => {
     setSupportSent(false);
+    setSupportSubmitError('');
     setSupportForm((f) => ({
       ...f,
       name: user?.name || '',
@@ -331,25 +334,41 @@ const Dashboard = () => {
     setSupportModalOpen(true);
   };
 
-  const submitSupportRequest = () => {
+  const submitSupportRequest = async () => {
     const name = supportForm.name.trim();
     const contact = supportForm.contact.trim();
     const message = supportForm.message.trim();
-    if (!name || !contact || !message) return;
+    if (!name || !contact || !message || supportSubmitting) return;
 
-    const subject = t('dash.supportNearby.mailSubject');
-    const body = [
-      `Имя: ${name}`,
-      `Контакт: ${contact}`,
-      '',
-      'Запрос:',
-      message
-    ].join('\n');
-
-    if (supportEmail) {
-      window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setSupportSubmitError('');
+    setSupportSubmitting(true);
+    try {
+      await api.post('/users/support-request', {
+        name,
+        contact,
+        message
+      });
+      const subject = t('dash.supportNearby.mailSubject');
+      const body = [
+        `Имя: ${name}`,
+        `Контакт: ${contact}`,
+        '',
+        'Запрос:',
+        message
+      ].join('\n');
+      if (supportEmail) {
+        window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      }
+      setSupportSent(true);
+    } catch (e) {
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        'Не удалось отправить заявку. Попробуйте позже.';
+      setSupportSubmitError(String(msg));
+    } finally {
+      setSupportSubmitting(false);
     }
-    setSupportSent(true);
   };
 
   const recommendedTestId = useMemo(
@@ -876,11 +895,15 @@ const Dashboard = () => {
               />
             </section>
 
-            {supportSent && (
+            {supportSubmitError ? (
+              <p className="support-form-error" role="alert">
+                {supportSubmitError}
+              </p>
+            ) : supportSent ? (
               <p className="support-form-success">
                 Заявка отправлена. Мы скоро свяжемся с вами.
               </p>
-            )}
+            ) : null}
 
             <div className="checkin-form-actions">
               <button
@@ -894,9 +917,14 @@ const Dashboard = () => {
                 type="button"
                 className="checkin-btn-save"
                 onClick={submitSupportRequest}
-                disabled={!supportForm.name.trim() || !supportForm.contact.trim() || !supportForm.message.trim()}
+                disabled={
+                  supportSubmitting ||
+                  !supportForm.name.trim() ||
+                  !supportForm.contact.trim() ||
+                  !supportForm.message.trim()
+                }
               >
-                Отправить заявку
+                {supportSubmitting ? 'Отправка…' : 'Отправить заявку'}
               </button>
             </div>
           </div>

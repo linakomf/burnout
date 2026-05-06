@@ -32,18 +32,6 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
   return children;
 };
 
-function RequireAdminDashboard({ children }) {
-  const { user, loading } = useAuth();
-  if (loading) return (
-    <div className="app-loading-fullscreen">
-      <div className="loading-spinner" />
-    </div>);
-
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;
-  return children;
-}
-
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return (
@@ -100,7 +88,7 @@ const App = () => {
           <Route path="/admin-portal" element={<AdminPortal />} />
 
           <Route path="/admin-dashboard" element={
-                    <RequireAdminDashboard><AdminDashboard /></RequireAdminDashboard>
+                    <PrivateRoute adminOnly><Layout><AdminDashboard /></Layout></PrivateRoute>
                     } />
           <Route path="/user-dashboard" element={<Navigate to="/dashboard" replace />} />
 
