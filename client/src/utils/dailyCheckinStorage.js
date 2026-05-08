@@ -6,7 +6,7 @@
 const LOG_KEY = 'burnout_checkin_log_v1';
 const LEGACY_KEY = 'burnout_daily_checkin_v1';
 
-export const CHECKIN_MOOD_EMOJIS = ['😁', '🙂', '😐', '😔', '😰'];
+export const CHECKIN_MOOD_EMOJIS = ['😄', '🙂', '😐', '😔', '😥'];
 
 function clampPct(n) {
   return Math.min(100, Math.max(0, Math.round(Number(n) || 0)));

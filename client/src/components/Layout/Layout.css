@@ -23,8 +23,15 @@
   background: transparent;
 }
 
-[data-theme='dark'] .main-content:has(.take-test--survey-mock) {
-  background: transparent;
+[data-theme='dark'] .main-content:has(.take-test) {
+  background-color: #121816;
+  background-image:
+    linear-gradient(180deg, rgba(14, 18, 16, 0.86) 0%, rgba(14, 18, 16, 0.93) 100%),
+    url('../../assets/take-test-landscape-bg.png');
+  background-size: cover;
+  background-position: center 38%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 [data-theme='dark'] .main-content:has(.film-detail-page) {
@@ -32,7 +39,14 @@
 }
 
 [data-theme='dark'] .main-content:has(.ai-diary) {
-  background: transparent;
+  background-color: #12141a;
+  background-image:
+    linear-gradient(180deg, rgba(10, 12, 16, 0.82) 0%, rgba(12, 14, 18, 0.9) 100%),
+    url('../../assets/ai-diary-page-bg.png');
+  background-size: cover;
+  background-position: center 35%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 [data-theme='dark'] .main-content:has(.analytics-page) {
@@ -61,11 +75,16 @@
 }
 
 .main-content:has(.tests-mock-page) {
-  background: transparent;
+  background: #ffffff;
 }
 
-.main-content:has(.take-test--survey-mock) {
-  background: transparent;
+.main-content:has(.take-test) {
+  background-color: #e8f0f5;
+  background-image: url('../../assets/take-test-landscape-bg.png');
+  background-size: cover;
+  background-position: center 38%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .main-content:has(.film-detail-page) {
@@ -81,11 +100,52 @@
 }
 
 .main-content:has(.dashboard-new) {
-  background: #f5f7fa;
+  background-color: #dceaf8;
+  background-image: url('../../assets/dashboard-bg-sky-clouds.png');
+  background-size: cover;
+  background-position: center 28%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.main-content:has(.profile-page) {
+  background-color: #dceaf8;
+  background-image: url('../../assets/dashboard-bg-sky-clouds.png');
+  background-size: cover;
+  background-position: center 28%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+[data-theme='dark'] .main-content:has(.profile-page) {
+  background-color: #0e1210;
+  background-image:
+    linear-gradient(180deg, rgba(14, 18, 16, 0.88) 0%, rgba(14, 18, 16, 0.93) 100%),
+    url('../../assets/dashboard-bg-sky-clouds.png');
+  background-size: cover;
+  background-position: center 28%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+[data-theme='dark'] .main-content:has(.dashboard-new) {
+  background-color: #0e1210;
+  background-image:
+    linear-gradient(180deg, rgba(14, 18, 16, 0.88) 0%, rgba(14, 18, 16, 0.93) 100%),
+    url('../../assets/dashboard-bg-sky-clouds.png');
+  background-size: cover;
+  background-position: center 28%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .main-content:has(.ai-diary) {
-  background: #f5f7fa;
+  background-color: #e8f0f5;
+  background-image: url('../../assets/ai-diary-page-bg.png');
+  background-size: cover;
+  background-position: center 35%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .main-content:has(.films-collection-page) {

@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  ChevronLeft } from
-'lucide-react';
+  Activity,
+  ChevronLeft,
+  ClipboardList,
+  Cloud,
+  Flame,
+  Heart,
+  LayoutGrid,
+  Smile,
+  Sprout
+} from 'lucide-react';
 import api from '../../utils/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { mergeTestRu } from '../../config/testDisplayRu';
+import testsHeroImg from '../../assets/tests-page-blossoms-hero.png';
 import './Tests.css';
 
 function pickTest(tests, preferIds) {
@@ -48,13 +57,64 @@ export function bucketToAccent(bucket) {
   return 'plain';
 }
 
-const CATALOG_FILTER_CHIPS = [
-{ id: 'all', label: 'Все' },
-{ id: 'quick', label: 'Быстрые опросники' },
-{ id: 'basic', label: 'Базовые' },
-{ id: 'clinical', label: 'Клинические тесты' },
-{ id: 'practices', label: 'Практики' },
-{ id: 'other', label: 'Другие' }];
+const THEME_FILTER_CHIPS = [
+{ id: 'all', Icon: LayoutGrid },
+{ id: 'stress', Icon: Activity },
+{ id: 'mood', Icon: Smile },
+{ id: 'burnout', Icon: Flame },
+{ id: 'anxiety', Icon: Cloud },
+{ id: 'resource', Icon: Sprout }];
+
+export function matchThemeFilter(test, filterId) {
+  if (filterId === 'all') return true;
+  const s = `${test.title || ''} ${test.category_name || ''} ${test.description || ''}`.toLowerCase();
+  const isBurnout = /выгоран|mbi|burnout|академическ|истощ|академ|exhaust/i.test(s);
+  const isAnxiety = /gad-7|\bgad\b|тревог|тревож|паник|беспокой|anxi|panic/i.test(s);
+  const isMood =
+  getTestBucket(test) === 'mood' || /настроен|эмоцион|чек-ин|ежедневн|mood|emotion/i.test(s);
+  const isResource =
+  /ресурс|восстанов|практик|медитац|релакс|дыхан|mindful|resource|recover|meditat/i.test(s) ||
+  getCatalogFilter(test) === 'practices';
+  const isStress =
+  (getTestBucket(test) === 'stress' || /стресс|pss|перегруз|напряжен|stress|overload/i.test(s)) &&
+  !isBurnout;
+
+  switch (filterId) {
+    case 'stress':
+      return isStress;
+    case 'burnout':
+      return isBurnout;
+    case 'anxiety':
+      return isAnxiety;
+    case 'mood':
+      return isMood && !isAnxiety;
+    case 'resource':
+      return isResource;
+    default:
+      return false;
+  }
+}
+
+function catalogCardIcon(test) {
+  if (matchThemeFilter(test, 'burnout')) return Flame;
+  if (matchThemeFilter(test, 'anxiety')) return Cloud;
+  if (matchThemeFilter(test, 'mood')) return Smile;
+  if (matchThemeFilter(test, 'resource')) return Sprout;
+  if (matchThemeFilter(test, 'stress')) return Activity;
+  return ClipboardList;
+}
+
+function estimateMinutes(qc) {
+  const n = Number(qc) || 0;
+  return Math.max(1, Math.round(n * 0.38));
+}
+
+function clipText(s, max = 118) {
+  if (s == null || s === '') return '';
+  const t = String(s).trim();
+  if (t.length <= max) return t;
+  return `${t.slice(0, max).trim()}…`;
+}
 
 
 export function getTestBucket(test) {
@@ -144,35 +204,43 @@ export const TestsList = () => {
     finally(() => setLoading(false));
   }, []);
 
-  const enriched = tests.map((t) => ({
-    ...t,
-    bucket: getTestBucket(t),
-    catalogFilter: getCatalogFilter(t)
+  const enriched = tests.map((row) => ({
+    ...row,
+    bucket: getTestBucket(row),
+    catalogFilter: getCatalogFilter(row)
   }));
 
-  const filterCounts = enriched.reduce(
-    (acc, t) => {
-      acc.all += 1;
-      const f = t.catalogFilter;
-      acc[f] = (acc[f] || 0) + 1;
-      return acc;
-    },
-    { all: 0, quick: 0, basic: 0, clinical: 0, practices: 0, other: 0 }
-  );
-
   const filtered =
-  filter === 'all' ?
-  enriched :
-  enriched.filter((t) => t.catalogFilter === filter);
+  filter === 'all' ? enriched : enriched.filter((row) => matchThemeFilter(row, filter));
 
   const sortedFiltered = [...filtered].sort((a, b) => Number(a.test_id) - Number(b.test_id));
 
+  const featuredTest = pickTest(tests, TEST_PATHS[0].preferIds);
+  const featuredReady =
+  featuredTest &&
+  sortedFiltered.some((row) => Number(row.test_id) === Number(featuredTest.test_id));
+  const featuredQc =
+  featuredTest && featuredTest.question_count != null ? Number(featuredTest.question_count) : 0;
+
+  const gridTests =
+  featuredReady ?
+  sortedFiltered.filter((row) => Number(row.test_id) !== Number(featuredTest.test_id)) :
+  sortedFiltered;
+
   if (loading) {
     return (
-      <div className="tests-mock-page tests-mock-page--loading fade-in">
-        <div className="tests-mock-content">
-          <div className="tests-loading">
-            <div className="loading-spinner" />
+      <div className="tests-mock-page tests-mock-page--v2 tests-mock-page--loading fade-in">
+        <div
+          className="tests-mock-hero-photo tests-mock-hero-photo--loading"
+          style={{ backgroundImage: `url(${testsHeroImg})` }}
+          aria-hidden
+        />
+        <div className="tests-mock-sheet">
+          <div className="tests-mock-sheet-notch" aria-hidden />
+          <div className="tests-mock-content tests-mock-content--v2">
+            <div className="tests-loading tests-loading--v2">
+              <div className="loading-spinner" />
+            </div>
           </div>
         </div>
       </div>);
@@ -180,113 +248,150 @@ export const TestsList = () => {
   }
 
   return (
-    <div className="tests-mock-page fade-in">
-      <div className="tests-mock-content">
-        <header className="tests-mock-hero">
-          <h1 className="tests-mock-title">{t('pages.testsTitle')}</h1>
-          <p className="tests-mock-lead">
-            {t('pages.testsLead')}
+    <div className="tests-mock-page tests-mock-page--v2 fade-in">
+      <div
+        className="tests-mock-hero-photo"
+        style={{ backgroundImage: `url(${testsHeroImg})` }}
+        role="img"
+        aria-label={t('pages.testsHeroPhotoAlt')}
+      />
+      <div className="tests-mock-sheet">
+        <div className="tests-mock-sheet-notch" aria-hidden />
+        <div className="tests-mock-content tests-mock-content--v2">
+          <p className="tests-mock-care">
+            <Heart className="tests-mock-care-icon" size={18} strokeWidth={2} aria-hidden />
+            {t('pages.testsCareLine')}
           </p>
-        </header>
 
-      <div className="tests-mock-chips" role="tablist" aria-label={t('pages.testsFilter')}>
-        {CATALOG_FILTER_CHIPS.map(({ id }) => {
-          const count = filterCounts[id] ?? 0;
-          const active = filter === id;
-          const showCount = id !== 'all';
-          return (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              className={`tests-mock-chip ${active ? 'tests-mock-chip--active' : ''}`}
-              onClick={() => setFilter(id)}>
-              
-              {t(`testsFilter.${id}`)}
-              {showCount ? ` (${count})` : ''}
-            </button>);
+          <header className="tests-mock-header-v2">
+            <div className="tests-mock-header-main">
+              <h1 className="tests-mock-title tests-mock-title--v2">
+                {t('pages.testsTitle')}
+                <span className="tests-mock-title-flourish" aria-hidden>
+                  ❀
+                </span>
+              </h1>
+              <p className="tests-mock-lead tests-mock-lead--v2">{t('pages.testsLead')}</p>
+            </div>
+            <p className="tests-mock-hero-aside tests-mock-hero-aside--v2">{t('pages.testsHeroAside')}</p>
+          </header>
 
-        })}
-      </div>
-
-      <section className="tests-mock-section" aria-label={t('testsUi.quickStartAria')}>
-        <h2 className="tests-mock-section-title">{t('pages.testsQuick')}</h2>
-        <p className="tests-mock-section-lead">{t('pages.testsQuickLead')}</p>
-        <div className="tests-mock-paths">
-          {TEST_PATHS.map((path, i) => {
-            const chosen = pickTest(tests, path.preferIds);
-            return (
-              <article
-                key={path.key}
-                className="tests-mock-path-card"
-                data-accent={path.accent}
-                style={{ animationDelay: `${0.06 + i * 0.07}s` }}>
-                <h3 className="tests-mock-path-card-title">{t(`testsPath.${path.key}.title`)}</h3>
-                <p className="tests-mock-path-card-desc">{t(`testsPath.${path.key}.lead`)}</p>
+          <div className="tests-mock-chips tests-mock-chips--v2" role="tablist" aria-label={t('pages.testsFilter')}>
+            {THEME_FILTER_CHIPS.map(({ id, Icon }) => {
+              const active = filter === id;
+              return (
                 <button
+                  key={id}
                   type="button"
-                  className="tests-mock-path-btn"
-                  data-accent={path.accent}
-                  disabled={!chosen}
-                  onClick={() => chosen && navigate(`/tests/${chosen.test_id}`)}>
-                  {t('testsUi.goTest')}
-                </button>
-              </article>);
+                  role="tab"
+                  aria-selected={active}
+                  className={`tests-mock-chip tests-mock-chip--v2 ${active ? 'tests-mock-chip--active tests-mock-chip--v2-active' : ''}`}
+                  onClick={() => setFilter(id)}>
+                  
+                  <Icon className="tests-mock-chip-svg" strokeWidth={1.75} aria-hidden />
+                  <span>{t(`testsThemeFilter.${id}`)}</span>
+                </button>);
 
-          })}
-        </div>
-      </section>
+            })}
+          </div>
 
-      {!tests.length &&
-      <p className="tests-mock-fallback">
-          {t('testsUi.noTests')}
-        </p>
-      }
+          {!tests.length &&
+          <p className="tests-mock-fallback tests-mock-fallback--v2">{t('testsUi.noTests')}</p>
+          }
 
-      {tests.length > 0 &&
-      <section className="tests-mock-catalog-wrap" aria-label={t('pages.testsCatalog')}>
-          <h2 className="tests-mock-section-title">{t('pages.testsCatalog')}</h2>
-          <p className="tests-mock-section-lead">
-            {t('pages.testsCatalogHint')}
-          </p>
+          {tests.length > 0 && featuredReady &&
+          <section className="tests-mock-featured" aria-label={t('pages.testsFeaturedAria')}>
+              <div className="tests-mock-featured-inner">
+                <div className="tests-mock-featured-copy">
+                  <span className="tests-mock-featured-badge">
+                    <Heart className="tests-mock-featured-badge-ic" size={14} strokeWidth={2.4} aria-hidden />
+                    {t('pages.testsFeaturedBadge')}
+                  </span>
+                  <h2 className="tests-mock-featured-title">
+                    {t('pages.testsFeaturedTitle')}
+                    <span className="tests-mock-title-flourish tests-mock-title-flourish--sm" aria-hidden>
+                      ✿
+                    </span>
+                  </h2>
+                  <p className="tests-mock-featured-desc">
+                    {clipText(featuredTest.description) || t('pages.testsFeaturedFallback')}
+                  </p>
+                  <div className="tests-mock-featured-meta">
+                    <span>
+                      {featuredQc === 0 ? t('testsUi.questionsNotLoaded') : questionCountLabel(featuredQc)}
+                    </span>
+                    <span>
+                      ≈ {estimateMinutes(featuredQc)} {t('pages.testsMinShort')}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="tests-mock-featured-btn"
+                    disabled={featuredQc === 0}
+                    onClick={() => featuredQc !== 0 && navigate(`/tests/${featuredTest.test_id}`)}>
+                    
+                    {featuredQc === 0 ? t('testsUi.unavailable') : t('testsUi.goTest')}
+                  </button>
+                </div>
+              </div>
+            </section>
+          }
 
-          {sortedFiltered.length === 0 ?
-        <p className="tests-mock-empty">{t('testsUi.emptyFilter')}</p> :
+          {tests.length > 0 &&
+          <section className="tests-mock-catalog-v2" aria-label={t('pages.testsCatalog')}>
+              {gridTests.length === 0 ?
+            <p className="tests-mock-empty tests-mock-empty--v2">{t('testsUi.emptyFilter')}</p> :
 
-        <div className="tests-mock-catalog-grid">
-              {sortedFiltered.map((row, i) => {
-            const qc = row.question_count != null ? Number(row.question_count) : 0;
-            const disabled = qc === 0;
-            return (
-              <article
-                key={row.test_id}
-                className="tests-mock-catalog-card"
-                style={{ animationDelay: `${0.04 + i % 12 * 0.035}s` }}>
-                
-                    <button
+            <div className="tests-mock-catalog-grid tests-mock-catalog-grid--v2">
+                  {gridTests.map((row, i) => {
+                const qc = row.question_count != null ? Number(row.question_count) : 0;
+                const disabled = qc === 0;
+                const CardIcon = catalogCardIcon(row);
+                const desc =
+                clipText(row.description || '') ||
+                clipText(audienceLabel(row), 140);
+                return (
+                  <article
+                    key={row.test_id}
+                    className="tests-mock-catalog-card tests-mock-catalog-card--v2"
+                    style={{ animationDelay: `${0.04 + i % 12 * 0.035}s` }}>
+                    
+                      <button
                       type="button"
-                      className="tests-mock-catalog-inner"
+                      className="tests-mock-catalog-inner tests-mock-catalog-inner--v2"
                       disabled={disabled}
                       onClick={() => !disabled && navigate(`/tests/${row.test_id}`)}>
-                      <h3 className="tests-mock-catalog-title">{row.title}</h3>
-                      <p className="tests-mock-catalog-meta">
-                        {disabled ? t('testsUi.questionsNotLoaded') : questionCountLabel(qc)}
-                      </p>
-                      <p className="tests-mock-catalog-meta tests-mock-catalog-meta--sub">
-                        {disabled ? '—' : audienceLabel(row)}
-                      </p>
-                      <span className="tests-mock-catalog-cta">
-                        {disabled ? t('testsUi.unavailable') : t('testsUi.openSurvey')}
-                      </span>
-                    </button>
-                  </article>);
+                        
+                        <div className="tests-mock-card-icon-ring" aria-hidden>
+                          <CardIcon className="tests-mock-card-icon" strokeWidth={1.65} />
+                        </div>
+                        <h3 className="tests-mock-catalog-title tests-mock-catalog-title--v2">{row.title}</h3>
+                        <p className="tests-mock-card-desc">{desc}</p>
+                        <div className="tests-mock-card-footer">
+                          <div className="tests-mock-card-foot-meta">
+                            <span>
+                              {disabled ? t('testsUi.questionsNotLoaded') : questionCountLabel(qc)}
+                            </span>
+                            <span className="tests-mock-card-dot" aria-hidden>
+                              ·
+                            </span>
+                            <span>
+                              ≈ {estimateMinutes(qc)} {t('pages.testsMinShort')}
+                            </span>
+                          </div>
+                          <span className={`tests-mock-card-cta-pill ${disabled ? 'tests-mock-card-cta-pill--disabled' : ''}`}>
+                            {disabled ? t('testsUi.unavailable') : t('testsUi.goTest')}
+                          </span>
+                        </div>
+                      </button>
+                    </article>);
 
-          })}
-            </div>
-        }
-        </section>
-      }
+              })}
+                </div>
+            }
+            </section>
+          }
+        </div>
       </div>
     </div>);
 

@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
 import {
   Home,
   Calendar,
@@ -92,9 +91,6 @@ const Sidebar = () => {
       </nav>
 
       <div className="sidebar-bottom">
-        <div className="sidebar-lang-wrap" title={collapsed ? t('nav.langAria') : ''}>
-          <LanguageSwitcher className={collapsed ? 'lang-switch--collapsed' : ''} />
-        </div>
         <button
           type="button"
           className="sidebar-profile"

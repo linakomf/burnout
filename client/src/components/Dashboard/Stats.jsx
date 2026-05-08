@@ -12,8 +12,8 @@ import {
 'date-fns';
 import { ru } from 'date-fns/locale';
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -35,7 +35,8 @@ import {
   Check,
   Sun,
   AlertTriangle,
-  Lightbulb } from
+  Lightbulb,
+  Send } from
 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
@@ -294,12 +295,12 @@ const Stats = () => {
     });
   }, [chartDays, moodByDate, period]);
 
-  const moodBarData = useMemo(() => {
+  const moodLineData = useMemo(() => {
     return areaData.map((row) => {
-      const cap = (s) => s ? `${s.charAt(0).toUpperCase()}${s.slice(1)}` : s;
+      const cap = (s) => (s ? `${s.charAt(0).toUpperCase()}${s.slice(1)}` : s);
       return {
         label: cap(row.label),
-        mood: row.mood != null ? row.mood : 0,
+        mood: row.mood != null ? row.mood : null,
         moodRaw: row.mood
       };
     });
@@ -618,65 +619,77 @@ const Stats = () => {
       </header>
 
       <section className="analytics-kpi-grid">
-        <article className="analytics-kpi-card">
-          <div className="analytics-kpi-top">
-            <span className="analytics-kpi-icon analytics-kpi-icon--mood">
-              <Heart size={20} strokeWidth={2.2} />
-            </span>
-            {moodTrend.text !== '—' && moodTrend.up != null &&
-            <span className={`analytics-kpi-delta ${deltaToneClass(moodTrend, true)}`}>
-                {moodTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                {moodTrend.text}
+        <article className="analytics-kpi-card analytics-kpi-card--mood">
+          <div className="analytics-kpi-inner">
+            <div className="analytics-kpi-top">
+              <span className="analytics-kpi-icon analytics-kpi-icon--mood">
+                <Heart size={20} strokeWidth={2.2} />
               </span>
-            }
+              {moodTrend.text !== '—' && moodTrend.up != null && (
+                <span className={`analytics-kpi-delta ${deltaToneClass(moodTrend, true)}`}>
+                  {moodTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                  {moodTrend.text}
+                </span>
+              )}
+            </div>
+            <p className="analytics-kpi-label">Среднее настроение</p>
+            <p className="analytics-kpi-value">{avgMoodPct}%</p>
           </div>
-          <p className="analytics-kpi-label">Среднее настроение</p>
-          <p className="analytics-kpi-value">{avgMoodPct}%</p>
+          <div className="analytics-kpi-deco" aria-hidden />
         </article>
-        <article className="analytics-kpi-card">
-          <div className="analytics-kpi-top">
-            <span className="analytics-kpi-icon analytics-kpi-icon--stress">
-              <Activity size={20} strokeWidth={2.2} />
-            </span>
-            {stressTrend.text !== '—' && stressTrend.up != null &&
-            <span className={`analytics-kpi-delta ${deltaToneClass(stressTrend, false)}`}>
-                {stressTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                {stressTrend.text}
+        <article className="analytics-kpi-card analytics-kpi-card--stress">
+          <div className="analytics-kpi-inner">
+            <div className="analytics-kpi-top">
+              <span className="analytics-kpi-icon analytics-kpi-icon--stress">
+                <Activity size={20} strokeWidth={2.2} />
               </span>
-            }
+              {stressTrend.text !== '—' && stressTrend.up != null && (
+                <span className={`analytics-kpi-delta ${deltaToneClass(stressTrend, false)}`}>
+                  {stressTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                  {stressTrend.text}
+                </span>
+              )}
+            </div>
+            <p className="analytics-kpi-label">Уровень стресса</p>
+            <p className="analytics-kpi-value">{stressPct}%</p>
           </div>
-          <p className="analytics-kpi-label">Уровень стресса</p>
-          <p className="analytics-kpi-value">{stressPct}%</p>
+          <div className="analytics-kpi-deco" aria-hidden />
         </article>
-        <article className="analytics-kpi-card">
-          <div className="analytics-kpi-top">
-            <span className="analytics-kpi-icon analytics-kpi-icon--anxiety">
-              <Clock size={20} strokeWidth={2.2} />
-            </span>
-            {anxietyTrend.text !== '—' && anxietyTrend.up != null &&
-            <span className={`analytics-kpi-delta ${deltaToneClass(anxietyTrend, false)}`}>
-                {anxietyTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                {anxietyTrend.text}
+        <article className="analytics-kpi-card analytics-kpi-card--anxiety">
+          <div className="analytics-kpi-inner">
+            <div className="analytics-kpi-top">
+              <span className="analytics-kpi-icon analytics-kpi-icon--anxiety">
+                <Clock size={20} strokeWidth={2.2} />
               </span>
-            }
+              {anxietyTrend.text !== '—' && anxietyTrend.up != null && (
+                <span className={`analytics-kpi-delta ${deltaToneClass(anxietyTrend, false)}`}>
+                  {anxietyTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                  {anxietyTrend.text}
+                </span>
+              )}
+            </div>
+            <p className="analytics-kpi-label">Тревожность</p>
+            <p className="analytics-kpi-value">{anxietyPct}%</p>
           </div>
-          <p className="analytics-kpi-label">Тревожность</p>
-          <p className="analytics-kpi-value">{anxietyPct}%</p>
+          <div className="analytics-kpi-deco" aria-hidden />
         </article>
-        <article className="analytics-kpi-card">
-          <div className="analytics-kpi-top">
-            <span className="analytics-kpi-icon analytics-kpi-icon--energy">
-              <Battery size={20} strokeWidth={2.2} />
-            </span>
-            {energyTrend.text !== '—' && energyTrend.up != null &&
-            <span className={`analytics-kpi-delta ${deltaToneClass(energyTrend, true)}`}>
-                {energyTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                {energyTrend.text}
+        <article className="analytics-kpi-card analytics-kpi-card--energy">
+          <div className="analytics-kpi-inner">
+            <div className="analytics-kpi-top">
+              <span className="analytics-kpi-icon analytics-kpi-icon--energy">
+                <Battery size={20} strokeWidth={2.2} />
               </span>
-            }
+              {energyTrend.text !== '—' && energyTrend.up != null && (
+                <span className={`analytics-kpi-delta ${deltaToneClass(energyTrend, true)}`}>
+                  {energyTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                  {energyTrend.text}
+                </span>
+              )}
+            </div>
+            <p className="analytics-kpi-label">Энергия</p>
+            <p className="analytics-kpi-value">{energyPct}%</p>
           </div>
-          <p className="analytics-kpi-label">Энергия</p>
-          <p className="analytics-kpi-value">{energyPct}%</p>
+          <div className="analytics-kpi-deco" aria-hidden />
         </article>
       </section>
 
@@ -686,53 +699,53 @@ const Stats = () => {
           <p className="analytics-mood-chart-sub">{moodChartSubtitle}</p>
           <div className="analytics-mood-chart-area">
             <ResponsiveContainer width="100%" height={268}>
-              <BarChart
-                data={moodBarData}
-                margin={{ top: 10, right: 10, left: 4, bottom: 2 }}
-                barCategoryGap={period === 'week' ? '22%' : period === 'month' ? '12%' : '18%'}>
-                
+              <AreaChart
+                data={moodLineData}
+                margin={{ top: 12, right: 12, left: 4, bottom: 2 }}>
                 <defs>
-                  <linearGradient id="analyticsMoodBar" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#d8efd2" />
-                    <stop offset="45%" stopColor="#9bbd90" />
-                    <stop offset="100%" stopColor="#5a7d52" />
+                  <linearGradient id="analyticsMoodArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6a9fe8" stopOpacity={0.42} />
+                    <stop offset="55%" stopColor="#8eb8f0" stopOpacity={0.12} />
+                    <stop offset="100%" stopColor="#bfd6fa" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="rgba(90, 125, 82, 0.18)"
-                  strokeWidth={1.25}
-                  vertical={false} />
-                
+                  strokeDasharray="4 6"
+                  stroke="rgba(91, 124, 186, 0.16)"
+                  strokeWidth={1}
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 11, fill: '#5a6b58' }}
-                  axisLine={{ stroke: 'rgba(90, 125, 82, 0.35)', strokeWidth: 1.5 }}
-                  tickLine={false} />
-                
+                  tick={{ fontSize: 11, fill: '#5c6b82', fontWeight: 500 }}
+                  axisLine={{ stroke: 'rgba(91, 124, 186, 0.25)', strokeWidth: 1 }}
+                  tickLine={false}
+                />
                 <YAxis hide domain={[0, 100]} />
                 <Tooltip
-                  cursor={{ fill: 'rgba(155, 189, 144, 0.2)' }}
+                  cursor={{ stroke: 'rgba(74, 130, 210, 0.35)', strokeWidth: 1 }}
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
                     const p = payload[0].payload;
                     return (
                       <div className="analytics-mood-tooltip">
                         {p.moodRaw == null ? 'Нет данных' : `${Math.round(Number(p.moodRaw))}%`}
-                      </div>);
-
-                  }} />
-                
-                <Bar
+                      </div>
+                    );
+                  }}
+                />
+                <Area
+                  type="monotone"
                   dataKey="mood"
                   name="Настроение"
-                  fill="url(#analyticsMoodBar)"
-                  stroke="#6a9362"
-                  strokeWidth={1.25}
-                  radius={[14, 14, 0, 0]}
-                  maxBarSize={period === 'year' ? 36 : 40} />
-                
-              </BarChart>
+                  stroke="#4a82d4"
+                  strokeWidth={2.6}
+                  fill="url(#analyticsMoodArea)"
+                  connectNulls={false}
+                  dot={{ r: 3.5, fill: '#fff', stroke: '#4a82d4', strokeWidth: 2 }}
+                  activeDot={{ r: 5, fill: '#4a82d4', stroke: '#fff', strokeWidth: 2 }}
+                />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -744,20 +757,20 @@ const Stats = () => {
           <div className="analytics-radar-wrap">
             <ResponsiveContainer width="100%" height={280}>
               <RadarChart cx="50%" cy="50%" outerRadius="72%" data={radarData}>
-                <PolarGrid stroke="rgba(90, 125, 82, 0.25)" strokeWidth={1.25} />
+                <PolarGrid stroke="rgba(91, 124, 186, 0.22)" strokeWidth={1} />
                 <PolarAngleAxis
                   dataKey="subject"
-                  tick={{ fontSize: 11, fill: '#3d5238', fontWeight: 600 }} />
-                
+                  tick={{ fontSize: 11, fill: '#3d4d66', fontWeight: 600 }}
+                />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar
                   name="Показатели"
                   dataKey="value"
-                  stroke="#5a8a52"
-                  fill="#9bbd90"
-                  fillOpacity={0.45}
-                  strokeWidth={2.5} />
-                
+                  stroke="#4a82d4"
+                  fill="#6a9fe8"
+                  fillOpacity={0.42}
+                  strokeWidth={2.2}
+                />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -789,45 +802,60 @@ const Stats = () => {
       <section className="analytics-activity">
         <h2 className="analytics-section-title">Прогресс активности</h2>
         <div className="analytics-card analytics-donuts-card">
-          <div className="analytics-donuts-row">
-            <DonutStat current={entriesCount} max={50} label="Записей создано" color="#7aad6e" />
-            <DonutStat
-              current={practicesDone}
-              max={30}
-              label="Практик завершено"
-              color="#9bbd90" />
-            
-            <DonutStat current={Math.min(streak, 14)} max={14} label="Дней подряд" color="#5a8a52" />
-            <DonutStat current={testsCount} max={10} label="Тестов пройдено" color="#b8d4a8" />
+          <div className="analytics-donuts-track">
+            <DonutStat current={entriesCount} max={50} label="Записей создано" color="#5b8fd8" />
+            <span className="analytics-donut-bridge" aria-hidden />
+            <DonutStat current={practicesDone} max={30} label="Практик завершено" color="#7aa6e3" />
+            <span className="analytics-donut-bridge" aria-hidden />
+            <DonutStat current={Math.min(streak, 14)} max={14} label="Дней подряд" color="#3d6fb5" />
+            <span className="analytics-donut-bridge" aria-hidden />
+            <DonutStat current={testsCount} max={10} label="Тестов пройдено" color="#9bbef0" />
+            <span className="analytics-donut-bridge analytics-donut-bridge--short" aria-hidden />
+            <div className="analytics-progress-plane" aria-hidden>
+              <Send size={22} strokeWidth={2.2} />
+            </div>
           </div>
         </div>
       </section>
 
       <section className="analytics-week-summary">
-        <h2 className="analytics-section-title">Итоги недели</h2>
-        <div className="analytics-summary-card">
-          <div className="analytics-summary-col analytics-summary-col--good">
-            <h3 className="analytics-summary-heading">Что получилось хорошо</h3>
+        <div className="analytics-summary-grid">
+          <article className="analytics-summary-tile analytics-summary-tile--done">
+            <span className="analytics-summary-tile-badge" aria-hidden>
+              <Check size={16} strokeWidth={2.5} />
+            </span>
+            <div className="analytics-summary-tile-head">
+              <h3 className="analytics-summary-heading">Итоги недели</h3>
+              <p className="analytics-summary-lead">Что получилось хорошо</p>
+            </div>
             <ul className="analytics-summary-list">
-              {weekGood.map((line) =>
-              <li key={line}>
+              {weekGood.map((line) => (
+                <li key={line}>
                   <Check size={18} className="analytics-summary-check" strokeWidth={2.5} />
                   {line}
                 </li>
-              )}
+              ))}
             </ul>
-          </div>
-          <div className="analytics-summary-col analytics-summary-col--goals">
-            <h3 className="analytics-summary-heading">Цели на следующую неделю</h3>
+            <div className="analytics-summary-tile-deco" aria-hidden />
+          </article>
+          <article className="analytics-summary-tile analytics-summary-tile--goals">
+            <span className="analytics-summary-tile-badge analytics-summary-tile-badge--outline" aria-hidden>
+              <Check size={16} strokeWidth={2.5} />
+            </span>
+            <div className="analytics-summary-tile-head">
+              <h3 className="analytics-summary-heading">Цели на следующую неделю</h3>
+              <p className="analytics-summary-lead">Мягкие шаги к балансу</p>
+            </div>
             <ul className="analytics-summary-list analytics-summary-list--dots">
-              {weekGoals.map((line) =>
-              <li key={line}>
+              {weekGoals.map((line) => (
+                <li key={line}>
                   <span className="analytics-summary-dot" />
                   {line}
                 </li>
-              )}
+              ))}
             </ul>
-          </div>
+            <div className="analytics-summary-tile-deco analytics-summary-tile-deco--stones" aria-hidden />
+          </article>
         </div>
       </section>
     </div>);

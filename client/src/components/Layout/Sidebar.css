@@ -171,18 +171,6 @@
   padding-top: 12px;
 }
 
-.sidebar-lang-wrap {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 4px;
-}
-
-.sidebar.collapsed .sidebar-lang-wrap .lang-switch {
-  transform: scale(0.9);
-  transform-origin: center;
-}
-
 .sidebar-profile {
   display: flex;
   align-items: center;

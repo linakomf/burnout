@@ -1,18 +1,15 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useChat } from '../../hooks/useChat';
 import { format, startOfMonth, getDaysInMonth, addMonths, subMonths, addDays, startOfWeek } from 'date-fns';
 import { enUS, ru } from 'date-fns/locale';
 import {
-  AlertCircle,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
-  Flower2,
-  BookOpen,
-  Pencil } from
+  BookOpen } from
 'lucide-react';
 import ChatPanel from '../chat/ChatPanel';
 import api from '../../utils/api';
@@ -23,6 +20,51 @@ import {
   percentToOneToTen } from
 '../../utils/dailyCheckinStorage';
 import './Diary.css';
+
+const DIARY_TWEMOJI_CDN =
+  'https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.0.3/assets/72x72';
+
+/** Twemoji hex (без .png): порядок как в Diary MOODS — отлично … раздражён */
+const DIARY_MOOD_TWEMOJI_BY_MOODS_IDX = ['1f604', '1f642', '1f610', '1f614', '1f625', '1f624'];
+
+/** Индексы чекина 0–4 — как в макете: 😄 🙂 😐 😔 😥 */
+const CHECKIN_MOOD_TWEMOJI_FILES = ['1f604', '1f642', '1f610', '1f614', '1f625'];
+
+const EMOJI_CHAR_TO_TWEMOJI_FILE = {
+  '😰': '1f630',
+  '😊': '1f60a',
+  '😌': '1f60c',
+  '🙂': '1f642',
+  '😐': '1f610',
+  '😡': '1f621',
+  '😄': '1f604',
+  '😢': '1f622',
+  '😥': '1f625',
+  '😔': '1f614',
+  '😕': '1f615',
+  '😤': '1f624'
+};
+
+function DiaryTwemoji({
+  file,
+  className = '',
+  size = 'md',
+  title,
+  variant = 'card'
+}) {
+  const sizeMod = size === 'sm' ? ' diary-mood-emoji-card--sm' : size === 'lg' ? ' diary-mood-emoji-card--lg' : '';
+  const vMod =
+    variant === 'thumb' ? ' diary-mood-emoji-card--thumb' : variant === 'inline' ? ' diary-mood-emoji-card--inline' : '';
+  return (
+    <span className={`diary-mood-emoji-card${sizeMod}${vMod} ${className}`.trim()} title={title}>
+      <img src={`${DIARY_TWEMOJI_CDN}/${file}.png`} alt="" className="diary-mood-emoji-card__img" draggable={false} />
+    </span>
+  );
+}
+
+function twemojiFileForUnicode(emoji) {
+  return EMOJI_CHAR_TO_TWEMOJI_FILE[emoji] || '1f610';
+}
 
 const CHECKIN_CAL_COLORS = ['#4ade80', '#60a5fa', '#9ca3af', '#fb923c', '#f87171'];
 
@@ -62,19 +104,26 @@ const Diary = () => {
     };
   }, []);
 
-  const checkinHistory = useMemo(
-    () => getCheckinsSortedDesc(),
+  useLayoutEffect(() => {
+    if (!expandedCheckinDate) return;
+    const el = document.querySelector(
+      `.state-history-card[data-checkin-date="${expandedCheckinDate}"]`
+    );
+    el?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [expandedCheckinDate]);
 
-    [checkinListTick]
-  );
+  const checkinHistory = useMemo(() => {
+    void checkinListTick;
+    return getCheckinsSortedDesc();
+  }, [checkinListTick]);
 
   const MOODS = useMemo(
     () => [
     { emoji: '😄', label: t('pages.diaryM0'), score: 6, color: '#4ade80' },
-    { emoji: '😊', label: t('pages.diaryM1'), score: 5, color: '#86efac' },
+    { emoji: '🙂', label: t('pages.diaryM1'), score: 5, color: '#86efac' },
     { emoji: '😐', label: t('pages.diaryM2'), score: 4, color: '#fbbf24' },
-    { emoji: '😕', label: t('pages.diaryM3'), score: 3, color: '#fb923c' },
-    { emoji: '😢', label: t('pages.diaryM4'), score: 2, color: '#f87171' },
+    { emoji: '😔', label: t('pages.diaryM3'), score: 3, color: '#fb923c' },
+    { emoji: '😥', label: t('pages.diaryM4'), score: 2, color: '#f87171' },
     { emoji: '😤', label: t('pages.diaryM5'), score: 1, color: '#ef4444' }],
 
     [t]
@@ -159,15 +208,6 @@ const Diary = () => {
 
   return (
     <div className="ai-diary fade-in">
-      <header className="diary-top">
-        <div className="diary-brand">
-          <span className="diary-brand__lotus" aria-hidden>
-            <Flower2 size={28} strokeWidth={1.85} />
-          </span>
-          <h1 className="diary-page-title">{t('pages.diaryTitle')}</h1>
-        </div>
-        <p className="diary-page-sub">{t('pages.diaryPageSub')}</p>
-      </header>
 
       <div className="diary-grid">
 
@@ -217,11 +257,18 @@ const Diary = () => {
               })}
             </div>
 
-            <div className="cal-legend">
+            <div className="cal-legend cal-legend--mood-cards">
               <span className="legend-label">{t('pages.diaryLegend')}</span>
-              {MOODS.slice(0, 4).map((m) =>
-              <div key={m.score} className="legend-dot" style={{ background: m.color }} title={m.label} />
-              )}
+              <div className="cal-legend-moods" role="list">
+                {MOODS.map((m, idx) =>
+                <DiaryTwemoji
+                  key={m.score}
+                  file={DIARY_MOOD_TWEMOJI_BY_MOODS_IDX[idx]}
+                  title={m.label}
+                  size="sm"
+                />
+                )}
+              </div>
             </div>
           </div>
 
@@ -244,14 +291,15 @@ const Diary = () => {
                 const open = expandedCheckinDate === row.date;
                 const e = percentToOneToTen(row.energy);
                 const s = percentToOneToTen(row.stress);
-                const moodEmoji = CHECKIN_MOOD_EMOJIS[row.moodIndex] || '😐';
+                const moodTwemojiFile =
+                CHECKIN_MOOD_TWEMOJI_FILES[Math.min(4, Math.max(0, row.moodIndex))] || '1f610';
                 const rowDate = new Date(`${row.date}T12:00:00`);
                 const dayLabel =
                 lang === 'kk' ?
                 `${rowDate.getDate()} ${t(`cal.months.${rowDate.getMonth()}`)}` :
                 format(rowDate, 'd MMMM', { locale: dateLocale });
                 return (
-                  <div key={row.date} className="state-history-card">
+                  <div key={row.date} className="state-history-card" data-checkin-date={row.date}>
                       <button
                       type="button"
                       className="state-history-toggle"
@@ -259,7 +307,6 @@ const Diary = () => {
                       setExpandedCheckinDate((cur) => cur === row.date ? null : row.date)
                       }
                       aria-expanded={open}>
-                      
                         <span className="state-history-date-text">{dayLabel}</span>
                         <span className="state-history-chev" aria-hidden>
                           {open ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -269,9 +316,12 @@ const Diary = () => {
                     <div className="state-history-body">
                           <div className="state-history-row state-history-mood">
                             <span className="state-history-label">{t('pages.diaryMood')}</span>
-                            <span className="state-history-emoji" aria-hidden>
-                              {moodEmoji}
-                            </span>
+                            <DiaryTwemoji
+                              file={moodTwemojiFile}
+                              size="sm"
+                              title={CHECKIN_MOOD_EMOJIS[row.moodIndex] || ''}
+                              className="state-history-emoji-card"
+                            />
                           </div>
                           <div className="state-history-section">
                             <div className="state-history-sec-top">
@@ -289,9 +339,6 @@ const Diary = () => {
                           </div>
                           <div className="state-history-section">
                             <div className="state-history-sec-top">
-                              <span className="state-history-sec-ic state-history-sec-ic--stress">
-                                <AlertCircle size={16} strokeWidth={2.2} aria-hidden />
-                              </span>
                               <span className="state-history-sec-title">{t('pages.diaryStress')}</span>
                               <span className="state-history-sec-val">
                                 {t('pages.diaryOutOf', { n: s })}
@@ -337,15 +384,16 @@ const Diary = () => {
           <div className="diary-card emotion-block">
             <div className="emotion-header">
               <span className="emotion-header-title">{t('pages.diaryAnalysis')}</span>
-              <span className="emotion-header-icon" aria-hidden>
-                <Pencil size={17} strokeWidth={1.75} />
-              </span>
             </div>
 
             {EMOTIONS.map((em) =>
             <div key={em.key} className="emotion-row">
                 <div className="emotion-row-top">
-                  <span className="emotion-emoji-sm">{em.emoji}</span>
+                  <DiaryTwemoji
+                    file={twemojiFileForUnicode(em.emoji)}
+                    variant="inline"
+                    title={em.label}
+                  />
                   <span className="emotion-name">{em.label}</span>
                   <span className="emotion-score">{emotions[em.key]}%</span>
                 </div>
@@ -359,7 +407,6 @@ const Diary = () => {
             <div className="overall-state">
               <span className="overall-label">{t('pages.diaryOverall')}</span>
               <div className="overall-card">
-                <span className="overall-emoji">{overallMood.emoji}</span>
                 <div className="overall-card-text">
                   <div className="overall-mood-name">{overallMood.label}</div>
                   <div className="overall-mood-sub">{overallMood.sub}</div>

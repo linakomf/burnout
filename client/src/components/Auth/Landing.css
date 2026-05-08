@@ -13,7 +13,20 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
+  background-color: #eef5fb;
+  background-image:
+    linear-gradient(
+      105deg,
+      rgba(255, 255, 255, 0.94) 0%,
+      rgba(255, 255, 255, 0.72) min(44%, 560px),
+      rgba(255, 252, 250, 0.38) 62%,
+      rgba(255, 255, 255, 0.12) 100%
+    ),
+    url('../../assets/landing-blossoms-bg.png');
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
   font-family: var(--font-sans);
   color: var(--text-dark, var(--text));
   overflow-x: hidden;
@@ -29,7 +42,9 @@
   padding: 20px clamp(18px, 4vw, 56px);
   width: 100%;
   box-sizing: border-box;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
@@ -171,7 +186,7 @@
 .land-hero-section {
   position: relative;
   overflow: hidden;
-  background: #ffffff;
+  background: transparent;
 }
 
 .land-hero {
@@ -299,8 +314,9 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(255, 200, 160, 0.15) 0%, transparent 40%),
-    url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80') center/cover no-repeat;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 42%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.25) 0%, transparent 55%),
+    url('../../assets/landing-blossoms-bg.png') center/cover no-repeat;
 }
 
 .hero-mood-bar {
@@ -377,7 +393,9 @@
 
 .land-features {
   padding: clamp(48px, 7vw, 96px) clamp(18px, 4vw, 56px);
-  background: #fafafa;
+  background: rgba(250, 250, 250, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   width: 100%;
   box-sizing: border-box;
 }
@@ -436,7 +454,9 @@
 
 .land-for-whom {
   padding: clamp(48px, 7vw, 96px) clamp(18px, 4vw, 56px);
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   width: 100%;
   box-sizing: border-box;
 }
@@ -502,7 +522,9 @@
 
 
 .land-trust {
-  background: var(--lavender-soft);
+  background: color-mix(in srgb, var(--lavender-soft) 82%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   padding: 26px clamp(18px, 4vw, 56px);
   width: 100%;
   box-sizing: border-box;
@@ -531,7 +553,9 @@
 
 .land-cta {
   padding: clamp(48px, 7vw, 96px) clamp(18px, 4vw, 56px);
-  background: #fafafa;
+  background: rgba(250, 250, 250, 0.76);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   width: 100%;
   box-sizing: border-box;
   display: flex;
@@ -573,7 +597,9 @@
 }
 
 .land-footer {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   padding: 32px clamp(18px, 4vw, 56px);
   width: 100%;
   box-sizing: border-box;
@@ -647,12 +673,20 @@
   --text: var(--text-dark, #f1f5f9);
   --text-muted: var(--text-mid, #94a3b8);
   --line: var(--border, rgba(255, 255, 255, 0.1));
-  background: var(--bg, #0f172a);
+  background-color: var(--bg, #0f172a);
+  background-image:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.9) 50%, rgba(15, 23, 42, 0.93) 100%),
+    url('../../assets/landing-blossoms-bg.png');
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
   color: var(--text-dark);
 }
 
 [data-theme='dark'] .landing .land-nav {
-  background: var(--bg-card, #1e293b);
+  background: color-mix(in srgb, var(--bg-card, #1e293b) 82%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom-color: var(--border);
 }
 
@@ -697,7 +731,13 @@
 }
 
 [data-theme='dark'] .landing .land-hero-section {
-  background: var(--bg);
+  background: transparent;
+}
+
+[data-theme='dark'] .landing .hero-visual-bg {
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.55) 0%, rgba(15, 23, 42, 0.25) 100%),
+    url('../../assets/landing-blossoms-bg.png') center/cover no-repeat;
 }
 
 [data-theme='dark'] .landing .hero-mood-bar {

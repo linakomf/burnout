@@ -465,10 +465,9 @@ const Dashboard = () => {
           const isToday = dayStr === todayStr;
           const isSelected = dayStr === selectedDayStr;
           const hasCheckin = Boolean(getCheckinForDate(dayStr));
-          const showFilledState = isToday || hasCheckin;
           let btnClass = 'week-day-btn';
           if (isSelected) {
-            btnClass += showFilledState ? ' selected' : ' selected-soft';
+            btnClass += ' selected';
           } else {
             if (isToday) btnClass += ' is-today';
             else if (hasCheckin) btnClass += ' has-mark';

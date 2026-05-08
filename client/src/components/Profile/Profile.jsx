@@ -13,8 +13,10 @@ import {
   Shield,
   Moon,
   LogOut,
-  ChevronRight } from
-'lucide-react';
+  ChevronRight,
+  Languages,
+} from 'lucide-react';
+import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
 import api from '../../utils/api';
 import { backendPublicUrl } from '../../utils/assetUrl';
 import './Profile.css';
@@ -211,6 +213,19 @@ const Profile = () => {
           <p className="profile-settings-hint">Уведомления и тема сохраняются на этом устройстве.</p>
 
           <ul className="profile-settings-list">
+            <li className="profile-setting-row profile-setting-row--lang">
+              <span className="profile-setting-icon" aria-hidden>
+                <Languages size={20} strokeWidth={2} />
+              </span>
+              <div className="profile-setting-text">
+                <span className="profile-setting-label">{t('nav.langAria')}</span>
+                <span className="profile-setting-desc">{t('pages.profileLangHint')}</span>
+              </div>
+              <div className="profile-lang-switch-wrap">
+                <LanguageSwitcher className="lang-switch--on-light-bg" />
+              </div>
+            </li>
+
             <li className="profile-setting-row">
               <span className="profile-setting-icon" aria-hidden>
                 <Bell size={20} strokeWidth={2} />
