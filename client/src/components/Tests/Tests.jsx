@@ -1,21 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Activity,
+  Bell,
   ChevronLeft,
+  ChevronRight,
   ClipboardList,
+  Clock,
   Cloud,
   Flame,
   Heart,
   LayoutGrid,
+  Leaf,
+  Moon,
+  Send,
   Smile,
-  Sprout
+  Star,
+  UserCircle
 } from 'lucide-react';
 import api from '../../utils/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { mergeTestRu } from '../../config/testDisplayRu';
 import testsHeroImg from '../../assets/tests-page-blossoms-hero.png';
 import './Tests.css';
+
+/** Порядок: более узкие категории раньше, чтобы подпись на карточке была однозначной */
+const CATEGORY_LABEL_ORDER = ['burnout', 'anxiety', 'sleep', 'motivation', 'mood', 'stress', 'resource'];
+
+const FEATURED_PREVIEW_CATEGORY_IDS = ['stress', 'mood', 'burnout'];
 
 function pickTest(tests, preferIds) {
   if (!tests?.length) return null;
@@ -58,12 +69,15 @@ export function bucketToAccent(bucket) {
 }
 
 const THEME_FILTER_CHIPS = [
-{ id: 'all', Icon: LayoutGrid },
-{ id: 'stress', Icon: Activity },
-{ id: 'mood', Icon: Smile },
-{ id: 'burnout', Icon: Flame },
-{ id: 'anxiety', Icon: Cloud },
-{ id: 'resource', Icon: Sprout }];
+  { id: 'all', Icon: LayoutGrid },
+  { id: 'stress', Icon: Flame },
+  { id: 'mood', Icon: Smile },
+  { id: 'burnout', Icon: Leaf },
+  { id: 'anxiety', Icon: Bell },
+  { id: 'resource', Icon: UserCircle },
+  { id: 'sleep', Icon: Moon },
+  { id: 'motivation', Icon: Star }
+];
 
 export function matchThemeFilter(test, filterId) {
   if (filterId === 'all') return true;
@@ -71,37 +85,49 @@ export function matchThemeFilter(test, filterId) {
   const isBurnout = /выгоран|mbi|burnout|академическ|истощ|академ|exhaust/i.test(s);
   const isAnxiety = /gad-7|\bgad\b|тревог|тревож|паник|беспокой|anxi|panic/i.test(s);
   const isMood =
-  getTestBucket(test) === 'mood' || /настроен|эмоцион|чек-ин|ежедневн|mood|emotion/i.test(s);
+    getTestBucket(test) === 'mood' || /настроен|эмоцион|чек-ин|ежедневн|mood|emotion/i.test(s);
   const isResource =
-  /ресурс|восстанов|практик|медитац|релакс|дыхан|mindful|resource|recover|meditat/i.test(s) ||
-  getCatalogFilter(test) === 'practices';
+    /ресурс|восстанов|практик|медитац|релакс|дыхан|mindful|resource|recover|meditat/i.test(s) ||
+    getCatalogFilter(test) === 'practices';
   const isStress =
-  (getTestBucket(test) === 'stress' || /стресс|pss|перегруз|напряжен|stress|overload/i.test(s)) &&
-  !isBurnout;
+    (getTestBucket(test) === 'stress' || /стресс|pss|перегруз|напряжен|stress|overload/i.test(s)) &&
+    !isBurnout;
+  const isSleep =
+    /сон|sleep|insomnia|бессон|засып|недосып|утомл.*сон|psqi|шкала.*сна/i.test(s);
+  const isMotivation =
+    /мотивац|motivat|интерес|вовлеч|апати|прокраст|goal|целеполаг|амбиц|энерг.*цел/i.test(s);
 
   switch (filterId) {
     case 'stress':
-      return isStress;
+      return isStress && !isSleep;
     case 'burnout':
       return isBurnout;
     case 'anxiety':
       return isAnxiety;
     case 'mood':
-      return isMood && !isAnxiety;
+      return isMood && !isAnxiety && !isSleep;
     case 'resource':
       return isResource;
+    case 'sleep':
+      return isSleep;
+    case 'motivation':
+      return isMotivation && !isBurnout;
     default:
       return false;
   }
 }
 
-function catalogCardIcon(test) {
-  if (matchThemeFilter(test, 'burnout')) return Flame;
-  if (matchThemeFilter(test, 'anxiety')) return Cloud;
-  if (matchThemeFilter(test, 'mood')) return Smile;
-  if (matchThemeFilter(test, 'resource')) return Sprout;
-  if (matchThemeFilter(test, 'stress')) return Activity;
-  return ClipboardList;
+export function primaryThemeCategoryId(test) {
+  for (const id of CATEGORY_LABEL_ORDER) {
+    if (matchThemeFilter(test, id)) return id;
+  }
+  return null;
+}
+
+function primaryCategoryLabel(test, tr) {
+  const id = primaryThemeCategoryId(test);
+  if (id) return tr(`testsThemeFilter.${id}`);
+  return tr('testsUi.categoryGeneral');
 }
 
 function estimateMinutes(qc) {
@@ -189,11 +215,26 @@ function parseQuestionOptions(raw) {
   return [];
 }
 
+function resultsInPeriod(results, period) {
+  if (!Array.isArray(results) || results.length === 0) return [];
+  if (period !== 'month') return results;
+  const start = new Date();
+  start.setDate(1);
+  start.setHours(0, 0, 0, 0);
+  const t0 = start.getTime();
+  return results.filter((r) => {
+    const ts = r?.created_at ? new Date(r.created_at).getTime() : 0;
+    return ts >= t0;
+  });
+}
+
 export const TestsList = () => {
   const { t } = useLanguage();
   const [tests, setTests] = useState([]);
+  const [myResults, setMyResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [progressPeriod, setProgressPeriod] = useState('month');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -202,6 +243,10 @@ export const TestsList = () => {
     then((res) => setTests(res.data || [])).
     catch(() => setTests([])).
     finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    api.get('/tests/results/my').then((r) => setMyResults(r.data || [])).catch(() => setMyResults([]));
   }, []);
 
   const enriched = tests.map((row) => ({
@@ -219,13 +264,24 @@ export const TestsList = () => {
   const featuredReady =
   featuredTest &&
   sortedFiltered.some((row) => Number(row.test_id) === Number(featuredTest.test_id));
-  const featuredQc =
-  featuredTest && featuredTest.question_count != null ? Number(featuredTest.question_count) : 0;
+
+  const ctaTest = featuredReady ? featuredTest : sortedFiltered[0] || null;
+  const ctaQc = ctaTest && ctaTest.question_count != null ? Number(ctaTest.question_count) : 0;
 
   const gridTests =
-  featuredReady ?
-  sortedFiltered.filter((row) => Number(row.test_id) !== Number(featuredTest.test_id)) :
-  sortedFiltered;
+  sortedFiltered.filter((row) => !ctaTest || Number(row.test_id) !== Number(ctaTest.test_id));
+
+  const testsById = Object.fromEntries(enriched.map((row) => [String(row.test_id), row]));
+  const periodResults = resultsInPeriod(myResults, progressPeriod);
+  const progressUniqueTests = new Set(periodResults.map((r) => r.test_id)).size;
+  const progressSessions = periodResults.length;
+  let progressMinutes = 0;
+  periodResults.forEach((r) => {
+    const row = testsById[String(r.test_id)];
+    const qc = row?.question_count != null ? Number(row.question_count) : 0;
+    progressMinutes += estimateMinutes(qc || 10);
+  });
+  const progressAwards = Math.min(99, Math.max(0, Math.floor(progressSessions / 3)));
 
   if (loading) {
     return (
@@ -267,9 +323,7 @@ export const TestsList = () => {
             <div className="tests-mock-header-main">
               <h1 className="tests-mock-title tests-mock-title--v2">
                 {t('pages.testsTitle')}
-                <span className="tests-mock-title-flourish" aria-hidden>
-                  ❀
-                </span>
+                <Cloud className="tests-mock-title-cloud" size={28} strokeWidth={1.65} aria-hidden />
               </h1>
               <p className="tests-mock-lead tests-mock-lead--v2">{t('pages.testsLead')}</p>
             </div>
@@ -287,11 +341,9 @@ export const TestsList = () => {
                   aria-selected={active}
                   className={`tests-mock-chip tests-mock-chip--v2 ${active ? 'tests-mock-chip--active tests-mock-chip--v2-active' : ''}`}
                   onClick={() => setFilter(id)}>
-                  
                   <Icon className="tests-mock-chip-svg" strokeWidth={1.75} aria-hidden />
                   <span>{t(`testsThemeFilter.${id}`)}</span>
                 </button>);
-
             })}
           </div>
 
@@ -299,100 +351,144 @@ export const TestsList = () => {
           <p className="tests-mock-fallback tests-mock-fallback--v2">{t('testsUi.noTests')}</p>
           }
 
-          {tests.length > 0 && featuredReady &&
-          <section className="tests-mock-featured" aria-label={t('pages.testsFeaturedAria')}>
-              <div className="tests-mock-featured-inner">
-                <div className="tests-mock-featured-copy">
+          {tests.length > 0 &&
+          <section className="tests-mock-featured tests-mock-featured--split" aria-label={t('pages.testsFeaturedAria')}>
+            <div className={`tests-mock-featured-row ${!ctaTest ? 'tests-mock-featured-row--progress-only' : ''}`}>
+              {ctaTest &&
+              <div className="tests-mock-featured-interests">
+                <div className="tests-mock-featured-interests__copy">
                   <span className="tests-mock-featured-badge">
                     <Heart className="tests-mock-featured-badge-ic" size={14} strokeWidth={2.4} aria-hidden />
                     {t('pages.testsFeaturedBadge')}
                   </span>
-                  <h2 className="tests-mock-featured-title">
-                    {t('pages.testsFeaturedTitle')}
-                    <span className="tests-mock-title-flourish tests-mock-title-flourish--sm" aria-hidden>
-                      ✿
-                    </span>
-                  </h2>
-                  <p className="tests-mock-featured-desc">
-                    {clipText(featuredTest.description) || t('pages.testsFeaturedFallback')}
-                  </p>
-                  <div className="tests-mock-featured-meta">
-                    <span>
-                      {featuredQc === 0 ? t('testsUi.questionsNotLoaded') : questionCountLabel(featuredQc)}
-                    </span>
-                    <span>
-                      ≈ {estimateMinutes(featuredQc)} {t('pages.testsMinShort')}
-                    </span>
+                  <h2 className="tests-mock-featured-title tests-mock-featured-title--interests">{t('pages.testsFeaturedTitle')}</h2>
+                  <p className="tests-mock-featured-desc tests-mock-featured-desc--interests">{t('pages.testsFeaturedInterestsLead')}</p>
+                  <div className="tests-mock-featured-interests__chips">
+                    {FEATURED_PREVIEW_CATEGORY_IDS.map((catId) => (
+                      <span key={catId} className="tests-mock-featured-interests-chip tests-mock-featured-interests-chip--text">
+                        {t(`testsThemeFilter.${catId}`)}
+                      </span>
+                    ))}
                   </div>
                   <button
                     type="button"
-                    className="tests-mock-featured-btn"
-                    disabled={featuredQc === 0}
-                    onClick={() => featuredQc !== 0 && navigate(`/tests/${featuredTest.test_id}`)}>
-                    
-                    {featuredQc === 0 ? t('testsUi.unavailable') : t('testsUi.goTest')}
+                    className="tests-mock-featured-btn tests-mock-featured-btn--interests"
+                    disabled={ctaQc === 0}
+                    onClick={() => ctaQc !== 0 && navigate(`/tests/${ctaTest.test_id}`)}>
+                    {ctaQc === 0 ? t('testsUi.unavailable') : t('testsUi.findDirection')}
+                    {ctaQc !== 0 && <ChevronRight className="tests-mock-featured-btn-ico" size={18} strokeWidth={2.25} aria-hidden />}
                   </button>
                 </div>
               </div>
-            </section>
+              }
+              <div className="tests-mock-progress-card">
+                <div className="tests-mock-progress-head">
+                  <h3 className="tests-mock-progress-title">{t('pages.testsProgressTitle')}</h3>
+                  <label className="tests-mock-progress-select-wrap">
+                    <span className="tests-mock-visually-hidden">{t('pages.testsProgressPeriod')}</span>
+                    <select
+                      className="tests-mock-progress-select"
+                      value={progressPeriod}
+                      onChange={(e) => setProgressPeriod(e.target.value)}>
+                      <option value="month">{t('pages.testsProgressMonth')}</option>
+                      <option value="all">{t('pages.testsProgressAll')}</option>
+                    </select>
+                  </label>
+                </div>
+                <div className="tests-mock-progress-stats">
+                  <div className="tests-mock-progress-stat tests-mock-progress-stat--tests">
+                    <ClipboardList className="tests-mock-progress-stat-ico" size={22} strokeWidth={1.85} aria-hidden />
+                    <strong className="tests-mock-progress-stat-value">{progressSessions}</strong>
+                    <span className="tests-mock-progress-stat-label">{t('pages.testsProgressStatSessions')}</span>
+                  </div>
+                  <div className="tests-mock-progress-stat tests-mock-progress-stat--time">
+                    <Clock className="tests-mock-progress-stat-ico" size={22} strokeWidth={1.85} aria-hidden />
+                    <strong className="tests-mock-progress-stat-value">
+                      {progressMinutes < 60 ?
+                        `${progressMinutes}\u00a0${t('pages.testsMinShort')}` :
+                        `${Math.floor(progressMinutes / 60)}\u00a0${t('pages.testsProgressHourShort')}${
+                          progressMinutes % 60 ? `\u00a0${progressMinutes % 60}\u00a0${t('pages.testsMinShort')}` : ''
+                        }`}
+                    </strong>
+                    <span className="tests-mock-progress-stat-label">{t('pages.testsProgressStatTime')}</span>
+                  </div>
+                  <div className="tests-mock-progress-stat tests-mock-progress-stat--awards">
+                    <Star className="tests-mock-progress-stat-ico" size={22} strokeWidth={1.85} aria-hidden />
+                    <strong className="tests-mock-progress-stat-value">{progressAwards}</strong>
+                    <span className="tests-mock-progress-stat-label">{t('pages.testsProgressStatAwards')}</span>
+                  </div>
+                </div>
+                <p className="tests-mock-progress-hint">{t('pages.testsProgressHint', { n: progressUniqueTests })}</p>
+              </div>
+            </div>
+          </section>
           }
 
           {tests.length > 0 &&
           <section className="tests-mock-catalog-v2" aria-label={t('pages.testsCatalog')}>
-              {gridTests.length === 0 ?
-            <p className="tests-mock-empty tests-mock-empty--v2">{t('testsUi.emptyFilter')}</p> :
+            <h2 className="tests-mock-section-heading">{t('pages.testsRecommended')}</h2>
+            {gridTests.length === 0 ?
+              <p className="tests-mock-empty tests-mock-empty--v2">{t('testsUi.emptyFilter')}</p> :
 
-            <div className="tests-mock-catalog-grid tests-mock-catalog-grid--v2">
-                  {gridTests.map((row, i) => {
-                const qc = row.question_count != null ? Number(row.question_count) : 0;
-                const disabled = qc === 0;
-                const CardIcon = catalogCardIcon(row);
-                const desc =
-                clipText(row.description || '') ||
-                clipText(audienceLabel(row), 140);
-                return (
-                  <article
-                    key={row.test_id}
-                    className="tests-mock-catalog-card tests-mock-catalog-card--v2"
-                    style={{ animationDelay: `${0.04 + i % 12 * 0.035}s` }}>
-                    
+              <div className="tests-mock-catalog-grid tests-mock-catalog-grid--v2">
+                {gridTests.map((row, i) => {
+                  const qc = row.question_count != null ? Number(row.question_count) : 0;
+                  const disabled = qc === 0;
+                  const desc =
+                    clipText(row.description || '') ||
+                    clipText(audienceLabel(row), 140);
+                  const categoryLabel = primaryCategoryLabel(row, t);
+                  return (
+                    <article
+                      key={row.test_id}
+                      className="tests-mock-catalog-card tests-mock-catalog-card--v2"
+                      style={{ animationDelay: `${0.04 + i % 12 * 0.035}s` }}>
                       <button
-                      type="button"
-                      className="tests-mock-catalog-inner tests-mock-catalog-inner--v2"
-                      disabled={disabled}
-                      onClick={() => !disabled && navigate(`/tests/${row.test_id}`)}>
-                        
-                        <div className="tests-mock-card-icon-ring" aria-hidden>
-                          <CardIcon className="tests-mock-card-icon" strokeWidth={1.65} />
-                        </div>
-                        <h3 className="tests-mock-catalog-title tests-mock-catalog-title--v2">{row.title}</h3>
-                        <p className="tests-mock-card-desc">{desc}</p>
-                        <div className="tests-mock-card-footer">
-                          <div className="tests-mock-card-foot-meta">
-                            <span>
-                              {disabled ? t('testsUi.questionsNotLoaded') : questionCountLabel(qc)}
-                            </span>
-                            <span className="tests-mock-card-dot" aria-hidden>
-                              ·
-                            </span>
-                            <span>
-                              ≈ {estimateMinutes(qc)} {t('pages.testsMinShort')}
+                        type="button"
+                        className="tests-mock-catalog-inner tests-mock-catalog-inner--v2"
+                        disabled={disabled}
+                        onClick={() => !disabled && navigate(`/tests/${row.test_id}`)}>
+                        <div className="tests-mock-card-body">
+                          <span className="tests-mock-card-category">{categoryLabel}</span>
+                          <h3 className="tests-mock-catalog-title tests-mock-catalog-title--v2">{row.title}</h3>
+                          <p className="tests-mock-card-desc">{desc}</p>
+                          <div className="tests-mock-card-footer">
+                            <div className="tests-mock-card-foot-meta">
+                              <span>
+                                {disabled ? t('testsUi.questionsNotLoaded') : questionCountLabel(qc)}
+                              </span>
+                              <span className="tests-mock-card-dot" aria-hidden>
+                                ·
+                              </span>
+                              <span>
+                                ≈ {estimateMinutes(qc)} {t('pages.testsMinShort')}
+                              </span>
+                            </div>
+                            <span className={`tests-mock-card-cta-pill ${disabled ? 'tests-mock-card-cta-pill--disabled' : ''}`}>
+                              {disabled ? t('testsUi.unavailable') : t('testsUi.goTest')}
                             </span>
                           </div>
-                          <span className={`tests-mock-card-cta-pill ${disabled ? 'tests-mock-card-cta-pill--disabled' : ''}`}>
-                            {disabled ? t('testsUi.unavailable') : t('testsUi.goTest')}
-                          </span>
                         </div>
                       </button>
                     </article>);
-
-              })}
-                </div>
+                })}
+              </div>
             }
-            </section>
+          </section>
           }
         </div>
       </div>
+
+      <footer className="tests-mock-quote-footer">
+        <div className="tests-mock-quote-decor" aria-hidden>
+          <span className="tests-mock-quote-path" />
+          <Send className="tests-mock-quote-plane" size={22} strokeWidth={1.75} />
+          <Heart className="tests-mock-quote-heart" size={20} strokeWidth={2} fill="currentColor" />
+        </div>
+        <div className="tests-mock-quote-inner">
+          <p className="tests-mock-quote-text">{t('pages.testsQuote')}</p>
+        </div>
+      </footer>
     </div>);
 
 };
