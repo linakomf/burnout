@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: burnout-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: burnout-db
+          property: connectionString
+      - key: CORS_ORIGIN
+        value: https://burnout-lswd.vercel.app
+
+databases:
+  - name: burnout-db
+    plan: free

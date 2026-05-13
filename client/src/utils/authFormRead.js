@@ -21,6 +21,8 @@ export function formatAuthAxiosError(err, t) {
   const msg = typeof data === 'object' && data != null && typeof data.message === 'string' ? data.message : null;
   if (msg && msg.trim()) return msg;
   if (!err?.response) return t('auth.errNetwork');
+  const contentType = String(err.response.headers?.['content-type'] || '');
+  if (contentType.includes('text/html')) return t('auth.errApiUnreachable');
   const st = err.response.status;
   if (st === 404 || st === 502 || st === 504) return t('auth.errApiUnreachable');
   if (st >= 500) return t('auth.errServer');
