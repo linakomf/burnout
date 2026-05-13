@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { useTheme } from '../../context/ThemeContext';
 import {
   Camera,
   Save,
@@ -11,7 +10,6 @@ import {
   Info,
   Bell,
   Shield,
-  Moon,
   LogOut,
   ChevronRight,
   Languages,
@@ -26,7 +24,6 @@ const NOTIF_KEY = 'burnout_notifications';
 const Profile = () => {
   const { user, updateUser, logout } = useAuth();
   const { t } = useLanguage();
-  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -210,7 +207,7 @@ const Profile = () => {
 
         <div className="card profile-settings-card">
           <h2 className="card-title profile-card-title">Настройки</h2>
-          <p className="profile-settings-hint">Уведомления и тема сохраняются на этом устройстве.</p>
+          <p className="profile-settings-hint">Уведомления сохраняются на этом устройстве.</p>
 
           <ul className="profile-settings-list">
             <li className="profile-setting-row profile-setting-row--lang">
@@ -262,20 +259,6 @@ const Profile = () => {
                 
                 <ChevronRight size={22} />
               </button>
-            </li>
-
-            <li className="profile-setting-row">
-              <span className="profile-setting-icon" aria-hidden>
-                <Moon size={20} strokeWidth={2} />
-              </span>
-              <div className="profile-setting-text">
-                <span className="profile-setting-label">Тёмная тема</span>
-                <span className="profile-setting-desc">Комфорт для глаз вечером</span>
-              </div>
-              <label className="profile-switch">
-                <input type="checkbox" checked={isDark} onChange={toggleTheme} />
-                <span className="profile-switch-slider" />
-              </label>
             </li>
           </ul>
 

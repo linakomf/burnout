@@ -13,7 +13,10 @@
       (function () {
         try {
           var t = localStorage.getItem('burnout_theme');
-          document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+          if (t === 'dark') {
+            localStorage.setItem('burnout_theme', 'light');
+          }
+          document.documentElement.setAttribute('data-theme', 'light');
         } catch (e) {
           document.documentElement.setAttribute('data-theme', 'light');
         }

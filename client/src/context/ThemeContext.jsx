@@ -1,40 +1,27 @@
-import React, { createContext, useCallback, useContext, useLayoutEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useLayoutEffect } from 'react';
 
 const STORAGE_KEY = 'burnout_theme';
+const THEME = 'light';
 
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(() => {
-    try {
-      const s = localStorage.getItem(STORAGE_KEY);
-      if (s === 'dark' || s === 'light') return s;
-    } catch {
-    }
-    return 'light';
-  });
-
   useLayoutEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-theme', THEME);
     try {
-      localStorage.setItem(STORAGE_KEY, theme);
+      localStorage.setItem(STORAGE_KEY, THEME);
     } catch {
     }
-  }, [theme]);
-
-  const setTheme = useCallback((t) => {
-    if (t === 'dark' || t === 'light') setThemeState(t);
   }, []);
 
-  const toggleTheme = useCallback(() => {
-    setThemeState((prev) => prev === 'dark' ? 'light' : 'dark');
-  }, []);
+  const setTheme = useCallback(() => {}, []);
+  const toggleTheme = useCallback(() => {}, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isDark: theme === 'dark' }}>
+    <ThemeContext.Provider value={{ theme: THEME, setTheme, toggleTheme, isDark: false }}>
       {children}
-    </ThemeContext.Provider>);
-
+    </ThemeContext.Provider>
+  );
 }
 
 export function useTheme() {
