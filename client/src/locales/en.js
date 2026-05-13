@@ -329,9 +329,10 @@ export default {
     registerSubtitle: 'After sign-up, set up your profile, then take a short burnout test (9 questions)',
     errLogin: 'Sign-in error',
     errRegister: 'Registration error',
-    errNetwork: 'Cannot reach the server. Start the backend from the server folder (port 5000) and reload.',
+    errNetwork:
+      'Cannot reach the API. Wait a few seconds and try again. If it keeps failing, reload the page.',
     errApiUnreachable:
-      'The API is not available at this URL. If the API is on another host, set REACT_APP_API_ORIGIN in .env (server URL without /api) and rebuild the client.',
+      'The API is not available at this URL. On Vercel, check DATABASE_URL and JWT_SECRET, then redeploy.',
     errServer: 'The server is temporarily unavailable. Try again later or check backend logs.',
     errRequired: 'Please enter your name, email, and password.',
     errRequiredLogin: 'Please enter your email and password.',

@@ -109,7 +109,9 @@ async function bootstrap() {
   await ensurePracticeSchema();
   await ensureOnboardingSchema();
   await ensureTestSchema();
-  await ensureTestCatalog();
+  if (!process.env.VERCEL) {
+    await ensureTestCatalog();
+  }
   await ensureSupportRequestsSchema();
 }
 

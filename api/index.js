@@ -1,7 +1,4 @@
-const serverless = require('serverless-http');
 const { app, ensureBootstrap } = require('../server/app');
-
-let handler;
 
 function isHealthRequest(req) {
   const url = String(req.url || '');
@@ -24,8 +21,7 @@ module.exports = async (req, res) => {
     }
 
     await ensureBootstrap();
-    if (!handler) handler = serverless(app);
-    return await handler(req, res);
+    return app(req, res);
   } catch (err) {
     console.error('API handler error:', err);
     if (res.headersSent) return;
