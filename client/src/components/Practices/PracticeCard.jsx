@@ -3,7 +3,7 @@ import { Clock, Heart, Play } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { natureAt } from './spaceNatureImagery';
 
-const MEDITATION_TOPIC_LABEL_KEYS = {
+export const MEDITATION_TOPIC_LABEL_KEYS = {
   anxiety: 'meditationFilterAnxiety',
   sleep: 'meditationFilterSleep',
   recovery: 'meditationFilterRecovery',
@@ -11,9 +11,9 @@ const MEDITATION_TOPIC_LABEL_KEYS = {
   sounds: 'meditationFilterSounds',
 };
 
-function resolveMeditationTopic(practice, activeFilter) {
+export function resolveMeditationTopic(practice, activeFilter) {
   const topics = practice.meditationTopics || [];
-  if (activeFilter && activeFilter !== 'all' && topics.includes(activeFilter)) {
+  if (activeFilter && activeFilter !== 'all' && activeFilter !== 'favorites' && topics.includes(activeFilter)) {
     return activeFilter;
   }
   return topics[0];

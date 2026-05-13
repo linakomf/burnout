@@ -407,13 +407,25 @@
 }
 
 /* Медитация: модальное окно практики (макет с обложкой и плеером) */
+.meditation-hub,
+.practices-modal-card--meditation {
+  --med-dash-accent: #82a5eb;
+  --med-dash-accent-mid: #9db4ed;
+  --med-dash-accent-deep: #6a8ad6;
+  --med-dash-mint: #cae4bf;
+  --med-dash-muted: #6b6478;
+  --med-dash-text: #2d2a4a;
+  --med-dash-callout: linear-gradient(135deg, #e8f2fc 0%, #eef4fa 100%);
+  --med-dash-cta: linear-gradient(180deg, #9db4ed 0%, #82a5eb 52%, #6a8ad6 100%);
+}
+
 .practices-modal-overlay--meditation {
   backdrop-filter: blur(10px);
   background: rgba(15, 23, 42, 0.4) !important;
 }
 
 .practices-modal-card--meditation {
-  max-width: 720px;
+  max-width: 680px;
   padding: 0 0 22px;
   overflow: hidden;
   border-radius: 28px;
@@ -425,7 +437,7 @@
 .practices-modal-meditation-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 20px 22px 16px;
 }
 
@@ -487,7 +499,7 @@
   margin: 10px 0 0;
   font-size: 15px;
   font-weight: 600;
-  color: #3b82f6;
+  color: var(--med-dash-accent-deep);
 }
 
 .practices-modal-meditation-desc {
@@ -503,8 +515,8 @@
   gap: 0;
   margin: 0 24px 8px;
   padding: 16px 0;
-  border-top: 1px solid #e2e8f0;
-  border-bottom: 1px solid #e2e8f0;
+  border-top: 1px solid rgba(130, 165, 235, 0.18);
+  border-bottom: 1px solid rgba(130, 165, 235, 0.18);
 }
 
 .practices-modal-meditation-meta-cell {
@@ -514,7 +526,7 @@
   text-align: center;
   gap: 4px;
   padding: 0 12px;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1px solid rgba(130, 165, 235, 0.18);
 }
 
 .practices-modal-meditation-meta-cell:last-child {
@@ -522,20 +534,20 @@
 }
 
 .practices-modal-meditation-meta-ico {
-  color: #93c5fd;
+  color: var(--med-dash-accent);
   margin-bottom: 2px;
 }
 
 .practices-modal-meditation-meta-cell strong {
   font-size: 15px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--med-dash-text);
 }
 
 .practices-modal-meditation-meta-cell span {
   font-size: 11px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--med-dash-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -548,21 +560,21 @@
   margin: 18px 24px 0;
   padding: 16px 18px;
   border-radius: 20px;
-  background: linear-gradient(135deg, #eef2ff 0%, #e0f2fe 55%, #f5f3ff 100%);
-  border: 1px solid rgba(129, 140, 248, 0.25);
+  background: var(--med-dash-callout);
+  border: 1px solid rgba(130, 165, 235, 0.22);
   overflow: hidden;
 }
 
 .practices-modal-meditation-tip-flower {
   flex-shrink: 0;
-  color: #6366f1;
+  color: var(--med-dash-accent);
 }
 
 .practices-modal-meditation-tip-copy strong {
   display: block;
   font-size: 14px;
   font-weight: 800;
-  color: #312e81;
+  color: var(--med-dash-text);
 }
 
 .practices-modal-meditation-tip-copy p {
@@ -579,7 +591,7 @@
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(130, 165, 235, 0.22) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -614,14 +626,14 @@
   flex: 1;
   height: 8px;
   border-radius: 999px;
-  background: #e0e7ff;
+  background: rgba(157, 180, 237, 0.28);
   overflow: visible;
 }
 
 .pr-meditation-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #93c5fd, #60a5fa);
+  background: var(--med-dash-cta);
 }
 
 .pr-meditation-track::after {
@@ -634,8 +646,8 @@
   height: 14px;
   border-radius: 50%;
   background: #fff;
-  border: 3px solid #3b82f6;
-  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
+  border: 3px solid var(--med-dash-accent);
+  box-shadow: 0 2px 10px rgba(130, 165, 235, 0.35);
   pointer-events: none;
 }
 
@@ -671,7 +683,7 @@
 }
 
 .pr-meditation-heart.is-on {
-  color: #e11d48;
+  color: var(--med-dash-accent);
 }
 
 .pr-meditation-play {
@@ -680,13 +692,13 @@
   margin: 0 8px;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(145deg, #93c5fd 0%, #60a5fa 45%, #38bdf8 100%);
+  background: var(--med-dash-cta);
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 8px 28px rgba(56, 189, 248, 0.45);
+  box-shadow: 0 8px 28px rgba(130, 165, 235, 0.45);
 }
 
 .pr-meditation-play:hover {
@@ -757,7 +769,7 @@
 }
 
 [data-theme='dark'] .practices-modal-meditation-subtitle {
-  color: #7dd3fc;
+  color: var(--med-dash-accent-mid);
 }
 
 [data-theme='dark'] .practices-modal-meditation-desc,
@@ -771,8 +783,8 @@
 }
 
 [data-theme='dark'] .practices-modal-meditation-tip {
-  background: linear-gradient(135deg, rgba(49, 46, 129, 0.35) 0%, rgba(30, 41, 59, 0.5) 100%);
-  border-color: rgba(99, 102, 241, 0.25);
+  background: linear-gradient(135deg, rgba(42, 58, 88, 0.72) 0%, rgba(30, 41, 59, 0.82) 100%);
+  border-color: rgba(130, 165, 235, 0.28);
 }
 
 [data-theme='dark'] .practices-modal-meditation-tip-copy strong {
@@ -4797,13 +4809,76 @@
 .practices-landing-section-head--dream {
   position: relative;
   z-index: 1;
-  margin: 0 auto 48px;
+  margin: 0 auto 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   max-width: min(920px, 100%);
   gap: 20px;
+}
+
+.practices-space-view-switch {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  margin: 0 auto 36px;
+  max-width: min(920px, 100%);
+}
+
+.practices-space-view-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 184, 224, 0.55);
+  background: #fff;
+  color: #5b84b8;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.practices-space-view-tab:hover {
+  border-color: rgba(107, 155, 212, 0.75);
+  color: #4a73a8;
+}
+
+.practices-space-view-tab.is-active {
+  background: #e8f2fe;
+  border-color: rgba(91, 141, 239, 0.55);
+  color: #3b6fb8;
+  box-shadow: 0 6px 18px rgba(91, 141, 239, 0.12);
+}
+
+.practices-space-favorites {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 8px 8px;
+  background: transparent;
+  min-height: auto;
+}
+
+.practices-space-favorites-empty {
+  margin: 0;
+  padding: 28px 16px 40px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #6b6478;
 }
 
 .practices-section-eyebrow {
@@ -5766,7 +5841,7 @@
 }
 
 .meditation-hub .practice-card-fav--cover.is-on {
-  color: #0ea5e9;
+  color: var(--med-dash-accent);
 }
 
 .meditation-hub .practice-card-duration--cover {
@@ -5932,7 +6007,7 @@
 }
 
 .meditation-hub .practice-card-fav.is-on {
-  color: #0ea5e9;
+  color: var(--med-dash-accent);
 }
 
 .meditation-hub .practice-card-title {
@@ -5956,13 +6031,13 @@
   margin: 40px 0 8px;
   padding: 0 8px;
   font-size: 14px;
-  color: #94a3b8;
+  color: var(--med-dash-muted);
   text-align: center;
   line-height: 1.5;
 }
 
 .meditation-hub-tagline-flower {
-  color: #7dd3fc;
+  color: var(--med-dash-accent);
   flex-shrink: 0;
   opacity: 0.9;
 }
@@ -5993,6 +6068,22 @@
   background: rgba(30, 58, 138, 0.35);
   border-color: rgba(96, 165, 250, 0.45);
   color: #dbeafe;
+}
+
+[data-theme='dark'] .practices-space-view-tab {
+  background: rgba(26, 34, 44, 0.82);
+  border-color: rgba(148, 184, 224, 0.28);
+  color: #93c5fd;
+}
+
+[data-theme='dark'] .practices-space-view-tab.is-active {
+  background: rgba(30, 58, 138, 0.35);
+  border-color: rgba(96, 165, 250, 0.45);
+  color: #dbeafe;
+}
+
+[data-theme='dark'] .practices-space-favorites-empty {
+  color: #94a3b8;
 }
 
 [data-theme='dark'] .meditation-formats-deco {
@@ -6062,7 +6153,7 @@
 }
 
 [data-theme='dark'] .meditation-hub-tagline-flower {
-  color: #38bdf8;
+  color: var(--med-dash-accent-mid);
 }
 
 .practices-section-head--sub {

@@ -186,21 +186,6 @@ function PracticeTimerMeditation({
           <Heart size={20} strokeWidth={2} fill={favorite ? 'currentColor' : 'none'} />
         </button>
       </div>
-
-      <div className="pr-meditation-step">
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={`${practice.id}-${currentStepIndex}`}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2 }}
-            className="pr-meditation-step-text"
-          >
-            {practice.steps?.[currentStepIndex] || ' '}
-          </motion.p>
-        </AnimatePresence>
-      </div>
     </div>
   );
 }

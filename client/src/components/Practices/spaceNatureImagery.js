@@ -13,6 +13,9 @@ export const SPACE_NATURE_HERO_REF = `${publicBase}/space/nature-hero-ref.png`;
 /** Видео-фон героя «Пространство» (MP4 в public/space) */
 export const SPACE_PRACTICES_HERO_VIDEO = `${publicBase}/space/practices-space-hero.mp4`;
 
+/** Видео-фон баннера раздела «Медитации» */
+export const MEDITATION_HERO_BANNER_VIDEO = `${publicBase}/meditation/meditation-hero-banner.mp4`;
+
 /** Видео в первой капсуле («небо») в заголовке секции */
 export const SPACE_PRACTICES_PILL_SKY_VIDEO = `${publicBase}/space/practices-pill-sky.mp4`;
 

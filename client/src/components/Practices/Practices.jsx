@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Flower2, Heart } from 'lucide-react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
@@ -15,7 +15,8 @@ import EventsPracticeHub from './EventsPracticeHub';
 import EventDetailPage from './EventDetailPage';
 import PracticesHome from './PracticesHome';
 import { PRACTICES } from './practicesData';
-import { SPACE_NATURE_HERO_REF, SPACE_PRACTICES_HERO_VIDEO } from './spaceNatureImagery';
+import { loadMeditationFavorites, saveMeditationFavorites } from './meditationFavorites';
+import { MEDITATION_HERO_BANNER_VIDEO, SPACE_NATURE_HERO_REF } from './spaceNatureImagery';
 import './Practices.css';
 
 function matchCategory(practice, categoryId) {
@@ -32,24 +33,37 @@ const MEDITATION_FILTERS = [
   { id: 'recovery', labelKey: 'meditationFilterRecovery' },
   { id: 'focus', labelKey: 'meditationFilterFocus' },
   { id: 'sounds', labelKey: 'meditationFilterSounds' },
+  { id: 'favorites', labelKey: 'meditationFilterFavorites' },
 ];
 
 function MeditationSection() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const bodyRef = useRef(null);
-  const [favorites, setFavorites] = useState(() => new Set(['night-exhale', 'focus-single']));
+  const [favorites, setFavorites] = useState(loadMeditationFavorites);
   const [selectedPractice, setSelectedPractice] = useState(null);
   const [activeFilter, setActiveFilter] = useState('all');
 
   const list = useMemo(() => PRACTICES.filter((p) => matchCategory(p, 'meditation')), []);
 
   const filteredList = useMemo(() => {
-    if (activeFilter === 'all') {
-      return list.filter((practice) => !practice.meditationTopics?.includes('sounds'));
+    if (activeFilter === 'favorites') {
+      return list.filter((practice) => favorites.has(practice.id));
     }
-    return list.filter((practice) => practice.meditationTopics?.includes(activeFilter));
-  }, [list, activeFilter]);
+
+    const matchesFilter = (practice) => {
+      if (activeFilter === 'all') {
+        return !practice.meditationTopics?.includes('sounds');
+      }
+      return practice.meditationTopics?.includes(activeFilter);
+    };
+
+    return list.filter(matchesFilter);
+  }, [list, activeFilter, favorites]);
+
+  useEffect(() => {
+    saveMeditationFavorites(favorites);
+  }, [favorites]);
 
   const toggleFavorite = (practiceId) => {
     setFavorites((prev) => {
@@ -91,7 +105,7 @@ function MeditationSection() {
               playsInline
               poster={SPACE_NATURE_HERO_REF}
             >
-              <source src={SPACE_PRACTICES_HERO_VIDEO} type="video/mp4" />
+              <source src={MEDITATION_HERO_BANNER_VIDEO} type="video/mp4" />
             </video>
           </div>
 
@@ -200,6 +214,7 @@ function MeditationSection() {
           <PracticeModal
             practice={selectedPractice}
             variant="meditation"
+            activeFilter={activeFilter}
             favorite={favorites.has(selectedPractice.id)}
             onToggleFavorite={toggleFavorite}
             onClose={() => setSelectedPractice(null)}

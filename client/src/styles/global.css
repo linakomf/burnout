@@ -278,8 +278,8 @@ label {
   border-radius: 22px;
   padding: 30px;
   width: 100%;
-  max-width: 480px;
-  max-height: 90vh;
+  max-width: 680px;
+  max-height: 100vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--border);

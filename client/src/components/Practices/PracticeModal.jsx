@@ -1,13 +1,21 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BarChart3, Clock, Droplets, Flower2, Leaf, X } from 'lucide-react';
+import { BarChart3, Clock, Flower2, Leaf, X } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import PracticeTimer from './PracticeTimer';
+import { MEDITATION_TOPIC_LABEL_KEYS, resolveMeditationTopic } from './PracticeCard';
 
 const defaultMeditationCover = `${(process.env.PUBLIC_URL || '').replace(/\/$/, '')}/meditation/meditation-modal-cover.png`;
 
-function PracticeModal({ practice, onClose, variant = 'default', favorite = false, onToggleFavorite }) {
+function PracticeModal({
+  practice,
+  onClose,
+  variant = 'default',
+  favorite = false,
+  onToggleFavorite,
+  activeFilter = 'all',
+}) {
   const { t } = useLanguage();
   const [completed, setCompleted] = useState(false);
   const isMeditation = variant === 'meditation';
@@ -33,14 +41,12 @@ function PracticeModal({ practice, onClose, variant = 'default', favorite = fals
   const coverSrc = practice.coverImage || defaultMeditationCover;
   const durationLabel = `${String(practice.durationMin).padStart(2, '0')}:00`;
   const practiceTitle = practice.titleKey ? t(`pages.${practice.titleKey}`) : practice.title;
+  const meditationTopicId = isMeditation ? resolveMeditationTopic(practice, activeFilter) : null;
+  const meditationCategoryKey = meditationTopicId ? MEDITATION_TOPIC_LABEL_KEYS[meditationTopicId] : null;
 
   const meditationBody = (
     <>
       <div className="practices-modal-meditation-top">
-        <span className="practices-modal-meditation-tag">
-          <Droplets size={15} strokeWidth={2.2} aria-hidden />
-          {t('pages.meditationModalTag')}
-        </span>
         <button type="button" onClick={handleClose} className="practices-modal-close practices-modal-close--light" aria-label={t('pages.meditationModalClose')}>
           <X size={20} strokeWidth={2} />
         </button>
@@ -50,7 +56,9 @@ function PracticeModal({ practice, onClose, variant = 'default', favorite = fals
         <div className="practices-modal-meditation-cover" style={{ backgroundImage: `url(${coverSrc})` }} role="img" aria-hidden />
         <div className="practices-modal-meditation-copy">
           <h2 className="practices-modal-meditation-title">{practiceTitle}</h2>
-          <p className="practices-modal-meditation-subtitle">{practice.format}</p>
+          <p className="practices-modal-meditation-subtitle">
+            {meditationCategoryKey ? t(`pages.${meditationCategoryKey}`) : practice.format}
+          </p>
           <p className="practices-modal-meditation-desc">{practice.description}</p>
         </div>
       </div>
