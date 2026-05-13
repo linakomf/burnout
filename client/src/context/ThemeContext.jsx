@@ -11,9 +11,6 @@ export function ThemeProvider({ children }) {
       if (s === 'dark' || s === 'light') return s;
     } catch {
     }
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
     return 'light';
   });
 
