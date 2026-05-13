@@ -361,8 +361,8 @@ export default {
     regBack: 'Артқа',
     regStep2Title: 'Персонажды таңдаңыз',
     regStep2Subtitle: 'Профиль үшін аватарды таңдаңыз.',
-    regGenderBoy: 'Ұл бала',
-    regGenderGirl: 'Қыз бала',
+    regGenderBoy: 'Ер адам',
+    regGenderGirl: 'Әйел',
     regGenderHint: 'Кейін профильден өзгертуге болады.',
     regPickAvatar: 'Аватар',
     regSubmit: 'Тіркелу',
@@ -376,7 +376,7 @@ export default {
     errSave: 'Сақтау сәтсіз. Қайта көріңіз.',
     backToRegister: 'Тіркелуге оралу',
     backToRegisterAria: 'Шығып, тіркелу формасына оралу',
-    avatarByRoleHint: 'Кейіпкер рөл мен жыныстан автоматты түрде қолданылады (студент / оқытушы, ұл / қыз).'
+    avatarByRoleHint: 'Кейіпкер рөл мен жыныстан автоматты түрде қолданылады (студент / оқытушы, ер / әйел).'
   },
   pages: {
     practicesTitle: 'Кеңістік',
