@@ -16,6 +16,8 @@ services:
           property: connectionString
       - key: CORS_ORIGIN
         value: https://burnout-lswd.vercel.app
+      - key: CORS_EXTRA_ORIGINS
+        value: https://client-eosin-beta-38.vercel.app,https://client-linakomfs-projects.vercel.app
 
 databases:
   - name: burnout-db

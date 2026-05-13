@@ -1,36 +1,67 @@
 const { Pool } = require('pg');
 const { parse } = require('pg-connection-string');
-require('dotenv').config();
+const path = require('path');
 
-const connectionString = process.env.DATABASE_URL?.trim();
-if (!connectionString) {
-  console.error(
-    'FATAL: DATABASE_URL не задан или пуст.\n' +
-    '  1) Выполните из корня проекта: npm run setup (создаст server/.env из примера)\n' +
-    '  2) Поднимите PostgreSQL, например: docker compose up -d\n' +
-    '     или установите Postgres локально и пропишите строку в server/.env\n' +
-    '  Пример: DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/burnout_db'
-  );
-  process.exit(1);
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
+let pool = null;
+
+function createPool() {
+  const connectionString = process.env.DATABASE_URL?.trim();
+  if (!connectionString) {
+    const err = new Error(
+      'DATABASE_URL не задан. Для Vercel добавьте облачный PostgreSQL (Neon, Render Postgres) в Environment Variables.'
+    );
+    err.code = 'DB_NOT_CONFIGURED';
+    throw err;
+  }
+
+  const parsed = parse(connectionString);
+  const ssl =
+    process.env.PGSSLMODE === 'disable'
+      ? false
+      : parsed.ssl || process.env.NODE_ENV === 'production'
+        ? { rejectUnauthorized: false }
+        : undefined;
+
+  const nextPool = new Pool({
+    ...parsed,
+    password: String(parsed.password ?? process.env.PGPASSWORD ?? ''),
+    ssl
+  });
+
+  let pgLogOnce = false;
+  nextPool.on('connect', (client) => {
+    client.query("SET client_encoding TO 'UTF8'").catch(() => {});
+    if (!pgLogOnce) {
+      pgLogOnce = true;
+      console.log('✅ Connected to PostgreSQL database');
+    }
+  });
+
+  nextPool.on('error', (err) => {
+    console.error('❌ Database connection error:', err);
+  });
+
+  return nextPool;
 }
 
-const parsed = parse(connectionString);
-const pool = new Pool({
-  ...parsed,
-  password: String(parsed.password ?? process.env.PGPASSWORD ?? '')
-});
+function getPool() {
+  if (!pool) pool = createPool();
+  return pool;
+}
 
-let pgLogOnce = false;
-pool.on('connect', (client) => {
-  client.query("SET client_encoding TO 'UTF8'").catch(() => {});
-  if (!pgLogOnce) {
-    pgLogOnce = true;
-    console.log('✅ Connected to PostgreSQL database');
+module.exports = {
+  query(...args) {
+    return getPool().query(...args);
+  },
+  connect(...args) {
+    return getPool().connect(...args);
+  },
+  end(...args) {
+    if (!pool) return Promise.resolve();
+    const current = pool;
+    pool = null;
+    return current.end(...args);
   }
-});
-
-pool.on('error', (err) => {
-  console.error('❌ Database connection error:', err);
-});
-
-module.exports = pool;
+};

@@ -14,6 +14,10 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  const base = String(config.baseURL || '');
+  if (base.includes('loca.lt')) {
+    config.headers['Bypass-Tunnel-Reminder'] = 'true';
+  }
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
