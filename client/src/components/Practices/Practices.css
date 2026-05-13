@@ -24,6 +24,13 @@
   min-height: calc(100dvh - 86px);
 }
 
+.practices-page--articles-hub {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-height: calc(100dvh - 86px);
+}
+
 /* Страница одного события: шире контейнер практик, отступы как у хаба событий */
 .practices-page--event-detail {
   max-width: 1220px;
@@ -194,6 +201,11 @@
   cursor: pointer;
   box-sizing: border-box;
   border-radius: 14px;
+  transition: transform 0.2s ease;
+}
+
+.practice-card-inner:hover {
+  transform: translateY(-2px);
 }
 
 .practice-card-inner:focus-visible {
@@ -4404,11 +4416,6 @@
   padding: 0 0 56px;
 }
 
-.practices-landing--airy {
-  /* фон страницы: мягкое небо + белый, как на эталонном макете */
-  background: linear-gradient(180deg, #f0f7ff 0%, #f8fbff 55%, #f5f8fc 100%);
-}
-
 /* —— Hero: небесно-голубой, «цветы», фото, центрированный текст, CTA —— */
 .practices-landing-hero--airy {
   position: relative;
@@ -4476,11 +4483,21 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  background-size: cover;
-  background-position: center 42%;
+  overflow: hidden;
   opacity: 0.88;
   transform-origin: center 42%;
   will-change: transform;
+}
+
+.practices-landing-hero-photo-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  display: block;
+  pointer-events: none;
 }
 
 .practices-landing-hero-airwash {
@@ -4590,7 +4607,7 @@
   outline-offset: 3px;
 }
 
-/* Три карточки на стыке hero: боковые белые + рукописный заголовок, центр — пастельный блок с play */
+/* Три карточки на стыке hero: отзывы в едином белом стиле */
 .practices-landing-testimonials {
   position: relative;
   z-index: 4;
@@ -4612,44 +4629,57 @@
     0 0 0 1px rgba(226, 232, 240, 0.9);
 }
 
+/* Три карточки под героем: «записка» — #faf9fa, пунктир, заголовок голубым скриптом */
 .practices-hero-float-card--plain {
-  padding: 28px 22px 26px;
-  background: #ffffff;
+  padding: 28px 22px 30px;
+  background: #faf9fa;
+  border-radius: 22px;
+  border: 3px dashed #94b8e0;
+  box-shadow: 0 10px 32px rgba(100, 140, 190, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
+  gap: 16px;
   min-height: 200px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
 }
 
 .practices-hero-float-card--plain:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 26px 52px rgba(30, 41, 59, 0.12),
-    0 0 0 1px rgba(203, 213, 225, 0.85);
+  transform: translateY(-3px);
+  border-color: #7fa6d8;
+  box-shadow: 0 16px 40px rgba(95, 132, 190, 0.14);
 }
 
-.practices-hero-float-script {
-  margin: 0 0 14px;
-  font-family: var(--font-accent);
-  font-style: italic;
+.practices-hero-float-card--plain .practices-hero-float-script {
+  margin: 0;
+  font-family:
+    'Brush Script MT',
+    'Segoe Script',
+    'Apple Chancery',
+    'Snell Roundhand',
+    var(--font-accent),
+    cursive;
+  font-style: normal;
   font-weight: 500;
-  font-size: clamp(24px, 3.5vw, 32px);
-  line-height: 1.15;
-  color: #111827;
+  font-size: clamp(19px, 2.6vw, 26px);
+  line-height: 1.22;
+  color: #6b9bd4;
   letter-spacing: 0.02em;
 }
 
-.practices-hero-float-text {
+.practices-hero-float-card--plain .practices-hero-float-text {
   margin: 0;
   font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.55;
   font-weight: 600;
-  color: #374151;
-  max-width: 28ch;
+  color: #1f2937;
+  max-width: 26ch;
 }
 
 .practices-hero-float-card--spotlight {
@@ -4736,14 +4766,13 @@
   box-shadow: 0 8px 20px rgba(13, 71, 161, 0.2);
 }
 
-/* Секция: небесно-белый фон, волна, заголовок справа, «низ–высоко–низ» */
+/* Секция: волна, заголовок, сетка карточек */
 .practices-landing-services {
   position: relative;
   max-width: 1220px;
   margin: 0 auto;
   padding: 56px 24px 48px;
   overflow: hidden;
-  background: linear-gradient(180deg, #feffff 0%, #f3f8ff 42%, #eef4fc 100%);
   border-radius: 0;
 }
 
@@ -4816,15 +4845,22 @@
 
 .practices-section-line--serif {
   margin-top: 10px;
-  font-family: var(--font-accent);
+  font-family:
+    'Brush Script MT',
+    'Segoe Script',
+    'Apple Chancery',
+    'Snell Roundhand',
+    var(--font-accent),
+    cursive;
   font-size: clamp(21px, 3vw, 32px);
   font-weight: 500;
-  font-style: italic;
-  color: #8ecae6;
-  letter-spacing: -0.02em;
+  font-style: normal;
+  line-height: 1.28;
+  letter-spacing: 0.02em;
+  color: #6b9bd4;
 }
 
-/* Только картинка в капсуле (как на макете) */
+/* Только картинка / видео в капсуле (как на макете) */
 .practices-space-pill {
   display: inline-block;
   vertical-align: -0.35em;
@@ -4835,18 +4871,35 @@
   border-radius: 999px;
   background-size: cover;
   background-position: center;
+  position: relative;
+  overflow: hidden;
   box-shadow:
     0 4px 16px rgba(59, 130, 246, 0.15),
     0 0 0 1px rgba(186, 230, 253, 0.9);
 }
 
+.practices-space-pill-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  display: block;
+  pointer-events: none;
+}
+
 /* Капсулы: спокойствие и «дорога» к восстановлению — в духе MindTrack */
-.practices-space-pill--sky {
+.practices-space-pill--sky-static {
   background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=500&q=85');
   background-position: center 40%;
 }
 
-.practices-space-pill--mist {
+.practices-space-pill-video--mist {
+  object-position: center 45%;
+}
+
+.practices-space-pill--mist-static {
   background-image: url('https://images.unsplash.com/photo-1499002238440-d264b2597d5b?auto=format&fit=crop&w=500&q=85');
   background-position: center 45%;
 }
@@ -4856,7 +4909,7 @@
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 48px 40px;
+  gap: 40px 40px;
   padding: 8px 12px 24px;
   justify-items: center;
   align-items: start;
@@ -5016,15 +5069,187 @@
   margin-bottom: 0;
 }
 
+/* ===== Пространство: folder card — верхний «лист» + мягкий «карман» с волнистым краем ===== */
+.practices-landing-tile--pocket {
+  max-width: 320px;
+}
+
+.category-card {
+  position: relative;
+  width: 320px;
+  height: 500px;
+  border-radius: 42px;
+  margin: 0 auto;
+  transition: transform 0.28s ease;
+}
+
+.category-paper {
+  position: relative;
+  z-index: 1;
+  width: 82%;
+  margin: 0 auto;
+  height: 250px;
+  background: #faf9fa;
+  border-radius: 36px 36px 28px 28px;
+  padding: 20px 20px 92px;
+  transform: translateY(112px);
+  transition: transform 0.38s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paper-image {
+  width: 100%;
+  height: 168px;
+  object-fit: contain;
+  border-radius: 26px;
+  display: block;
+  opacity: 1;
+  transition: opacity 0.28s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .practices-landing-tile--pocket .paper-image {
+    opacity: 0;
+  }
+
+  .practices-landing-tile--pocket:hover .paper-image,
+  .practices-landing-tile--pocket:focus-visible .paper-image {
+    opacity: 1;
+  }
+}
+
+.category-pocket {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 188px;
+  z-index: 2;
+  height: 312px;
+  padding: 32px 30px 28px;
+  background: linear-gradient(180deg, #f1f6ff 0%, #e8f0ff 100%);
+  border-radius: 40px;
+  border: 1px solid rgba(130, 160, 210, 0.25);
+  overflow: hidden;
+}
+
+.category-pocket::before {
+  content: '';
+  position: absolute;
+  left: -5%;
+  top: -42px;
+  width: 110%;
+  height: 90px;
+  background: #f1f6ff;
+  border-radius: 0 0 50% 50%;
+  box-shadow: inset 0 -1px 0 rgba(130, 160, 210, 0.12);
+}
+
+.category-pocket::after {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border: 1px dashed rgba(105, 135, 185, 0.25);
+  border-radius: 32px;
+  pointer-events: none;
+}
+
+.pocket-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.pocket-label {
+  margin-left: 0;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+  color: #6b82b6;
+  text-transform: uppercase;
+}
+
+.pocket-title {
+  margin: 6px 0 14px;
+  font-family: 'Nunito', 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: clamp(24px, 4.2vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #2c3e50;
+}
+
+.pocket-description {
+  margin: 0 0 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #66728a;
+}
+
+.pocket-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.pocket-tags span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #536987;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pocket-tags span:last-child {
+  background: #cde8cf;
+  color: #1f5a33;
+}
+
+.pocket-divider {
+  height: 1px;
+  margin: auto 0 0;
+  background: linear-gradient(90deg, transparent, rgba(105, 135, 185, 0.3), transparent);
+}
+
+.practices-landing-tile--pocket:hover .category-card {
+  transform: translateY(-8px);
+}
+
+.practices-landing-tile--pocket:hover .category-paper,
+.practices-landing-tile--pocket:focus-visible .category-paper {
+  transform: translateY(-6px);
+}
+
+.practices-landing-tile--pocket.practices-landing-tile--featured:not(:hover) .category-card {
+  transform: scale(1.035);
+}
+
+.practices-landing-tile--pocket.practices-landing-tile--featured:hover .category-card {
+  transform: translateY(-8px) scale(1.035);
+}
+
 @media (max-width: 900px) {
   .practices-landing-stagger {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 40px 28px;
+    gap: 36px 28px;
     padding: 8px 8px 16px;
   }
 
   .practices-landing-tile {
     max-width: min(280px, 100%);
+  }
+
+  .practices-landing-tile--pocket {
+    max-width: min(320px, 100%);
+  }
+
+  .category-card {
+    width: min(320px, 100%);
   }
 }
 
@@ -5083,7 +5308,6 @@
 .music-hub-back,
 .podcast-hub-back,
 .events-hub-back:not(.events-hub-back--ghost),
-.articles-books-back,
 .flix-back {
   display: inline-flex;
   align-items: center;
@@ -5114,7 +5338,6 @@
 .music-hub-back:hover,
 .podcast-hub-back:hover,
 .events-hub-back:not(.events-hub-back--ghost):hover,
-.articles-books-back:hover,
 .flix-back:hover {
   color: #236d96;
 }
@@ -5124,7 +5347,6 @@
 .music-hub-back:focus-visible,
 .podcast-hub-back:focus-visible,
 .events-hub-back:focus-visible,
-.articles-books-back:focus-visible,
 .flix-back:focus-visible {
   outline: 2px solid rgba(43, 130, 178, 0.45);
   outline-offset: 2px;
@@ -5161,8 +5383,181 @@
   min-height: calc(100dvh - 88px);
 }
 
+.meditation-hub--fullbleed {
+  max-width: none;
+  padding: 0 0 48px;
+  background: #fff;
+}
+
+.meditation-hub-banner {
+  padding-top: clamp(18px, 3.2vw, 32px);
+  margin-bottom: clamp(28px, 4vw, 44px);
+}
+
+.meditation-hub-banner-head {
+  width: min(1200px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 0 clamp(12px, 2.8vw, 22px);
+  box-sizing: border-box;
+}
+
+.meditation-hub .practices-landing-hero--airy {
+  margin-top: clamp(14px, 2.4vw, 22px);
+  min-height: max(0px, calc(min(72vh, 620px) - 2cm));
+}
+
+.meditation-hub .practices-landing-hero-inner--airy {
+  min-height: max(0px, calc(min(72vh, 620px) - 2cm));
+}
+
+.meditation-formats {
+  position: relative;
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 48px) 24px clamp(36px, 5vw, 56px);
+  overflow: hidden;
+}
+
+.meditation-formats-deco {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 46%;
+  pointer-events: none;
+  color: rgba(148, 163, 184, 0.42);
+  display: flex;
+  justify-content: center;
+  transform: translateY(-50%);
+}
+
+.meditation-formats-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(24px, 3.5vw, 36px);
+}
+
+.meditation-formats-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  gap: 10px;
+  max-width: min(760px, 100%);
+  margin-left: auto;
+}
+
+.meditation-formats-eyebrow {
+  margin: 0;
+}
+
+.meditation-formats-title {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 10px;
+  font-family: var(--font-sans);
+  font-size: clamp(24px, 3.4vw, 38px);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: #111827;
+}
+
+.meditation-formats-title-mark {
+  flex-shrink: 0;
+  color: rgba(107, 155, 212, 0.72);
+}
+
+.meditation-formats-subtitle {
+  margin: 0;
+  font-family:
+    'Brush Script MT',
+    'Segoe Script',
+    'Apple Chancery',
+    'Snell Roundhand',
+    var(--font-accent),
+    cursive;
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 500;
+  font-style: normal;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  color: #6b9bd4;
+}
+
+.meditation-formats-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(18px, 3vw, 40px);
+  align-items: start;
+}
+
+.meditation-formats-copy {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: clamp(14px, 1.55vw, 16px);
+  line-height: 1.65;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.meditation-formats-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+
+.meditation-formats-filter {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 184, 224, 0.55);
+  background: rgba(255, 255, 255, 0.82);
+  color: #5b84b8;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.meditation-formats-filter:hover {
+  border-color: rgba(107, 155, 212, 0.75);
+  color: #4a73a8;
+}
+
+.meditation-formats-filter.is-active {
+  background: #e8f2fe;
+  border-color: rgba(91, 141, 239, 0.55);
+  color: #3b6fb8;
+  box-shadow: 0 6px 18px rgba(91, 141, 239, 0.12);
+}
+
+.meditation-formats-filter:focus-visible {
+  outline: 2px solid rgba(91, 141, 239, 0.45);
+  outline-offset: 2px;
+}
+
+.meditation-hub-body {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
 .meditation-hub-back {
-  padding: 4px 0 18px;
+  margin: 0;
+  padding: 0;
 }
 
 .meditation-hub-hero {
@@ -5273,8 +5668,32 @@
   }
 
   .meditation-hub {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .meditation-hub-body {
     padding-left: 12px;
     padding-right: 12px;
+  }
+
+  .meditation-formats {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .meditation-formats-head {
+    align-items: flex-start;
+    text-align: left;
+    margin-left: 0;
+  }
+
+  .meditation-formats-title {
+    justify-content: flex-start;
+  }
+
+  .meditation-formats-columns {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -5285,10 +5704,203 @@
   box-shadow:
     0 4px 24px rgba(15, 23, 42, 0.06),
     0 1px 3px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+}
+
+.meditation-hub .practice-card-inner--with-cover {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.meditation-hub .practice-card-cover {
+  padding: 12px 12px 0;
+  background: #fff;
+}
+
+.meditation-hub .practice-card-cover-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #e8f0f5;
+}
+
+.meditation-hub .practice-card-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  display: block;
+}
+
+.meditation-hub .practice-card-cover-actions {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  pointer-events: none;
+}
+
+.meditation-hub .practice-card-cover-actions > * {
+  pointer-events: auto;
+}
+
+.meditation-hub .practice-card-fav--cover {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  border: none;
+  color: #64748b;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+.meditation-hub .practice-card-fav--cover:hover {
+  color: #475569;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.meditation-hub .practice-card-fav--cover.is-on {
+  color: #0ea5e9;
+}
+
+.meditation-hub .practice-card-duration--cover {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+.meditation-hub .practice-card-cover-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.meditation-hub .practice-card-cover-play-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #475569;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.16);
+}
+
+.meditation-hub .practice-card-cover-play-icon svg {
+  margin-left: 2px;
+}
+
+.meditation-hub .practice-card-topic {
+  margin-left: auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #cae4bf;
+  color: rgba(35, 42, 48, 0.92);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  max-width: min(58%, calc(100% - 52px));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(45, 75, 58, 0.14);
+}
+
+.meditation-hub .practice-card-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 18px 18px 16px;
+}
+
+.meditation-hub .practice-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.meditation-hub .practice-card--sounds {
+  align-self: start;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.meditation-hub .practice-card--sounds .practice-card-inner--with-cover {
+  height: auto;
+}
+
+.meditation-hub .practice-card--sounds .practice-card-cover {
+  padding: 0;
+  background: transparent;
+}
+
+.meditation-hub .practice-card--sounds .practice-card-body {
+  flex: 0 0 auto;
+  min-height: auto;
+  padding: 12px 2px 4px;
+  overflow: visible;
+}
+
+.meditation-hub .practice-card--sounds .practice-card-title {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.meditation-hub .practice-card--sounds .practice-card-inner:hover {
+  transform: none;
+}
+
+.meditation-hub .practice-card-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.01em;
+}
+
+.meditation-hub .practice-card-cta--pill {
+  flex-shrink: 0;
+  width: auto;
+  margin-top: 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #ffffff;
+  background: linear-gradient(180deg, #9db4ed 0%, #82a5eb 52%, #6a8ad6 100%);
+  box-shadow: 0 8px 22px rgba(130, 165, 235, 0.35);
+  text-align: center;
 }
 
 .meditation-hub .practice-card-inner {
-  padding: 18px 18px 16px;
+  padding: 0;
   border-radius: 22px;
 }
 
@@ -5324,7 +5936,7 @@
 }
 
 .meditation-hub .practice-card-title {
-  margin-top: 14px;
+  margin-top: 0;
   color: #0f172a;
   font-size: 15px;
 }
@@ -5332,15 +5944,7 @@
 .meditation-hub .practice-card-desc {
   color: #64748b;
   -webkit-line-clamp: 2;
-  margin-bottom: 16px;
-}
-
-.meditation-hub .practice-card-cta {
-  border-radius: 14px;
-  background: #e0f2fe;
-  color: #0369a1;
-  font-weight: 700;
-  padding: 12px 14px;
+  margin-bottom: 12px;
 }
 
 .meditation-hub-tagline {
@@ -5367,6 +5971,34 @@
   background: transparent;
 }
 
+[data-theme='dark'] .meditation-formats-title {
+  color: #f1f5f9;
+}
+
+[data-theme='dark'] .meditation-formats-subtitle {
+  color: #9db4ed;
+}
+
+[data-theme='dark'] .meditation-formats-copy {
+  color: #cbd5e1;
+}
+
+[data-theme='dark'] .meditation-formats-filter {
+  background: rgba(26, 34, 44, 0.82);
+  border-color: rgba(148, 184, 224, 0.28);
+  color: #93c5fd;
+}
+
+[data-theme='dark'] .meditation-formats-filter.is-active {
+  background: rgba(30, 58, 138, 0.35);
+  border-color: rgba(96, 165, 250, 0.45);
+  color: #dbeafe;
+}
+
+[data-theme='dark'] .meditation-formats-deco {
+  color: rgba(148, 163, 184, 0.22);
+}
+
 [data-theme='dark'] .meditation-hub-title,
 [data-theme='dark'] .meditation-hub-section-title {
   color: #f1f5f9;
@@ -5382,7 +6014,6 @@
 [data-theme='dark'] .music-hub-back,
 [data-theme='dark'] .podcast-hub-back,
 [data-theme='dark'] .events-hub-back:not(.events-hub-back--ghost),
-[data-theme='dark'] .articles-books-back,
 [data-theme='dark'] .flix-back {
   color: #7dd3fc;
 }
@@ -5392,9 +6023,13 @@
 [data-theme='dark'] .music-hub-back:hover,
 [data-theme='dark'] .podcast-hub-back:hover,
 [data-theme='dark'] .events-hub-back:not(.events-hub-back--ghost):hover,
-[data-theme='dark'] .articles-books-back:hover,
 [data-theme='dark'] .flix-back:hover {
   color: #bae6fd;
+}
+
+[data-theme='dark'] .meditation-hub .practice-card--sounds {
+  background: transparent;
+  box-shadow: none;
 }
 
 [data-theme='dark'] .meditation-hub .practice-card {
@@ -5415,9 +6050,15 @@
   box-shadow: none;
 }
 
-[data-theme='dark'] .meditation-hub .practice-card-cta {
-  background: rgba(56, 189, 248, 0.2);
-  color: #7dd3fc;
+[data-theme='dark'] .meditation-hub .practice-card-meta {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .meditation-hub .practice-card-cta,
+[data-theme='dark'] .meditation-hub .practice-card-cta--pill {
+  background: linear-gradient(180deg, #7c9be0 0%, #6a8ad6 52%, #5a78c8 100%);
+  color: #f8fafc;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
 }
 
 [data-theme='dark'] .meditation-hub-tagline-flower {
@@ -5469,16 +6110,19 @@
 
 [data-theme='dark'] .practices-hero-float-card--plain {
   background: var(--bg-card, #1a2220);
-  box-shadow:
-    0 22px 48px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
+  border-color: rgba(127, 166, 216, 0.45);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.38);
 }
 
-[data-theme='dark'] .practices-hero-float-script {
-  color: #f1f5f9;
+[data-theme='dark'] .practices-hero-float-card--plain:hover {
+  border-color: rgba(148, 184, 224, 0.65);
 }
 
-[data-theme='dark'] .practices-hero-float-text {
+[data-theme='dark'] .practices-hero-float-card--plain .practices-hero-float-script {
+  color: #9ec5f0;
+}
+
+[data-theme='dark'] .practices-hero-float-card--plain .practices-hero-float-text {
   color: var(--text-mid, #94a3b8);
 }
 
@@ -5515,10 +6159,6 @@
 
 [data-theme='dark'] .practices-spotlight-video {
   filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
-}
-
-[data-theme='dark'] .practices-landing-services {
-  background: linear-gradient(180deg, var(--bg-card, #1a2220) 0%, #151c22 100%);
 }
 
 [data-theme='dark'] .practices-section-eyebrow {
@@ -5586,6 +6226,50 @@
 
 [data-theme='dark'] .practices-landing-tile:focus-visible {
   outline-color: #82a5eb;
+}
+
+[data-theme='dark'] .category-paper {
+  background: var(--bg-card, #1a2228);
+}
+
+[data-theme='dark'] .pocket-title {
+  color: #e8edf6;
+}
+
+[data-theme='dark'] .pocket-label {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .pocket-description {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .category-pocket {
+  background: linear-gradient(180deg, rgba(40, 54, 72, 0.96) 0%, rgba(28, 38, 54, 0.98) 100%);
+  border-color: rgba(120, 145, 185, 0.35);
+}
+
+[data-theme='dark'] .category-pocket::before {
+  background: rgba(44, 58, 76, 0.98);
+  box-shadow: inset 0 -1px 0 rgba(148, 163, 184, 0.3);
+}
+
+[data-theme='dark'] .category-pocket::after {
+  border-color: rgba(148, 163, 184, 0.32);
+}
+
+[data-theme='dark'] .pocket-tags span {
+  color: #e2e8f0;
+  background: rgba(30, 41, 59, 0.92);
+}
+
+[data-theme='dark'] .pocket-tags span:last-child {
+  background: rgba(52, 93, 74, 0.55);
+  color: #c4f0dc;
+}
+
+[data-theme='dark'] .paper-image {
+  filter: brightness(0.88) saturate(0.85);
 }
 
 [data-theme='dark'] .practices-sub-head h1 {

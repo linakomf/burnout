@@ -1,65 +1,37 @@
 import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
-import { ArrowRight, Heart, Play } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { natureAt, SPACE_NATURE_HERO_REF } from './spaceNatureImagery';
+import {
+  SPACE_NATURE_HERO_REF,
+  SPACE_PRACTICES_HERO_VIDEO,
+  SPACE_PRACTICES_PILL_SKY_VIDEO,
+  SPACE_PRACTICES_PILL_SKY_POSTER,
+  SPACE_PRACTICES_PILL_MIST_VIDEO,
+  SPACE_PRACTICES_PILL_MIST_POSTER,
+} from './spaceNatureImagery';
 
-const MEDITATION_VIDEO = `${process.env.PUBLIC_URL}/media/meditation-spotlight.mp4`;
+const practiceCategoryPaperSrc = (id) =>
+  `${process.env.PUBLIC_URL || ''}/images/practices/category-${id}.png`;
+
+const POCKET_LABEL = {
+  films: 'Films',
+  meditation: 'Meditation',
+  podcasts: 'Podcasts',
+  music: 'Music',
+  events: 'Events',
+  articles: 'Articles',
+};
 
 const CATEGORIES = [
-  {
-    id: 'films',
-    path: '/practices/films',
-    title: 'Фильмы',
-    description:
-      'Подборки для тревожности, выгорания и восстановления — смотрите сразу в приложении.',
-    image: natureAt(10),
-    featured: false,
-  },
-  {
-    id: 'meditation',
-    path: '/practices/meditation',
-    title: 'Медитации',
-    description: 'Короткие практики дыхания, фокуса и заземления для ежедневного баланса.',
-    videoSrc: MEDITATION_VIDEO,
-    featured: true,
-  },
-  {
-    id: 'podcasts',
-    path: '/practices/podcasts',
-    title: 'Подкасты',
-    description: 'Спокойные выпуски про тревогу, выгорание и мягкую саморегуляцию.',
-    image: natureAt(11),
-    featured: false,
-  },
-  {
-    id: 'music',
-    path: '/practices/music',
-    title: 'Музыка',
-    description: 'Плейлисты для фокуса, сна и спокойствия — слушайте прямо в разделе.',
-    image: natureAt(12),
-    featured: false,
-  },
-  {
-    id: 'events',
-    path: '/practices/events',
-    title: 'События',
-    description: 'Идеи микрособытий и планов, которые возвращают ощущение жизни вне рутины.',
-    image: natureAt(13),
-    featured: false,
-  },
-  {
-    id: 'articles',
-    path: '/practices/articles',
-    title: 'Статьи',
-    description: 'Выгорание на работе и в учёбе: признаки, восстановление и профилактика — для взрослых и студентов.',
-    image: natureAt(14),
-    featured: false,
-  },
+  { id: 'films', path: '/practices/films', image: practiceCategoryPaperSrc('films'), featured: false },
+  { id: 'meditation', path: '/practices/meditation', image: practiceCategoryPaperSrc('meditation'), featured: true },
+  { id: 'podcasts', path: '/practices/podcasts', image: practiceCategoryPaperSrc('podcasts'), featured: false },
+  { id: 'music', path: '/practices/music', image: practiceCategoryPaperSrc('music'), featured: false },
+  { id: 'events', path: '/practices/events', image: practiceCategoryPaperSrc('events'), featured: false },
+  { id: 'articles', path: '/practices/articles', image: practiceCategoryPaperSrc('articles'), featured: false },
 ];
-
-const HERO_PHOTO = SPACE_NATURE_HERO_REF;
 
 const tileContainerMotion = {
   hidden: {},
@@ -74,6 +46,58 @@ const springReveal = (delay = 0, stiffness = 95, damping = 18) => ({
   damping,
   delay,
 });
+
+/** Три белые карточки под героем: заголовок + короткий текст (ключи локалей T1 / T2 / T3). */
+function PracticesSpaceAnnaFloatCard({
+  revealProps,
+  viewport,
+  nameKey = 'pages.practicesSpaceT1Name',
+  quoteKey = 'pages.practicesSpaceT1Quote',
+}) {
+  const { t } = useLanguage();
+  return (
+    <motion.article
+      className="practices-hero-float-card practices-hero-float-card--plain"
+      {...revealProps}
+      viewport={viewport}
+    >
+      <h3 className="practices-hero-float-script">{t(nameKey)}</h3>
+      <p className="practices-hero-float-text">{t(quoteKey)}</p>
+    </motion.article>
+  );
+}
+
+/** Карточка категории: «лист» (только фото) + мягкий «карман» с волнистым краем. */
+function PracticesPocketTileFace({ cat, t }) {
+  const label = POCKET_LABEL[cat.id];
+  const title = t(`pages.practicesPocket${label}Title`);
+  const desc = t(`pages.practicesPocket${label}Desc`);
+
+  return (
+    <div className="category-card">
+      <div className="category-paper">
+        <img className="paper-image" src={cat.image} alt="" />
+      </div>
+
+      <div className="category-pocket">
+        <div className="pocket-content">
+          <div className="pocket-label">{t('pages.practicesPocketCategoryEyebrow')}</div>
+          <h2 className="pocket-title">{title}</h2>
+
+          <p className="pocket-description">{desc}</p>
+
+          <div className="pocket-tags">
+            <span>{t(`pages.practicesPocket${label}Pill1`)}</span>
+            <span>{t(`pages.practicesPocket${label}Pill2`)}</span>
+            <span>{t(`pages.practicesPocket${label}Pill3`)}</span>
+          </div>
+
+          <div className="pocket-divider" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function PracticesHome() {
   const navigate = useNavigate();
@@ -148,9 +172,29 @@ function PracticesHome() {
         </motion.div>
         <motion.div
           className="practices-landing-hero-photo"
-          style={{ backgroundImage: `url(${HERO_PHOTO})`, y: heroPhotoY, scale: heroPhotoScale }}
+          style={{ y: heroPhotoY, scale: heroPhotoScale }}
           aria-hidden
-        />
+        >
+          {reduce ? (
+            <img
+              src={SPACE_NATURE_HERO_REF}
+              alt=""
+              className="practices-landing-hero-photo-media"
+              decoding="async"
+            />
+          ) : (
+            <video
+              className="practices-landing-hero-photo-media"
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster={SPACE_NATURE_HERO_REF}
+            >
+              <source src={SPACE_PRACTICES_HERO_VIDEO} type="video/mp4" />
+            </video>
+          )}
+        </motion.div>
         <motion.div
           className="practices-landing-hero-airwash"
           style={{ opacity: heroWashOpacity }}
@@ -160,7 +204,6 @@ function PracticesHome() {
           className="practices-landing-hero-inner practices-landing-hero-inner--airy"
           style={{ opacity: heroInnerOpacity, y: heroInnerY }}
         >
-          <p className="practices-landing-kicker practices-landing-kicker--airy">{t('pages.practicesHubKicker')}</p>
           <h1 className="practices-hero-title practices-hero-title--airy">
             {t('pages.practicesSpaceHeroLine1')}{' '}
             <span className="practices-hero-script">{t('pages.practicesSpaceHeroScript')}</span>
@@ -177,46 +220,19 @@ function PracticesHome() {
       </div>
 
       <div className="practices-landing-testimonials">
-        <motion.article
-          className="practices-hero-float-card practices-hero-float-card--plain"
-          {...cardReveal(0)}
+        <PracticesSpaceAnnaFloatCard revealProps={cardReveal(0)} viewport={viewOpts} />
+        <PracticesSpaceAnnaFloatCard
+          revealProps={cardReveal(0.18)}
           viewport={viewOpts}
-        >
-          <h3 className="practices-hero-float-script">{t('pages.practicesSpaceT1Name')}</h3>
-          <p className="practices-hero-float-text">{t('pages.practicesSpaceT1Quote')}</p>
-        </motion.article>
-        <motion.button
-          type="button"
-          className="practices-hero-float-card practices-hero-float-card--spotlight"
-          onClick={() => navigate('/practices/meditation')}
-          aria-label={t('pages.practicesSpaceSpotlightAria')}
-          {...cardReveal(0.18)}
+          nameKey="pages.practicesSpaceT2Name"
+          quoteKey="pages.practicesSpaceT2Quote"
+        />
+        <PracticesSpaceAnnaFloatCard
+          revealProps={cardReveal(0.32)}
           viewport={viewOpts}
-        >
-          <div className="practices-spotlight-scene" aria-hidden>
-            <video
-              className="practices-spotlight-video"
-              src={MEDITATION_VIDEO}
-              autoPlay
-              muted
-              loop
-              playsInline
-            />
-          </div>
-          <p className="practices-spotlight-title">{t('pages.practicesSpaceSpotlightTitle')}</p>
-          <p className="practices-spotlight-sub">{t('pages.practicesSpaceSpotlightSub')}</p>
-          <span className="practices-spotlight-play" aria-hidden>
-            <Play size={22} strokeWidth={2.4} fill="currentColor" />
-          </span>
-        </motion.button>
-        <motion.article
-          className="practices-hero-float-card practices-hero-float-card--plain"
-          {...cardReveal(0.32)}
-          viewport={viewOpts}
-        >
-          <h3 className="practices-hero-float-script">{t('pages.practicesSpaceT3Name')}</h3>
-          <p className="practices-hero-float-text">{t('pages.practicesSpaceT3Quote')}</p>
-        </motion.article>
+          nameKey="pages.practicesSpaceT3Name"
+          quoteKey="pages.practicesSpaceT3Quote"
+        />
       </div>
 
       <section className="practices-landing-services" ref={gridRef} id="practices-space-grid">
@@ -239,20 +255,52 @@ function PracticesHome() {
           transition={reduce ? { duration: 0 } : springReveal(0, 94, 14)}
           viewport={viewOpts}
         >
-          <span className="practices-section-eyebrow">
-            <Heart className="practices-section-heart" size={15} strokeWidth={2.4} aria-hidden />
-            {t('pages.practicesSpaceSectionEyebrow')}
-          </span>
           <span className="practices-section-head-lines">
             <span className="practices-section-line">{t('pages.practicesSpaceHeadL1')}</span>
             <span className="practices-section-line">
               {t('pages.practicesSpaceHeadL2a')}
-              <span className="practices-space-pill practices-space-pill--sky" aria-hidden />
+              {reduce ? (
+                <span
+                  className="practices-space-pill practices-space-pill--sky practices-space-pill--sky-static"
+                  aria-hidden
+                />
+              ) : (
+                <span className="practices-space-pill practices-space-pill--sky" aria-hidden>
+                  <video
+                    className="practices-space-pill-video"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    poster={SPACE_PRACTICES_PILL_SKY_POSTER}
+                  >
+                    <source src={SPACE_PRACTICES_PILL_SKY_VIDEO} type="video/mp4" />
+                  </video>
+                </span>
+              )}
               {t('pages.practicesSpaceHeadL2b')}
             </span>
             <span className="practices-section-line">
               {t('pages.practicesSpaceHeadL3a')}
-              <span className="practices-space-pill practices-space-pill--mist" aria-hidden />
+              {reduce ? (
+                <span
+                  className="practices-space-pill practices-space-pill--mist practices-space-pill--mist-static"
+                  aria-hidden
+                />
+              ) : (
+                <span className="practices-space-pill practices-space-pill--mist" aria-hidden>
+                  <video
+                    className="practices-space-pill-video practices-space-pill-video--mist"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    poster={SPACE_PRACTICES_PILL_MIST_POSTER}
+                  >
+                    <source src={SPACE_PRACTICES_PILL_MIST_VIDEO} type="video/mp4" />
+                  </video>
+                </span>
+              )}
               {t('pages.practicesSpaceHeadL3b')}
             </span>
             <span className="practices-section-line practices-section-line--serif">{t('pages.practicesSpaceHeadL4')}</span>
@@ -266,45 +314,32 @@ function PracticesHome() {
           whileInView="show"
           viewport={viewOpts}
         >
-          {CATEGORIES.map((cat) => (
-            <motion.button
-              key={cat.id}
-              type="button"
-              className={`practices-landing-tile${cat.featured ? ' practices-landing-tile--featured' : ''}`}
-              variants={tileMotion}
-              onClick={() => navigate(cat.path)}
-              aria-label={`${cat.title}. ${cat.description}`}
-            >
-              <span className="practices-landing-tile-card">
-                <span className="practices-landing-tile-mediaWrap" aria-hidden>
-                  <span className="practices-landing-tile-media">
-                    {cat.videoSrc ? (
-                      <video
-                        className="practices-landing-tile-video"
-                        src={cat.videoSrc}
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                      />
-                    ) : (
-                      <span
-                        className="practices-landing-tile-cover"
-                        style={{ backgroundImage: `url(${cat.image})` }}
-                      />
-                    )}
-                  </span>
-                  {cat.featured && (
-                    <span className="practices-landing-tile-badge">{t('pages.practicesTilePopular')}</span>
-                  )}
-                </span>
-                <span className="practices-landing-tile-body">
-                  <strong>{cat.title}</strong>
-                  <span className="practices-landing-tile-desc">{cat.description}</span>
-                </span>
-              </span>
-            </motion.button>
-          ))}
+          {CATEGORIES.map((cat) => {
+            const L = POCKET_LABEL[cat.id];
+            const ariaTitle = t(`pages.practicesPocket${L}Title`);
+            const ariaDesc = t(`pages.practicesPocket${L}Desc`);
+            return (
+              <motion.div
+                key={cat.id}
+                className={`practices-landing-tile practices-landing-tile--pocket practices-landing-tile--theme-${cat.id}${
+                  cat.featured ? ' practices-landing-tile--featured' : ''
+                }`}
+                variants={tileMotion}
+                onClick={() => navigate(cat.path)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate(cat.path);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`${ariaTitle}. ${ariaDesc}`}
+              >
+                <PracticesPocketTileFace cat={cat} t={t} />
+              </motion.div>
+            );
+          })}
         </motion.div>
       </section>
     </div>

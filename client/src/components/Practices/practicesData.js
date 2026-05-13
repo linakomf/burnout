@@ -1,3 +1,5 @@
+import { QUICK_SOUNDS } from './musicHubData';
+
 export const PRACTICE_CATEGORIES = [
 { id: 'films', label: 'Фильмы' },
 { id: 'focus', label: 'Медитация' },
@@ -6,6 +8,26 @@ export const PRACTICE_CATEGORIES = [
 { id: 'articles', label: 'Статьи' },
 { id: 'events', label: 'События' }];
 
+
+const MEDITATION_SOUND_PRACTICES = QUICK_SOUNDS.map((sound) => ({
+  id: `sound-${sound.id.replace('qs-', '')}`,
+  titleKey: sound.labelKey,
+  description: 'Фоновый звук для восстановления и концентрации.',
+  durationMin: 10,
+  format: 'Фоновый звук',
+  category: 'focus',
+  mood: 'Спокойствие',
+  meditationTopics: ['sounds'],
+  playLabel: 'Слушать',
+  coverImage: sound.poster,
+  embedUrl: sound.embedUrl,
+  watchUrl: sound.watchUrl,
+  steps: [
+    'Устройся удобно, при необходимости надень наушники.',
+    'Прислушайся к звуку и позволь дыханию замедлиться.',
+    'Если внимание уходит, мягко возвращайся к звуку.',
+  ],
+}));
 
 export const PRACTICES = [
 {
@@ -16,6 +38,7 @@ export const PRACTICES = [
   format: 'Дыхание + фокус',
   category: 'focus',
   mood: 'Ясность',
+  meditationTopics: ['anxiety', 'sleep', 'recovery'],
   playLabel: 'Убавить шум',
   emoji: '🫧',
   gradient: 'linear-gradient(135deg, #f8d7ff 0%, #dbeafe 45%, #c7f9f1 100%)',
@@ -34,6 +57,7 @@ export const PRACTICES = [
   format: 'Фокус-пауза',
   category: 'focus',
   mood: 'Собранность',
+  meditationTopics: ['focus', 'recovery'],
   playLabel: 'Поймать фокус',
   emoji: '🎯',
   gradient: 'linear-gradient(140deg, #dbeafe 0%, #dfe7ff 50%, #c8f1ff 100%)',
@@ -52,6 +76,7 @@ export const PRACTICES = [
   format: 'Заземление 5-4-3-2-1',
   category: 'grounding',
   mood: 'Опора',
+  meditationTopics: ['anxiety'],
   playLabel: 'Вернуться в момент',
   emoji: '🌿',
   gradient: 'linear-gradient(130deg, #d9fbe7 0%, #d7f8f1 45%, #e6ffd8 100%)',
@@ -106,6 +131,7 @@ export const PRACTICES = [
   format: 'Self-compassion',
   category: 'grounding',
   mood: 'Поддержка',
+  meditationTopics: ['anxiety', 'sleep', 'recovery'],
   playLabel: 'Поддержать себя',
   emoji: '💗',
   gradient: 'linear-gradient(145deg, #ffd8eb 0%, #f5dcff 44%, #e2ddff 100%)',
@@ -124,6 +150,7 @@ export const PRACTICES = [
   format: 'Digital detox',
   category: 'focus',
   mood: 'Присутствие',
+  meditationTopics: ['focus', 'recovery'],
   playLabel: 'Выйти из ленты',
   emoji: '📵',
   gradient: 'linear-gradient(135deg, #d8efff 0%, #e2e4ff 50%, #f0dfff 100%)',
@@ -160,6 +187,7 @@ export const PRACTICES = [
   format: 'Центрирование',
   category: 'focus',
   mood: 'Уверенность',
+  meditationTopics: ['focus', 'anxiety'],
   playLabel: 'Собраться сейчас',
   emoji: '✨',
   gradient: 'linear-gradient(140deg, #e7dcff 0%, #dbe9ff 52%, #dbf8ef 100%)',
@@ -178,6 +206,7 @@ export const PRACTICES = [
   format: 'Активирующее дыхание',
   category: 'focus',
   mood: 'Бодрость',
+  meditationTopics: ['recovery', 'focus'],
   playLabel: 'Включиться',
   emoji: '🍋',
   gradient: 'linear-gradient(135deg, #e4ffd7 0%, #d9fdf5 45%, #dcedff 100%)',
@@ -187,4 +216,5 @@ export const PRACTICES = [
   'Добавь один активный вдох, будто включаешь свет.',
   'Зафиксируй импульс: выбери и начни первый шаг.']
 
-}];
+},
+...MEDITATION_SOUND_PRACTICES];

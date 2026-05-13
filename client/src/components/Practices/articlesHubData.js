@@ -1,121 +1,129 @@
-/** Категории: понимание выгорания, студенты, взрослые/работа, восстановление */
+/** Темы: выгорание, стресс, мотивация, отдых, эмоции, баланс, общение */
 import { natureAt, spaceNature } from './spaceNatureImagery';
 
-export const ARTICLE_CATEGORY_IDS = ['science', 'students', 'adults', 'recovery'];
+export const ARTICLE_CATEGORY_IDS = [
+  'burnout',
+  'stress',
+  'motivation',
+  'rest',
+  'emotions',
+  'balance',
+  'communication',
+];
 
 const ARTICLES_LIBRARY_CORE = [
   {
     id: 'ab1',
-    category: 'science',
+    category: 'burnout',
     titleKey: 'articlesBook1Title',
     url: 'https://www.who.int/news-room/questions-and-answers/item/burn-out-an-occupational-phenomenon',
   },
   {
     id: 'ab2',
-    category: 'students',
+    category: 'communication',
     titleKey: 'articlesBook2Title',
     url: 'https://www.apa.org/monitor/2021/11/young-people-burnout',
   },
   {
     id: 'ab3',
-    category: 'recovery',
+    category: 'rest',
     titleKey: 'articlesBook3Title',
     url: 'https://www.mayoclinic.org/healthy-lifestyle/adult-health/in-depth/burnout/art-20046642',
   },
   {
     id: 'ab4',
-    category: 'science',
+    category: 'burnout',
     titleKey: 'articlesBook4Title',
     url: 'https://www.mind.org.uk/information-support/types-of-mental-health-problems/burnout/what-is-burnout/',
   },
   {
     id: 'ab5',
-    category: 'adults',
+    category: 'stress',
     titleKey: 'articlesBook5Title',
     url: 'https://www.apa.org/topics/job-stress',
   },
   {
     id: 'ab6',
-    category: 'students',
+    category: 'emotions',
     titleKey: 'articlesBook6Title',
     url: 'https://www.mentalhealth.org.uk/explore-mental-health/a-z-topics/student-mental-health',
   },
   {
     id: 'ab7',
-    category: 'recovery',
+    category: 'rest',
     titleKey: 'articlesBook7Title',
     url: 'https://www.sleepfoundation.org/mental-health/burnout-and-insomnia',
   },
   {
     id: 'ab8',
-    category: 'adults',
+    category: 'emotions',
     titleKey: 'articlesBook8Title',
     url: 'https://www.nimh.nih.gov/health/topics/depression',
   },
   {
     id: 'ab9',
-    category: 'adults',
+    category: 'burnout',
     titleKey: 'articlesBook9Title',
     url: 'https://www.cdc.gov/vitalsigns/burnout-syndrome/index.html',
   },
   {
     id: 'ab10',
-    category: 'students',
+    category: 'motivation',
     titleKey: 'articlesBook10Title',
     url: 'https://www.apa.org/gradpsych/2011/11/cover-perfectionism',
   },
   {
     id: 'ab11',
-    category: 'recovery',
+    category: 'balance',
     titleKey: 'articlesBook11Title',
     url: 'https://www.helpguide.org/articles/stress/burnout-prevention-and-recovery.htm',
   },
   {
     id: 'ab12',
-    category: 'science',
+    category: 'stress',
     titleKey: 'articlesBook12Title',
     url: 'https://www.health.harvard.edu/blog/stress-damages-the-brain-and-body-even-young-adults-201406096499',
   },
   {
     id: 'ab13',
-    category: 'adults',
+    category: 'burnout',
     titleKey: 'articlesBook13Title',
     url: 'https://www.apa.org/monitor/2021/01/trends-burnout',
   },
   {
     id: 'ab14',
-    category: 'recovery',
+    category: 'stress',
     titleKey: 'articlesBook14Title',
     url: 'https://www.apa.org/topics/stress/tips',
   },
   {
     id: 'ab15',
-    category: 'adults',
+    category: 'balance',
     titleKey: 'articlesBook15Title',
     url: 'https://www.apa.org/pi/about/newsletter/articles/stress-resilience',
   },
   {
     id: 'ab16',
-    category: 'recovery',
+    category: 'balance',
     titleKey: 'articlesBook16Title',
     url: 'https://www.helpguide.org/articles/addictions/phone-computer-internet-addiction.htm',
   },
   {
     id: 'ab17',
-    category: 'students',
+    category: 'motivation',
     titleKey: 'articlesBook17Title',
     url: 'https://www.apa.org/gradpsych/2015/11/cover-burnout',
   },
   {
     id: 'ab18',
-    category: 'science',
+    category: 'burnout',
     titleKey: 'articlesBook18Title',
     url: 'https://www.who.int/standards/classifications/frequently-asked-questions/burn-out-an-occupational-phenomenon/',
   },
 ];
 
 /**
- * Материалы о выгорании и восстановлении (взрослые и студенты).
+ * Материалы по темам: выгорание, стресс, мотивация, отдых, эмоции, баланс, общение.
  * @type {Array<{ id: string, category: string, titleKey: string, image: string, url: string }>}
  */
 export const ARTICLES_LIBRARY = ARTICLES_LIBRARY_CORE.map((row, index) => ({
@@ -131,8 +139,8 @@ export function getFilteredArticles(categoryId) {
   return ARTICLES_LIBRARY.filter((a) => a.category === categoryId);
 }
 
-/** Сколько «книг» на одной полке */
-export const BOOKS_PER_SHELF = 6;
+/** Сколько карточек на одной полке (одна линия в сетке) */
+export const BOOKS_PER_SHELF = 5;
 
 export function buildShelves(list) {
   if (!list.length) return [[], [], []];

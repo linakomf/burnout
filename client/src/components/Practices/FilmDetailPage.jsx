@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, ChevronDown, Play, Quote } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Play } from 'lucide-react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { FILM_CATEGORIES, getFilmById, posterToBackdropUrl } from './filmsCatalogData';
@@ -22,6 +22,8 @@ function genreTokens(genresStr) {
     .filter(Boolean);
 }
 
+const FILM_DETAIL_GALLERY_MAX = 6;
+
 function FilmDetailPage() {
   const { filmId } = useParams();
   const navigate = useNavigate();
@@ -41,12 +43,10 @@ function FilmDetailPage() {
   const tags = genreTokens(film.genres).slice(0, 5);
   const score = Math.min(10, Math.max(0, parseFloat(film.rating) || 0));
   const scoreDisplay = Number.isInteger(score) ? String(score) : score.toFixed(1);
-  const r = 54;
-  const c = 2 * Math.PI * r;
-  const dashOffset = c * (1 - score / 10);
   const galleryImages =
-    film.gallery && film.gallery.length > 0 ? film.gallery : Array.from({ length: 9 }, () => film.poster);
-  const quoteText = film.quote || film.description;
+    film.gallery && film.gallery.length > 0
+      ? film.gallery.slice(0, FILM_DETAIL_GALLERY_MAX)
+      : Array.from({ length: FILM_DETAIL_GALLERY_MAX }, () => film.poster);
 
   const categoryLabel = t(
     `pages.${FILM_CATEGORIES.find((cItem) => cItem.id === film.categoryId)?.labelKey || 'filmCatBurnout'}`
@@ -71,6 +71,13 @@ function FilmDetailPage() {
           <div className="film-detail-hero__text-block">
             <h1 className="film-detail-title">{film.title}</h1>
             <p className="film-detail-meta">{metaLine}</p>
+            <p className="film-detail-community-inline">
+              <span className="film-detail-community-inline__label">
+                {t('pages.filmDetailCommunityRating')}
+              </span>
+              <span className="film-detail-community-inline__score">{scoreDisplay}</span>
+              <span className="film-detail-community-inline__max">/10</span>
+            </p>
 
             {film.director ? (
               <p className="film-detail-credit">
@@ -110,25 +117,6 @@ function FilmDetailPage() {
               {t(`pages.filmPsych_${film.psychTag}`)} · {categoryLabel}
             </p>
           </div>
-
-          <div className="film-detail-rating-block">
-            <div className="film-detail-rating-ring" aria-hidden>
-              <svg viewBox="0 0 120 120" className="film-detail-rating-svg">
-                <circle className="film-detail-rating-track" cx="60" cy="60" r={r} />
-                <circle
-                  className="film-detail-rating-fill"
-                  cx="60"
-                  cy="60"
-                  r={r}
-                  strokeDasharray={c}
-                  strokeDashoffset={dashOffset}
-                  transform="rotate(-90 60 60)"
-                />
-              </svg>
-              <span className="film-detail-rating-num">{scoreDisplay}</span>
-            </div>
-            <p className="film-detail-rating-caption">{t('pages.filmDetailCommunityRating')}</p>
-          </div>
         </div>
       </section>
 
@@ -145,7 +133,7 @@ function FilmDetailPage() {
           </button>
           {galleryOpen ? (
             <div className="film-detail-gallery-grid">
-              {galleryImages.slice(0, 9).map((src, i) => (
+              {galleryImages.slice(0, FILM_DETAIL_GALLERY_MAX).map((src, i) => (
                 <div key={`${src}-${i}`} className="film-detail-gallery-cell">
                   <img src={src} alt="" loading="lazy" />
                 </div>
@@ -153,11 +141,6 @@ function FilmDetailPage() {
             </div>
           ) : null}
         </section>
-
-        <blockquote className="film-detail-quote">
-          <Quote className="film-detail-quote__icon" size={44} strokeWidth={1.5} aria-hidden />
-          <p>{quoteText}</p>
-        </blockquote>
       </div>
     </div>
   );

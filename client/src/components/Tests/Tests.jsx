@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Bell,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
   Clock,
   Cloud,
-  Flame,
   Heart,
-  LayoutGrid,
-  Leaf,
-  Moon,
   Send,
-  Smile,
-  Star,
-  UserCircle
+  Star
 } from 'lucide-react';
 import api from '../../utils/api';
 import { useLanguage } from '../../context/LanguageContext';
@@ -68,16 +61,7 @@ export function bucketToAccent(bucket) {
   return 'plain';
 }
 
-const THEME_FILTER_CHIPS = [
-  { id: 'all', Icon: LayoutGrid },
-  { id: 'stress', Icon: Flame },
-  { id: 'mood', Icon: Smile },
-  { id: 'burnout', Icon: Leaf },
-  { id: 'anxiety', Icon: Bell },
-  { id: 'resource', Icon: UserCircle },
-  { id: 'sleep', Icon: Moon },
-  { id: 'motivation', Icon: Star }
-];
+const THEME_FILTER_IDS = ['all', 'stress', 'mood', 'burnout', 'anxiety', 'resource', 'sleep', 'motivation'];
 
 export function matchThemeFilter(test, filterId) {
   if (filterId === 'all') return true;
@@ -331,7 +315,7 @@ export const TestsList = () => {
           </header>
 
           <div className="tests-mock-chips tests-mock-chips--v2" role="tablist" aria-label={t('pages.testsFilter')}>
-            {THEME_FILTER_CHIPS.map(({ id, Icon }) => {
+            {THEME_FILTER_IDS.map((id) => {
               const active = filter === id;
               return (
                 <button
@@ -341,8 +325,7 @@ export const TestsList = () => {
                   aria-selected={active}
                   className={`tests-mock-chip tests-mock-chip--v2 ${active ? 'tests-mock-chip--active tests-mock-chip--v2-active' : ''}`}
                   onClick={() => setFilter(id)}>
-                  <Icon className="tests-mock-chip-svg" strokeWidth={1.75} aria-hidden />
-                  <span>{t(`testsThemeFilter.${id}`)}</span>
+                  {t(`testsThemeFilter.${id}`)}
                 </button>);
             })}
           </div>

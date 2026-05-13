@@ -2,82 +2,21 @@ import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
-import { natureAt } from './spaceNatureImagery';
+import { getFilmById } from './filmsCatalogData';
 
 const COLLECTIONS = {
   'banner-1': {
     kicker: 'Мягкий вечер',
     title: 'Мягкий вечер',
-    lead: 'Фильмы, которые помогают переключиться после насыщенного дня, немного выдохнуть и провести вечер в спокойной атмосфере.',
-    cards: [
-      {
-        title: 'Амели',
-        sub: 'История мечтательной девушки из Парижа, которая незаметно помогает людям вокруг себя и учится открываться собственным чувствам.',
-        image: natureAt(110),
-      },
-      {
-        title: '1+1',
-        sub: 'Богатый мужчина после несчастного случая нанимает помощника, и между ними появляется неожиданная дружба, меняющая жизнь обоих.',
-        image: natureAt(111),
-      },
-      {
-        title: 'Отпуск по обмену',
-        sub: 'Две женщины из разных стран меняются домами на время отпуска, чтобы отвлечься от проблем и начать жизнь с нового настроения.',
-        image: natureAt(112),
-      },
-      {
-        title: 'Паддингтон',
-        sub: 'Добрый медвежонок приезжает в Лондон и попадает в семью, где его ждут смешные ситуации, приключения и тепло.',
-        image: natureAt(113),
-      },
-      {
-        title: 'Полночь в Париже',
-        sub: 'Лёгкая и уютная история о поиске вдохновения, которая мягко переключает мысли и возвращает ощущение внутреннего покоя.',
-        image: natureAt(114),
-      },
-      {
-        title: 'Джули и Джулия',
-        sub: 'Тёплый фильм о маленьких шагах и поддержке себя в повседневности, когда хочется вернуть вкус к жизни.',
-        image: natureAt(115),
-      },
-    ],
+    lead:
+      'Фильмы, которые помогают переключиться после насыщенного дня, немного выдохнуть и провести вечер в спокойной атмосфере.',
+    filmIds: ['f13', 'f14', 'f21', 'f11', 'f8', 'f5'],
   },
   'banner-2': {
     kicker: 'Вернуть силы',
     title: 'Вернуть силы',
     lead: 'Подборка для дней, когда чувствуешь усталость и выгорание.',
-    cards: [
-      {
-        title: 'Душа',
-        sub: 'Учитель музыки мечтает стать джазовым музыкантом, но неожиданно попадает в необычный мир, где начинает по-новому понимать жизнь и её смысл.',
-        image: natureAt(120),
-      },
-      {
-        title: 'Стажёр',
-        sub: 'Пожилой мужчина становится стажёром в современной компании и помогает молодой руководительнице справляться с работой, усталостью и давлением.',
-        image: natureAt(121),
-      },
-      {
-        title: 'Всегда говори «Да»',
-        sub: 'Мужчина, привыкший отказываться от всего нового, решает говорить «да» любым возможностям и постепенно меняет свою жизнь.',
-        image: natureAt(122),
-      },
-      {
-        title: 'Форрест Гамп',
-        sub: 'История доброго и простого человека, который проходит через важные события жизни, не теряя искренности, любви и веры в лучшее.',
-        image: natureAt(123),
-      },
-      {
-        title: 'Невероятная жизнь Уолтера Митти',
-        sub: 'Фильм о внутреннем перезапуске и смелости выйти из рутины, когда кажется, что силы на нуле.',
-        image: natureAt(124),
-      },
-      {
-        title: 'Вселенная Стивена Хокинга',
-        sub: 'История стойкости и силы духа, которая помогает по-новому взглянуть на трудности и сохранить мотивацию.',
-        image: natureAt(125),
-      },
-    ],
+    filmIds: ['f1', 'f7', 'f6', 'f15', 'f2', 'f9'],
   },
 };
 
@@ -89,9 +28,9 @@ function FilmsBannerCollectionPage() {
 
   return (
     <section className="films-collection-page fade-in">
-      <button type="button" className="flix-back" onClick={() => navigate('/practices/films')}>
-        <ArrowLeft size={18} strokeWidth={2} aria-hidden />
-        {t('pages.practicesBackToHub')}
+      <button type="button" className="films-collection-back" onClick={() => navigate('/practices/films')}>
+        <ArrowLeft size={18} strokeWidth={2.2} aria-hidden />
+        {t('pages.filmDetailBack')}
       </button>
 
       <section className="practices-landing-services films-collection-services">
@@ -150,20 +89,31 @@ function FilmsBannerCollectionPage() {
           <p className="films-collection-headline-lead">{data.lead}</p>
         </header>
 
-        <div className="practices-landing-stagger">
-          {data.cards.map((card, index) => (
-            <article key={`${card.title}-${index}`} className="practices-landing-tile">
-              <span
-                className="practices-landing-tile-media"
-                style={{ backgroundImage: `url(${card.image})` }}
-                aria-hidden
-              />
-              <span className="practices-landing-tile-body">
-                <strong>{card.title}</strong>
-                <span className="practices-landing-tile-desc">{card.sub}</span>
-              </span>
-            </article>
-          ))}
+        <div className="films-collection-film-grid">
+          {data.filmIds.map((id) => {
+            const film = getFilmById(id);
+            if (!film) return null;
+            return (
+              <button
+                key={id}
+                type="button"
+                className="films-collection-film-card"
+                onClick={() => navigate(`/practices/films/${film.id}`)}
+              >
+                <div className="films-collection-film-card__poster-wrap">
+                  <img src={film.poster} alt="" className="films-collection-film-card__poster" loading="lazy" />
+                </div>
+                <h3 className="films-collection-film-card__title">{film.title}</h3>
+                <div className="films-collection-film-card__meta">
+                  <span className="films-collection-film-card__star" aria-hidden>
+                    ★
+                  </span>
+                  {film.rating} · {film.year}
+                </div>
+                <span className="films-collection-film-card__tag">{t(`pages.filmPsych_${film.psychTag}`)}</span>
+              </button>
+            );
+          })}
         </div>
       </section>
     </section>

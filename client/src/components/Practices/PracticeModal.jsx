@@ -32,6 +32,7 @@ function PracticeModal({ practice, onClose, variant = 'default', favorite = fals
 
   const coverSrc = practice.coverImage || defaultMeditationCover;
   const durationLabel = `${String(practice.durationMin).padStart(2, '0')}:00`;
+  const practiceTitle = practice.titleKey ? t(`pages.${practice.titleKey}`) : practice.title;
 
   const meditationBody = (
     <>
@@ -48,7 +49,7 @@ function PracticeModal({ practice, onClose, variant = 'default', favorite = fals
       <div className="practices-modal-meditation-hero">
         <div className="practices-modal-meditation-cover" style={{ backgroundImage: `url(${coverSrc})` }} role="img" aria-hidden />
         <div className="practices-modal-meditation-copy">
-          <h2 className="practices-modal-meditation-title">{practice.title}</h2>
+          <h2 className="practices-modal-meditation-title">{practiceTitle}</h2>
           <p className="practices-modal-meditation-subtitle">{practice.format}</p>
           <p className="practices-modal-meditation-desc">{practice.description}</p>
         </div>
@@ -101,7 +102,7 @@ function PracticeModal({ practice, onClose, variant = 'default', favorite = fals
 
       <p className="practices-modal-format">{practice.format}</p>
       <h2 className="practices-modal-title">
-        <span aria-hidden>{practice.emoji || '🌸'}</span> {practice.title}
+        <span aria-hidden>{practice.emoji || '🌸'}</span> {practiceTitle}
       </h2>
       <p className="practices-modal-desc">{practice.description}</p>
 
