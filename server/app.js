@@ -13,11 +13,15 @@ const { ensureTestCatalog } = require('./ensureTestCatalog');
 const { ensureSupportRequestsSchema } = require('./ensureSupportRequestsSchema');
 
 if (!process.env.JWT_SECRET?.trim()) {
-  if (process.env.NODE_ENV === 'production') {
+  const strictProd = process.env.NODE_ENV === 'production' && !process.env.VERCEL;
+  if (strictProd) {
     throw new Error('FATAL: задайте JWT_SECRET в server/.env');
   }
   process.env.JWT_SECRET = 'dev-insecure-burnout-jwt';
-  console.warn('⚠️ JWT_SECRET не задан — для локального запуска используется временный ключ.');
+  const hint = process.env.VERCEL
+    ? 'задайте JWT_SECRET в Environment Variables на Vercel'
+    : 'для локального запуска используется временный ключ';
+  console.warn(`⚠️ JWT_SECRET не задан — ${hint}.`);
 }
 
 const app = express();
