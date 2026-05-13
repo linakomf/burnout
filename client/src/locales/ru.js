@@ -365,8 +365,8 @@ export default {
     regBack: 'Назад',
     regStep2Title: 'Выберите персонажа',
     regStep2Subtitle: 'Выберите аватар для профиля.',
-    regGenderBoy: 'Мужчина',
-    regGenderGirl: 'Женщина',
+    regGenderBoy: 'Парень',
+    regGenderGirl: 'Девушка',
     regGenderHint: 'Можно сменить позже в профиле.',
     regPickAvatar: 'Аватар',
     regSubmit: 'Зарегистрироваться',
@@ -380,7 +380,7 @@ export default {
     errSave: 'Не удалось сохранить. Попробуйте ещё раз.',
     backToRegister: 'Назад к регистрации',
     backToRegisterAria: 'Выйти и вернуться к форме регистрации',
-    avatarByRoleHint: 'Персонаж подбирается автоматически: студент / преподаватель и мужчина / женщина.'
+    avatarByRoleHint: 'Персонаж подбирается автоматически: студент / преподаватель и парень / девушка.'
   },
   pages: {
     practicesTitle: 'Пространство',
