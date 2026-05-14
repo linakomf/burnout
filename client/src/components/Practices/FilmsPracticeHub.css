@@ -60,7 +60,7 @@
 .flix-brand {
   font-family: var(--font-sans);
   font-size: clamp(1.15rem, 2.5vw, 1.45rem);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
   color: #ffffff;
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
@@ -210,7 +210,7 @@
 
 .flix-user-text strong {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   color: #fff;
   letter-spacing: -0.02em;
 }
@@ -280,7 +280,7 @@
   bottom: 64px;
   margin: 0;
   font-size: clamp(1rem, 2.2vw, 1.25rem);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.25;
   color: #fff;
   text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
@@ -376,7 +376,7 @@
 .flix-trending-title {
   margin: 0;
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 700;
   color: #fff;
   letter-spacing: -0.02em;
 }
@@ -449,7 +449,7 @@
 .flix-poster h3 {
   margin: 10px 0 4px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.3;
   color: rgba(255, 255, 255, 0.95);
   letter-spacing: -0.01em;
@@ -481,7 +481,7 @@
 .flix-wellness-label {
   margin: 0 0 12px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.45);
@@ -817,9 +817,9 @@
 }
 
 .flix-catalog-title-v2 {
-  font-family: 'Manrope', 'Plus Jakarta Sans', var(--font-sans), system-ui, sans-serif;
+  font-family: 'Nunito', var(--font-sans), system-ui, sans-serif;
   font-size: clamp(1.9rem, 3.8vw, 2.6rem);
-  font-weight: 800;
+  font-weight: 700;
   font-style: normal;
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -974,7 +974,7 @@
   max-width: 320px;
   font-size: clamp(1.2rem, 2.2vw, 1.55rem);
   line-height: 1.15;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.02em;
 }
 
@@ -1357,7 +1357,7 @@
 .flix-scope--mindwell .flix-section-heading--primary {
   margin: 0 0 10px;
   font-size: clamp(1.25rem, 2.2vw, 1.5rem);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.02em;
   text-transform: none;
   color: #0f172a;
@@ -1428,7 +1428,7 @@
 .flix-scope--mindwell .flix-film-card__title {
   margin: 14px 4px 6px;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.3;
   color: var(--mw-ink);
   letter-spacing: -0.01em;
@@ -1647,7 +1647,7 @@
   align-items: center;
   gap: 10px;
   font-size: clamp(2.2rem, 4.1vw, 3.2rem);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.08;
   letter-spacing: -0.03em;
   color: #253244;
@@ -1751,7 +1751,7 @@
 .films-collection-film-card__title {
   margin: 14px 4px 6px;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.3;
   color: var(--mw-ink);
   letter-spacing: -0.01em;

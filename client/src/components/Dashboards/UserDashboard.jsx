@@ -81,7 +81,7 @@ const UserDashboard = () => {
           </h1>
           <p>
             Это ваш личный кабинет по скринингу выгорания. Пройдите тест или откройте полный функционал приложения
-            — дневник, раздел «Пространство» и аналитику.
+            - дневник, раздел «Пространство» и аналитику.
           </p>
 
           <div className={`ud-status ${status.key}`}>
@@ -129,10 +129,10 @@ const UserDashboard = () => {
                 <tbody>
                   {results.map((r) =>
                 <tr key={r.result_id}>
-                      <td style={{ fontWeight: 700 }}>{r.title || '—'}</td>
-                      <td>{r.created_at ? new Date(r.created_at).toLocaleString('ru') : '—'}</td>
-                      <td>{r.score ?? '—'}</td>
-                      <td>{r.level || '—'}</td>
+                      <td style={{ fontWeight: 700 }}>{r.title || '-'}</td>
+                      <td>{r.created_at ? new Date(r.created_at).toLocaleString('ru') : '-'}</td>
+                      <td>{r.score ?? '-'}</td>
+                      <td>{r.level || '-'}</td>
                     </tr>
                 )}
                 </tbody>

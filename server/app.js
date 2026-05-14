@@ -21,7 +21,7 @@ if (!process.env.JWT_SECRET?.trim()) {
   const hint = process.env.VERCEL
     ? 'задайте JWT_SECRET в Environment Variables на Vercel'
     : 'для локального запуска используется временный ключ';
-  console.warn(`⚠️ JWT_SECRET не задан — ${hint}.`);
+  console.warn(`⚠️ JWT_SECRET не задан - ${hint}.`);
 }
 
 const app = express();

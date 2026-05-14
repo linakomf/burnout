@@ -18,7 +18,7 @@
   margin: 0 auto;
   padding: 22px 16px 52px;
   box-sizing: border-box;
-  font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+  font-family: var(--font-sans, 'Nunito', system-ui, sans-serif);
   min-height: calc(100dvh - 48px);
   border-radius: 0;
   overflow: visible;
@@ -64,7 +64,7 @@
 
 .analytics-title {
   font-size: clamp(26px, 3.6vw, 34px);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--a-text);
   margin: 0 0 6px;
@@ -228,7 +228,7 @@
 .analytics-kpi-value {
   margin: 0;
   font-size: 30px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--analytics-blue-deep);
   letter-spacing: -0.03em;
 }
@@ -526,7 +526,7 @@
 
 .analytics-donut-ratio {
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--a-text);
 }
 

@@ -35,21 +35,21 @@ const TEST_PATHS = [
   key: 'heal',
   preferIds: [2, 5, 4],
   title: 'Вдохновение',
-  lead: 'Короткий опрос о перегрузке и восстановлении — с прогрессом по шагам.',
+  lead: 'Короткий опрос о перегрузке и восстановлении - с прогрессом по шагам.',
   accent: 'heal'
 },
 {
   key: 'discover',
   preferIds: [6, 3],
   title: 'Импульс',
-  lead: 'Тревога и внутреннее напряжение — взглянуть на то, что происходит сейчас.',
+  lead: 'Тревога и внутреннее напряжение - взглянуть на то, что происходит сейчас.',
   accent: 'discover'
 },
 {
   key: 'insight',
   preferIds: [7, 5],
   title: 'Баланс дня',
-  lead: 'Короткий чек-ин: настроение и ресурс — для регулярной динамики.',
+  lead: 'Короткий чек-ин: настроение и ресурс - для регулярной динамики.',
   accent: 'insight'
 }];
 
@@ -311,7 +311,6 @@ export const TestsList = () => {
               </h1>
               <p className="tests-mock-lead tests-mock-lead--v2">{t('pages.testsLead')}</p>
             </div>
-            <p className="tests-mock-hero-aside tests-mock-hero-aside--v2">{t('pages.testsHeroAside')}</p>
           </header>
 
           <div className="tests-mock-chips tests-mock-chips--v2" role="tablist" aria-label={t('pages.testsFilter')}>

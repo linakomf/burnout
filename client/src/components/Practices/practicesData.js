@@ -201,7 +201,7 @@ export const PRACTICES = [
 {
   id: 'energy-spark',
   title: 'Искра энергии',
-  description: 'Когда тяжело начать — запускает мягкий внутренний тонус.',
+  description: 'Когда тяжело начать - запускает мягкий внутренний тонус.',
   durationMin: 2,
   format: 'Активирующее дыхание',
   category: 'focus',

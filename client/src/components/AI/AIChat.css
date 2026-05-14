@@ -34,7 +34,7 @@
   display: flex; align-items: center;
   justify-content: center; color: #1a1a1a;
 }
-.ai-name { display: block; font-size: 14px; font-weight: 700; color: #fff; }
+.ai-name { display: block; font-size: 14px; font-weight: var(--font-weight-bold, 700); color: #fff; }
 .ai-status { display: block; font-size: 11px; color: #c5d87a; }
 .ai-close {
   width: 28px; height: 28px; border-radius: 8px; border: none;

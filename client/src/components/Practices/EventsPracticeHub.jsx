@@ -231,7 +231,7 @@ function EventsPracticeHub() {
   const [tfMood, setTfMood] = useState(null);
   /** Полный каталог: все карточки, без лендинга */
   const [listOnlyView, setListOnlyView] = useState(false);
-  /** После «Смотреть все» в обычном режиме — показать все карточки в ленте */
+  /** После «Смотреть все» в обычном режиме - показать все карточки в ленте */
   const [showAllEvents, setShowAllEvents] = useState(false);
 
   const categories = useMemo(

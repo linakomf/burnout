@@ -40,7 +40,7 @@
 .podcast-hub-title {
   margin: 0;
   font-size: clamp(1.5rem, 3.2vw, 2rem);
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   letter-spacing: -0.03em;
   color: var(--ph-text);
 }
@@ -60,7 +60,7 @@
 .podcast-hub-section-title {
   margin: 0 0 18px;
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--ph-text);
   letter-spacing: -0.02em;
 }
@@ -127,7 +127,7 @@
 .podcast-hub-pick-body strong {
   display: block;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--ph-text);
   line-height: 1.3;
 }
@@ -147,7 +147,7 @@
   display: block;
   margin-top: 8px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--ph-muted);
 }
 
@@ -199,7 +199,7 @@
 .podcast-hub-recent-title {
   display: block;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--ph-text);
 }
 
@@ -212,7 +212,7 @@
 
 .podcast-hub-recent-dur {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--ph-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -287,7 +287,7 @@
 .podcast-hub-side-heading {
   margin: 0 0 14px;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--ph-text);
 }
 
@@ -320,7 +320,7 @@
 .podcast-hub-player-meta-top strong {
   display: block;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--ph-text);
   line-height: 1.3;
 }
@@ -341,7 +341,7 @@
 
 .podcast-hub-player-time {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--ph-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -380,7 +380,7 @@
   background: transparent;
   color: var(--ph-muted);
   font-size: 9px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   cursor: default;
   line-height: 1;
 }
@@ -447,7 +447,7 @@
   border: 1px solid #e2e8f0;
   background: #f8fafc;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--ph-text);
   cursor: pointer;
   text-decoration: none;
@@ -483,7 +483,7 @@
   border-radius: 999px;
   font-family: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   cursor: pointer;
   transition: transform 0.12s ease;
 }

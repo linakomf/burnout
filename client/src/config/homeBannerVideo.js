@@ -2,7 +2,7 @@ const base = (path) => `${(process.env.PUBLIC_URL || '').replace(/\/$/, '')}${pa
 
 const STORAGE_KEY = 'burnout_banner_profile';
 
-/** Пути в public/media — совпадают с комбинациями роль + пол из онбординга (boy/girl). */
+/** Пути в public/media - совпадают с комбинациями роль + пол из онбординга (boy/girl). */
 const BY_KEY = {
   'student:boy': '/media/student-boy.mp4',
   'student:girl': '/media/student-girl.mp4',
@@ -53,8 +53,8 @@ export function syncBannerProfileFromUser(u) {
 }
 
 /**
- * @param {string | undefined} role — 'student' | 'teacher' | ...
- * @param {string | undefined} gender — 'boy' | 'girl' из профиля
+ * @param {string | undefined} role - 'student' | 'teacher' | ...
+ * @param {string | undefined} gender - 'boy' | 'girl' из профиля
  * @returns {string} абсолютный URL для <source src>
  */
 export function getHomeBannerVideoSrc(role, gender) {

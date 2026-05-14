@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        // Не помечаем опрос пройденным из localStorage до успешного POST — иначе новый user_id
+        // Не помечаем опрос пройденным из localStorage до успешного POST - иначе новый user_id
         // с «чужим» pending или тестовым ключом сразу уходит на /dashboard без опроса.
         setUser((prev) => {
           const merged = mergeMeResponse(server, prev);

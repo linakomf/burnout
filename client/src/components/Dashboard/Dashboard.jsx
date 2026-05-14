@@ -44,6 +44,7 @@ import adviceMusicCover from '../../assets/advice-music.png';
 import adviceActivityCover from '../../assets/advice-activity.png';
 import testsNavIcon from '../../assets/tests-nav-icon.png';
 import { resolveHomeBannerVideoSrc } from '../../config/homeBannerVideo';
+import { moodEmojiUrl } from '../../utils/moodEmojiAssets';
 import './Dashboard.css';
 
 const ONBOARD_KEY = 'burnout_onboarding_v1';
@@ -64,10 +65,6 @@ const ADVICE_CARD_DEFS = [
   { key: 'meditate', path: '/practices/meditation', natureIdx: 9, theme: 'violet', Icon: Moon }
 ];
 
-/** Flat emoji PNGs (Twemoji) — одинаково на всех ОС, без «пластиковых» системных смайлов */
-const CHECKIN_MOOD_EMOJI_CDN =
-  'https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.0.3/assets/72x72';
-
 /** Иконки строк в модалке «Подробнее» (настроение / стресс / энергия) */
 const DETAILS_ROW_TWEMOJI = {
   mood: '2600',
@@ -76,11 +73,11 @@ const DETAILS_ROW_TWEMOJI = {
 };
 
 const MOOD_PILLS = [
-  { id: 0, emojiFile: '1f601', labelClass: 'mood-pill--excellent' },
+  { id: 0, emojiFile: '1f604', labelClass: 'mood-pill--excellent' },
   { id: 1, emojiFile: '1f642', labelClass: 'mood-pill--good' },
   { id: 2, emojiFile: '1f610', labelClass: 'mood-pill--ok' },
   { id: 3, emojiFile: '1f614', labelClass: 'mood-pill--sad' },
-  { id: 4, emojiFile: '1f630', labelClass: 'mood-pill--anxious' }
+  { id: 4, emojiFile: '1f625', labelClass: 'mood-pill--anxious' }
 ];
 
 function moodStateBand(pct) {
@@ -665,12 +662,11 @@ const Dashboard = () => {
         <header className="dash-advice__head">
           <div className="dash-advice__badge">💙 {t('dash.advice.dayLabel')}</div>
           <h2 className="dash-advice__title">
-            {t('dash.advice.titleMain')}{' '}
+            <span className="dash-advice__title-main">{t('dash.advice.titleMain')}</span>{' '}
             <span className="dash-advice__title-accent">{t('dash.advice.titleAccent')}</span>
           </h2>
           <p className="dash-advice__lead">{t('dash.advice.subLine1')}</p>
           <p className="dash-advice__lead dash-advice__lead--second">{t('dash.advice.subLine2')}</p>
-          <p className="dash-advice__lead dash-advice__lead--second">{t('dash.advice.subLine3')}</p>
         </header>
         <div className="dash-advice__strip">
           {adviceCards.map((card) => {
@@ -742,7 +738,7 @@ const Dashboard = () => {
               
                   <img
                     className="checkin-mood-emoji"
-                    src={`${CHECKIN_MOOD_EMOJI_CDN}/${m.emojiFile}.png`}
+                    src={moodEmojiUrl(m.emojiFile)}
                     alt=""
                     loading="lazy"
                     decoding="async"
@@ -966,7 +962,7 @@ const Dashboard = () => {
               <li className="dash-details-row dash-details-row--mood">
                 <img
                   className="dash-details-emoji"
-                  src={`${CHECKIN_MOOD_EMOJI_CDN}/${DETAILS_ROW_TWEMOJI.mood}.png`}
+                  src={moodEmojiUrl(DETAILS_ROW_TWEMOJI.mood)}
                   alt=""
                   loading="lazy"
                   decoding="async"
@@ -982,7 +978,7 @@ const Dashboard = () => {
               <li className="dash-details-row dash-details-row--stress">
                 <img
                   className="dash-details-emoji"
-                  src={`${CHECKIN_MOOD_EMOJI_CDN}/${DETAILS_ROW_TWEMOJI.stress}.png`}
+                  src={moodEmojiUrl(DETAILS_ROW_TWEMOJI.stress)}
                   alt=""
                   loading="lazy"
                   decoding="async"
@@ -998,7 +994,7 @@ const Dashboard = () => {
               <li className="dash-details-row dash-details-row--energy">
                 <img
                   className="dash-details-emoji"
-                  src={`${CHECKIN_MOOD_EMOJI_CDN}/${DETAILS_ROW_TWEMOJI.energy}.png`}
+                  src={moodEmojiUrl(DETAILS_ROW_TWEMOJI.energy)}
                   alt=""
                   loading="lazy"
                   decoding="async"
@@ -1047,7 +1043,7 @@ const Dashboard = () => {
       {showOnboarding &&
       <div className="modal-overlay" role="dialog" aria-labelledby="onboard-title">
           <div className="modal-card fade-in">
-            <h2 id="onboard-title" style={{ margin: '0 0 12px', fontSize: 22, fontWeight: 800 }}>{t('dash.onboard.title')}</h2>
+            <h2 id="onboard-title" style={{ margin: '0 0 12px', fontSize: 22, fontWeight: 700 }}>{t('dash.onboard.title')}</h2>
             <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--text-mid)', marginBottom: 20 }}>
               {t('dash.onboard.body')}
             </p>

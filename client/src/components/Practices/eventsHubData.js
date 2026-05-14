@@ -13,7 +13,7 @@ const IMG = {
   city: natureAt(9),
 };
 
-/** Поля tf — значения для панели фильтров (локация, дата, время, настроение); цена считается по priceKey */
+/** Поля tf - значения для панели фильтров (локация, дата, время, настроение); цена считается по priceKey */
 export const EVENTS_SOLO_ROW = [
   {
     id: 'ev-solo-1',
@@ -143,7 +143,7 @@ export function findEventById(id) {
   return ALL_EVENTS.find((e) => e.id === id) ?? null;
 }
 
-/** Детальная страница: герой, площадка и галереи — спокойная природа */
+/** Детальная страница: герой, площадка и галереи - спокойная природа */
 const DET = {
   hallNight: natureAt(11),
   museumBldg: natureAt(12),
@@ -172,14 +172,14 @@ const gCity = natureGallery(49, 4);
 
 /**
  * Ссылки на продажу билетов / регистрацию (реальные площадки КЗ).
- * Параметр ref — для ориентира в аналитике; при необходимости замените на URL конкретного мероприятия.
+ * Параметр ref - для ориентира в аналитике; при необходимости замените на URL конкретного мероприятия.
  */
 const TICKETS = {
   ticketonAlmaty: 'https://ticketon.kz/kz/cities/almaty',
   kassir: 'https://kassir.kz/kz',
 };
 
-/** Расширенные поля для EventDetailPage (ключи — в locales pages.*) */
+/** Расширенные поля для EventDetailPage (ключи - в locales pages.*) */
 export const EVENT_DETAILS = {
   'ev-solo-1': {
     ticketUrl: `${TICKETS.ticketonAlmaty}?ref=burnout-ev-solo-1`,

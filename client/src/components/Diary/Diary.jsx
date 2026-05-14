@@ -19,31 +19,12 @@ import {
   CHECKIN_MOOD_EMOJIS,
   percentToOneToTen } from
 '../../utils/dailyCheckinStorage';
+import {
+  CHECKIN_MOOD_TWEMOJI_FILES,
+  moodEmojiUrl,
+  twemojiFileForUnicode,
+} from '../../utils/moodEmojiAssets';
 import './Diary.css';
-
-const DIARY_TWEMOJI_CDN =
-  'https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.0.3/assets/72x72';
-
-/** Twemoji hex (без .png): порядок как в Diary MOODS — отлично … раздражён */
-const DIARY_MOOD_TWEMOJI_BY_MOODS_IDX = ['1f604', '1f642', '1f610', '1f614', '1f625', '1f624'];
-
-/** Индексы чекина 0–4 — как в макете: 😄 🙂 😐 😔 😥 */
-const CHECKIN_MOOD_TWEMOJI_FILES = ['1f604', '1f642', '1f610', '1f614', '1f625'];
-
-const EMOJI_CHAR_TO_TWEMOJI_FILE = {
-  '😰': '1f630',
-  '😊': '1f60a',
-  '😌': '1f60c',
-  '🙂': '1f642',
-  '😐': '1f610',
-  '😡': '1f621',
-  '😄': '1f604',
-  '😢': '1f622',
-  '😥': '1f625',
-  '😔': '1f614',
-  '😕': '1f615',
-  '😤': '1f624'
-};
 
 function DiaryTwemoji({
   file,
@@ -57,13 +38,9 @@ function DiaryTwemoji({
     variant === 'thumb' ? ' diary-mood-emoji-card--thumb' : variant === 'inline' ? ' diary-mood-emoji-card--inline' : '';
   return (
     <span className={`diary-mood-emoji-card${sizeMod}${vMod} ${className}`.trim()} title={title}>
-      <img src={`${DIARY_TWEMOJI_CDN}/${file}.png`} alt="" className="diary-mood-emoji-card__img" draggable={false} />
+      <img src={moodEmojiUrl(file)} alt="" className="diary-mood-emoji-card__img" draggable={false} />
     </span>
   );
-}
-
-function twemojiFileForUnicode(emoji) {
-  return EMOJI_CHAR_TO_TWEMOJI_FILE[emoji] || '1f610';
 }
 
 const CHECKIN_CAL_COLORS = ['#4ade80', '#60a5fa', '#9ca3af', '#fb923c', '#f87171'];
@@ -255,20 +232,6 @@ const Diary = () => {
                   </div>);
 
               })}
-            </div>
-
-            <div className="cal-legend cal-legend--mood-cards">
-              <span className="legend-label">{t('pages.diaryLegend')}</span>
-              <div className="cal-legend-moods" role="list">
-                {MOODS.map((m, idx) =>
-                <DiaryTwemoji
-                  key={m.score}
-                  file={DIARY_MOOD_TWEMOJI_BY_MOODS_IDX[idx]}
-                  title={m.label}
-                  size="sm"
-                />
-                )}
-              </div>
             </div>
           </div>
 

@@ -74,7 +74,7 @@
 }
 .admin-stat-card:hover { transform: translateY(-4px); }
 .admin-stat-icon { color: #7c82c4; }
-.admin-stat-val { font-size: 40px; font-weight: 800; color: var(--text-dark); }
+.admin-stat-val { font-size: 40px; font-weight: 700; color: var(--text-dark); }
 .admin-stat-label { font-size: 14px; color: var(--text-light); font-weight: 600; }
 
 
@@ -112,7 +112,7 @@
   align-items: center;
   gap: 10px;
   font-size: 1.125rem;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0 0 8px;
   color: var(--text-dark);
 }
@@ -191,9 +191,9 @@
 }
 
 .admin-support-overview-req {
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-sans);
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-light);
 }
 
@@ -205,8 +205,8 @@
 }
 
 .admin-support-overview-mono {
-  font-family: ui-monospace, monospace;
-  font-weight: 800;
+  font-family: var(--font-sans);
+  font-weight: 700;
 }
 
 .admin-support-overview-dot {
@@ -274,7 +274,7 @@
 
 .admin-support-overview-burn-h {
   font-size: 0.65rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #7c82c4;

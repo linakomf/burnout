@@ -82,7 +82,7 @@ export async function analyzeEmotionsOpenAI(text) {
         {
           role: 'system',
           content:
-          'Ты аналитик эмоций. По тексту пользователя оцени интенсивность (0–100 каждое): радость (joy), тревога (anxiety), стресс (stress). Ответь ТОЛЬКО JSON: {"joy":number,"anxiety":number,"stress":number}'
+          'Ты аналитик эмоций. По тексту пользователя оцени интенсивность (0-100 каждое): радость (joy), тревога (anxiety), стресс (stress). Ответь ТОЛЬКО JSON: {"joy":number,"anxiety":number,"stress":number}'
         },
         { role: 'user', content: String(text).slice(0, 2000) }]
 
@@ -108,7 +108,7 @@ export async function analyzeEmotions(text) {
 
 export function deriveOverallMood({ joy, anxiety, stress }) {
   if (stress >= 70 || anxiety >= 70) {
-    return { emoji: '😰', label: 'Напряжённо', sub: 'Высокий стресс или тревога — дышите глубже' };
+    return { emoji: '😰', label: 'Напряжённо', sub: 'Высокий стресс или тревога - дышите глубже' };
   }
   if (joy >= 65 && stress < 45 && anxiety < 45) {
     return { emoji: '😊', label: 'Хорошо', sub: 'Позитивный настрой заметен' };

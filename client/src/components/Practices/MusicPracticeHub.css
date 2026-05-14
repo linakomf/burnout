@@ -42,7 +42,7 @@
 .music-hub-title {
   margin: 0;
   font-size: clamp(1.5rem, 3.2vw, 2rem);
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   letter-spacing: -0.03em;
   color: var(--mh-text);
 }
@@ -97,7 +97,7 @@
 .music-hub-hero-tag {
   display: inline-block;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   letter-spacing: 0.12em;
   color: var(--mh-blue-deep);
   margin-bottom: 10px;
@@ -106,7 +106,7 @@
 .music-hub-hero-title {
   margin: 0;
   font-size: clamp(1.35rem, 2.8vw, 1.75rem);
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--mh-text);
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -132,7 +132,7 @@
   color: #fff;
   font-family: inherit;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   cursor: pointer;
   box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35);
 }
@@ -148,7 +148,7 @@
 .music-hub-section-title {
   margin: 0 0 16px;
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--mh-text);
   letter-spacing: -0.02em;
 }
@@ -204,7 +204,7 @@
 
 .music-hub-mood-label {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: #fff;
   line-height: 1.2;
 }
@@ -257,7 +257,7 @@
 
 .music-hub-quick-label {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--mh-text);
   text-align: center;
   line-height: 1.2;
@@ -313,7 +313,7 @@
 
 .music-hub-rec-title {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--mh-text);
   white-space: nowrap;
   overflow: hidden;
@@ -330,7 +330,7 @@
 
 .music-hub-rec-dur {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--mh-muted);
 }
 
@@ -420,7 +420,7 @@
 .music-hub-side-heading {
   margin: 0;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--mh-text);
 }
 
@@ -468,7 +468,7 @@
 
 .music-hub-state-text strong {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--mh-text);
 }
 
@@ -513,7 +513,7 @@
 
 .music-hub-player-meta strong {
   font-size: 15px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--mh-text);
 }
 
@@ -531,7 +531,7 @@
 
 .music-hub-player-time {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--mh-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -611,7 +611,7 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   color: var(--mh-blue-deep);
   text-decoration: none;
 }

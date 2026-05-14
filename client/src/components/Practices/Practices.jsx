@@ -14,6 +14,7 @@ import FilmDetailPage from './FilmDetailPage';
 import EventsPracticeHub from './EventsPracticeHub';
 import EventDetailPage from './EventDetailPage';
 import PracticesHome from './PracticesHome';
+import PracticesFavorites from './PracticesFavorites';
 import { PRACTICES } from './practicesData';
 import { loadMeditationFavorites, saveMeditationFavorites } from './meditationFavorites';
 import { MEDITATION_HERO_BANNER_VIDEO, SPACE_NATURE_HERO_REF } from './spaceNatureImagery';
@@ -33,7 +34,6 @@ const MEDITATION_FILTERS = [
   { id: 'recovery', labelKey: 'meditationFilterRecovery' },
   { id: 'focus', labelKey: 'meditationFilterFocus' },
   { id: 'sounds', labelKey: 'meditationFilterSounds' },
-  { id: 'favorites', labelKey: 'meditationFilterFavorites' },
 ];
 
 function MeditationSection() {
@@ -47,10 +47,6 @@ function MeditationSection() {
   const list = useMemo(() => PRACTICES.filter((p) => matchCategory(p, 'meditation')), []);
 
   const filteredList = useMemo(() => {
-    if (activeFilter === 'favorites') {
-      return list.filter((practice) => favorites.has(practice.id));
-    }
-
     const matchesFilter = (practice) => {
       if (activeFilter === 'all') {
         return !practice.meditationTopics?.includes('sounds');
@@ -59,7 +55,7 @@ function MeditationSection() {
     };
 
     return list.filter(matchesFilter);
-  }, [list, activeFilter, favorites]);
+  }, [list, activeFilter]);
 
   useEffect(() => {
     saveMeditationFavorites(favorites);
@@ -156,7 +152,6 @@ function MeditationSection() {
 
           <div className="meditation-formats-columns">
             <p className="meditation-formats-copy">{t('pages.meditationFormatsColLeft')}</p>
-            <p className="meditation-formats-copy">{t('pages.meditationFormatsColRight')}</p>
           </div>
 
           <div
@@ -241,6 +236,7 @@ function Practices() {
     >
       <Routes>
         <Route index element={<PracticesHome />} />
+        <Route path="favorites" element={<PracticesFavorites />} />
         <Route path="films/collections/:bannerId" element={<FilmsBannerCollectionPage />} />
         <Route path="films/:filmId" element={<FilmDetailPage />} />
         <Route path="films" element={<FilmsPracticeHub />} />

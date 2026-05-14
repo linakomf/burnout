@@ -44,7 +44,7 @@ function describeAdminDataLoadError(err) {
   if (!err.response) {
     const msg = String(err.message || '');
     if (/network error|failed to fetch|load failed|err_network/i.test(msg) || err.code === 'ERR_NETWORK') {
-      return 'Нет ответа от сервера. Убедитесь, что backend запущен (например npm run server) и слушает порт 5000 — как в proxy клиента.';
+      return 'Нет ответа от сервера. Убедитесь, что backend запущен (например npm run server) и слушает порт 5000 - как в proxy клиента.';
     }
     return msg || 'Не удалось загрузить данные';
   }
@@ -195,7 +195,7 @@ const AdminDashboard = () => {
 
               <ul className="ad-support-list">
                   {supportRequests.map((r) => {
-                  const created = r.created_at ? new Date(r.created_at).toLocaleString('ru') : '—';
+                  const created = r.created_at ? new Date(r.created_at).toLocaleString('ru') : '-';
                   const onb = r.onboarding || {};
                   const cat = r.catalog_burnout_test;
                   const onbDate = onb.completed_at ?
@@ -451,10 +451,10 @@ const AdminDashboard = () => {
 
                     filteredRows.map((u) =>
                     <tr key={u.rowKey}>
-                            <td style={{ fontFamily: 'ui-monospace, monospace', fontWeight: 700 }}>{u.user_id}</td>
+                            <td style={{ fontFamily: "'Nunito', system-ui, sans-serif", fontWeight: 700 }}>{u.user_id}</td>
                             <td>{u.email}</td>
                             <td style={{ fontWeight: 700 }}>{u.name}</td>
-                            <td>{u.testDate ? new Date(u.testDate).toLocaleDateString('ru') : '—'}</td>
+                            <td>{u.testDate ? new Date(u.testDate).toLocaleDateString('ru') : '-'}</td>
                             <td>
                               <span
                           className="ad-badge"
@@ -473,7 +473,7 @@ const AdminDashboard = () => {
                     </tbody>
                   </table>
                 </div>
-                <p className="ad-foot">В таблице — записи прохождений тестов из каталога и первичный скрининг выгорания (онбординг).</p>
+                <p className="ad-foot">В таблице - записи прохождений тестов из каталога и первичный скрининг выгорания (онбординг).</p>
               </div>
             </>
             }

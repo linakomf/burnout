@@ -1,11 +1,11 @@
 /**
  * Выбор test_id из доступного каталога по сигналам дашборда (стресс, настроение, энергия).
  * @param {object} p
- * @param {string} [p.role] — 'student' | 'teacher' | 'admin'
+ * @param {string} [p.role] - 'student' | 'teacher' | 'admin'
  * @param {number} p.stressVal
  * @param {number} p.moodVal
  * @param {number} p.energyVal
- * @param {number[]} p.catalogIds — id из GET /tests для текущего пользователя
+ * @param {number[]} p.catalogIds - id из GET /tests для текущего пользователя
  * @returns {number | null}
  */
 export function pickRecommendedTestId({ role, stressVal, moodVal, energyVal, catalogIds }) {

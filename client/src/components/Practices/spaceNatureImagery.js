@@ -1,6 +1,6 @@
 /**
  * Спокойная природная эстетика для раздела «Пространство»:
- * поля, холмы, лес, небо — + локальный референс в public/space.
+ * поля, холмы, лес, небо - + локальный референс в public/space.
  */
 const publicBase = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
 
@@ -45,7 +45,7 @@ const UNSPLASH_CALM = [
   u('photo-1551632811-561732d1e306', 1800),
 ];
 
-/** Все доступные кадры (референс первым — как на макете) */
+/** Все доступные кадры (референс первым - как на макете) */
 export const naturePool = [SPACE_NATURE_HERO_REF, ...UNSPLASH_CALM];
 
 export function natureAt(index) {

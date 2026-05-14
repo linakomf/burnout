@@ -1,6 +1,6 @@
 
 .profile-page {
-  --font-dash-greeting: 'Manrope', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-dash-greeting: 'Nunito', system-ui, sans-serif;
   --dash-accent: #82a5eb;
   --dash-accent-deep: #6a8ad6;
   --dash-mock-text: #2d2a4a;
@@ -62,7 +62,7 @@
   margin-bottom: 8px;
   font-family: var(--font-dash-greeting);
   color: var(--dash-mock-text);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 17px;
   letter-spacing: -0.02em;
 }
@@ -309,7 +309,7 @@
   align-items: center;
   justify-content: center;
   font-size: 40px;
-  font-weight: 800;
+  font-weight: 700;
   color: #ffffff;
   border: 3px solid #ffffff;
   box-shadow: 0 4px 16px rgba(100, 135, 215, 0.2);
@@ -346,7 +346,7 @@
 .profile-name {
   font-family: var(--font-dash-greeting);
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--dash-mock-text);
   letter-spacing: -0.02em;
 }

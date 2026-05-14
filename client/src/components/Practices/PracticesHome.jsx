@@ -1,12 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import PracticeCard from './PracticeCard';
-import PracticeModal from './PracticeModal';
-import { PRACTICES } from './practicesData';
-import { loadMeditationFavorites, saveMeditationFavorites } from './meditationFavorites';
 import {
   SPACE_NATURE_HERO_REF,
   SPACE_PRACTICES_HERO_VIDEO,
@@ -36,10 +32,6 @@ const CATEGORIES = [
   { id: 'events', path: '/practices/events', image: practiceCategoryPaperSrc('events'), featured: false },
   { id: 'articles', path: '/practices/articles', image: practiceCategoryPaperSrc('articles'), featured: false },
 ];
-
-function isMeditationPractice(practice) {
-  return practice.category === 'focus' || practice.category === 'grounding';
-}
 
 const tileContainerMotion = {
   hidden: {},
@@ -112,40 +104,8 @@ function PracticesHome() {
   const { t } = useLanguage();
   const gridRef = useRef(null);
   const heroRef = useRef(null);
-  const [spaceView, setSpaceView] = useState('categories');
-  const [favorites, setFavorites] = useState(loadMeditationFavorites);
-  const [selectedPractice, setSelectedPractice] = useState(null);
   const prefersReducedMotion = useReducedMotion();
   const reduce = Boolean(prefersReducedMotion);
-
-  const meditationList = useMemo(() => PRACTICES.filter(isMeditationPractice), []);
-  const favoritePractices = useMemo(
-    () => meditationList.filter((practice) => favorites.has(practice.id)),
-    [meditationList, favorites]
-  );
-
-  useEffect(() => {
-    saveMeditationFavorites(favorites);
-  }, [favorites]);
-
-  useEffect(() => {
-    const syncFavorites = () => setFavorites(loadMeditationFavorites());
-    window.addEventListener('storage', syncFavorites);
-    window.addEventListener('focus', syncFavorites);
-    return () => {
-      window.removeEventListener('storage', syncFavorites);
-      window.removeEventListener('focus', syncFavorites);
-    };
-  }, []);
-
-  const toggleFavorite = (practiceId) => {
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(practiceId)) next.delete(practiceId);
-      else next.add(practiceId);
-      return next;
-    });
-  };
 
   const { scrollY } = useScroll();
   const { scrollYProgress: heroProgress } = useScroll({
@@ -347,32 +307,6 @@ function PracticesHome() {
           </span>
         </motion.h2>
 
-        <div
-          className="practices-space-view-switch"
-          role="tablist"
-          aria-label={t('pages.practicesSpaceViewAria')}
-        >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={spaceView === 'categories'}
-            className={`practices-space-view-tab ${spaceView === 'categories' ? 'is-active' : ''}`}
-            onClick={() => setSpaceView('categories')}
-          >
-            {t('pages.practicesSpaceViewCategories')}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={spaceView === 'favorites'}
-            className={`practices-space-view-tab ${spaceView === 'favorites' ? 'is-active' : ''}`}
-            onClick={() => setSpaceView('favorites')}
-          >
-            {t('pages.practicesSpaceViewFavorites')}
-          </button>
-        </div>
-
-        {spaceView === 'categories' ? (
         <motion.div
           className="practices-landing-stagger"
           variants={tileContainerMotion}
@@ -407,42 +341,7 @@ function PracticesHome() {
             );
           })}
         </motion.div>
-        ) : (
-          <div className="practices-space-favorites meditation-hub">
-            {favoritePractices.length > 0 ? (
-              <div className="meditation-hub-grid">
-                {favoritePractices.map((practice, index) => (
-                  <PracticeCard
-                    key={practice.id}
-                    practice={practice}
-                    variant="meditation"
-                    isFavorite={favorites.has(practice.id)}
-                    onToggleFavorite={toggleFavorite}
-                    onPlay={setSelectedPractice}
-                    activeFilter="favorites"
-                    index={index}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="practices-space-favorites-empty">{t('pages.practicesSpaceFavoritesEmpty')}</p>
-            )}
-          </div>
-        )}
       </section>
-
-      <AnimatePresence>
-        {selectedPractice && (
-          <PracticeModal
-            practice={selectedPractice}
-            variant="meditation"
-            activeFilter="favorites"
-            favorite={favorites.has(selectedPractice.id)}
-            onToggleFavorite={toggleFavorite}
-            onClose={() => setSelectedPractice(null)}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

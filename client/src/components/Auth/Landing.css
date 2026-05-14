@@ -122,7 +122,7 @@
 .land-logo-name {
   display: block;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--land-text);
 }
@@ -329,7 +329,7 @@
 
 .land-hero-title {
   font-size: clamp(32px, 5vw, 54px);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.08;
   letter-spacing: -0.04em;
   color: var(--land-text);
@@ -380,7 +380,7 @@
 .land-widget-label {
   margin: 0 0 6px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--land-blue-deep);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -438,7 +438,7 @@
 
 .land-widget-gauge-val {
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--land-blue-deep);
   letter-spacing: -0.03em;
 }
@@ -496,7 +496,7 @@
 
 .land-cat-aside-title {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0 0 10px;
   letter-spacing: -0.03em;
 }
@@ -515,7 +515,7 @@
 
 .land-section-title {
   font-size: clamp(26px, 3.2vw, 36px);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
   text-align: center;
   margin: 0 0 12px;
@@ -610,7 +610,7 @@
 
 .land-cat-card-title {
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0 0 8px;
   letter-spacing: -0.02em;
 }
@@ -697,7 +697,7 @@
 
 .land-how-aside-title {
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.35;
   margin: 0 0 10px;
   letter-spacing: -0.02em;
@@ -725,7 +725,7 @@
 }
 
 .land-how-heading-serif {
-  font-family: var(--font-accent, Georgia, 'Times New Roman', serif);
+  font-family: var(--font-accent, var(--font-sans));
   font-size: clamp(28px, 3.4vw, 38px);
   font-weight: 600;
   font-style: normal;
@@ -823,7 +823,7 @@
 
 .land-how-num-display {
   font-size: clamp(34px, 4.5vw, 46px);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -0.04em;
   color: var(--land-text);
@@ -898,7 +898,7 @@
 
 .land-support-title {
   font-size: clamp(24px, 3vw, 32px);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0 0 10px;
   letter-spacing: -0.03em;
 }
@@ -992,7 +992,7 @@
 .land-urgent-label {
   margin: 0 0 6px;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .land-urgent-hint {
@@ -1037,7 +1037,7 @@
 
 .land-bottom-cta-title {
   font-size: clamp(22px, 3vw, 28px);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0 0 20px;
   letter-spacing: -0.03em;
 }
@@ -1074,7 +1074,7 @@
 
 .land-footer-col-title {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 0 0 14px;
@@ -1168,7 +1168,7 @@
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--land-blue-deep);
   background: rgba(79, 127, 212, 0.1);
   text-decoration: none;

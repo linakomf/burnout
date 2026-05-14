@@ -30,7 +30,7 @@
 
 .admin-portal-brand h1 {
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   letter-spacing: -0.02em;
   color: #f5f5fb;
 }
@@ -52,7 +52,7 @@
   border: none;
   border-radius: 10px;
   padding: 10px 18px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   font-size: 0.875rem;
   cursor: pointer;
   font-family: inherit;
@@ -109,7 +109,7 @@
 .admin-portal-field label {
   display: block;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #9a9ab0;
@@ -155,7 +155,7 @@
 
 .admin-portal-stat .val {
   font-size: 1.75rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: #f5f5fb;
   letter-spacing: -0.02em;
 }
@@ -177,7 +177,7 @@
 
 .admin-portal-section h3 {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   color: #f5f5fb;
   margin-bottom: 16px;
 }
@@ -196,7 +196,7 @@
   text-align: left;
   padding: 10px 12px;
   color: #9a9ab0;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -218,7 +218,7 @@
   padding: 2px 10px;
   border-radius: 999px;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
 }
 
 .admin-portal-chip.student {

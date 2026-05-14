@@ -76,7 +76,7 @@ function anxietyFromResults(resultsInPeriod) {
 }
 
 function formatTrend(prev, cur) {
-  if (prev == null || cur == null || Number.isNaN(prev) || Number.isNaN(cur)) return { text: '—', up: null };
+  if (prev == null || cur == null || Number.isNaN(prev) || Number.isNaN(cur)) return { text: '-', up: null };
   const diff = Math.round(cur - prev);
   if (diff === 0) return { text: '0%', up: null };
   const up = diff > 0;
@@ -133,7 +133,7 @@ function DonutStat({ current, max, label, color }) {
 }
 
 function deltaToneClass(trend, goodWhenUp) {
-  if (trend.up == null || trend.text === '—') return '';
+  if (trend.up == null || trend.text === '-') return '';
   const feelsGood = goodWhenUp ? trend.up : !trend.up;
   return feelsGood ? 'pos' : 'neg';
 }
@@ -495,9 +495,9 @@ const Stats = () => {
         title: 'Отличный прогресс!',
         text:
         sourceLead + (
-        moodTrend.text && moodTrend.text !== '—' ?
+        moodTrend.text && moodTrend.text !== '-' ?
         `Настроение в динамике: ${moodTrend.text} к прошлому периоду. Продолжайте в том же духе.` :
-        'Вы регулярно отмечаете состояние в дневнике — это основа осознанности.')
+        'Вы регулярно отмечаете состояние в дневнике - это основа осознанности.')
       });
     } else if (avgMoodPct > 0) {
       out.push({
@@ -505,7 +505,7 @@ const Stats = () => {
         title: 'Есть опора',
         text:
         sourceLead +
-        'Записи в дневнике помогают замечать закономерности. Даже небольшие шаги — это вклад в благополучие.'
+        'Записи в дневнике помогают замечать закономерности. Даже небольшие шаги - это вклад в благополучие.'
       });
     } else {
       out.push({
@@ -513,7 +513,7 @@ const Stats = () => {
         title: 'С чистого листа',
         text:
         sourceLead +
-        'Добавьте пару записей в ИИ-дневнике и пройдите тест из каталога — графики и обобщение станут точнее.'
+        'Добавьте пару записей в ИИ-дневнике и пройдите тест из каталога - графики и обобщение станут точнее.'
       });
     }
 
@@ -531,7 +531,7 @@ const Stats = () => {
         text:
         stressPct >= 60 ?
         'Уровень стресса выше комфортного. Полезны прогулки, сон и делегирование задач.' :
-        'Следите за балансом нагрузки и отдыха — это снижает риск накопительной усталости.'
+        'Следите за балансом нагрузки и отдыха - это снижает риск накопительной усталости.'
       });
     }
 
@@ -539,7 +539,7 @@ const Stats = () => {
       kind: 'tip',
       title: 'Рекомендация',
       text:
-      'Попробуйте дыхательную практику 4–6 перед важными делами или раздел «Пространство». Ответы и заметки в ИИ-дневнике тоже учитываются в общей картине активности.'
+      'Попробуйте дыхательную практику 4-6 перед важными делами или раздел «Пространство». Ответы и заметки в ИИ-дневнике тоже учитываются в общей картине активности.'
     });
     return out;
   }, [
@@ -557,18 +557,18 @@ const Stats = () => {
   const weekGood = useMemo(() => {
     const lines = [];
     if (entriesCount >= 3) lines.push('Регулярные записи в дневнике');
-    if (diaryNotesCount >= 2) lines.push('Заметки в дневнике — материал для осмысленной поддержки ИИ');
+    if (diaryNotesCount >= 2) lines.push('Заметки в дневнике - материал для осмысленной поддержки ИИ');
     if (avgMoodPct >= 50) lines.push('Стабильное или улучшающееся настроение (с учётом тестов и дневника)');
     if (testsCount > 0) lines.push(`Пройдено тестов за период: ${testsCount}`);
     if (onboardingPct != null && user?.onboarding_burnout_completed) {
       lines.push('В аналитике учтён первичный скрининг выгорания');
     }
-    if (moodTrend.up === false && moodTrend.text !== '—') {
+    if (moodTrend.up === false && moodTrend.text !== '-') {
       lines.push(`Настроение: ${moodTrend.text} к прошлому отрезку`);
     }
     if (!lines.length) {
       lines.push('Начните с одной короткой записи в дневнике');
-      lines.push('Пройдите тест из каталога — появится персональная динамика');
+      lines.push('Пройдите тест из каталога - появится персональная динамика');
     }
     return lines;
   }, [
@@ -583,7 +583,7 @@ const Stats = () => {
 
   const weekGoals = [
   'Увеличить число прогулок до 5 в неделю',
-  'Перед важными встречами — 1 минута спокойного дыхания',
+  'Перед важными встречами - 1 минута спокойного дыхания',
   'Пить воду регулярно в течение дня'];
 
 
@@ -625,7 +625,7 @@ const Stats = () => {
               <span className="analytics-kpi-icon analytics-kpi-icon--mood">
                 <Heart size={20} strokeWidth={2.2} />
               </span>
-              {moodTrend.text !== '—' && moodTrend.up != null && (
+              {moodTrend.text !== '-' && moodTrend.up != null && (
                 <span className={`analytics-kpi-delta ${deltaToneClass(moodTrend, true)}`}>
                   {moodTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
                   {moodTrend.text}
@@ -643,7 +643,7 @@ const Stats = () => {
               <span className="analytics-kpi-icon analytics-kpi-icon--stress">
                 <Activity size={20} strokeWidth={2.2} />
               </span>
-              {stressTrend.text !== '—' && stressTrend.up != null && (
+              {stressTrend.text !== '-' && stressTrend.up != null && (
                 <span className={`analytics-kpi-delta ${deltaToneClass(stressTrend, false)}`}>
                   {stressTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
                   {stressTrend.text}
@@ -661,7 +661,7 @@ const Stats = () => {
               <span className="analytics-kpi-icon analytics-kpi-icon--anxiety">
                 <Clock size={20} strokeWidth={2.2} />
               </span>
-              {anxietyTrend.text !== '—' && anxietyTrend.up != null && (
+              {anxietyTrend.text !== '-' && anxietyTrend.up != null && (
                 <span className={`analytics-kpi-delta ${deltaToneClass(anxietyTrend, false)}`}>
                   {anxietyTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
                   {anxietyTrend.text}
@@ -679,7 +679,7 @@ const Stats = () => {
               <span className="analytics-kpi-icon analytics-kpi-icon--energy">
                 <Battery size={20} strokeWidth={2.2} />
               </span>
-              {energyTrend.text !== '—' && energyTrend.up != null && (
+              {energyTrend.text !== '-' && energyTrend.up != null && (
                 <span className={`analytics-kpi-delta ${deltaToneClass(energyTrend, true)}`}>
                   {energyTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
                   {energyTrend.text}

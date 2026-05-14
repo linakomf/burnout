@@ -1,9 +1,8 @@
 
 .dashboard-new {
-  /* приветствие — как реф. «Восстановиться…» (Manrope, плотнее средний вес) */
-  --font-dash-greeting: 'Manrope', 'Plus Jakarta Sans', system-ui, sans-serif;
-  /* полоса дней — как реф. плейлиста (Inter, жирная дата + обычный день) */
-  --font-dash-week: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+  /* приветствие и полоса дней — Nunito */
+  --font-dash-greeting: 'Nunito', system-ui, sans-serif;
+  --font-dash-week: 'Nunito', system-ui, sans-serif;
   --dash-accent: #82a5eb;
   --dash-accent-mid: #9db4ed;
   --dash-accent-deep: #6a8ad6;
@@ -444,7 +443,7 @@
   margin: 0 0 4px;
   font-family: var(--font-sans);
   font-size: clamp(17px, 2vw, 19px);
-  font-weight: 800;
+  font-weight: 700;
   color: #1e3a5f;
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -532,7 +531,7 @@
 
 .dash-state-card__value {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.03em;
   margin-bottom: 8px;
@@ -616,7 +615,7 @@
 
 .dash-state-banner__title {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   color: #1e3a5f;
   margin-bottom: 2px;
 }
@@ -637,7 +636,7 @@
   border: none;
   border-radius: 12px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   color: #ffffff;
@@ -766,7 +765,7 @@
 .dash-daily-test__title {
   font-family: var(--font-sans);
   font-size: clamp(15px, 2vw, 17px);
-  font-weight: 800;
+  font-weight: 700;
   color: var(--dash-mock-text);
   margin: 0 0 6px;
   line-height: 1.25;
@@ -886,7 +885,7 @@
 .dash-support-nearby__title {
   font-family: var(--font-sans);
   font-size: clamp(15px, 1.9vw, 18px);
-  font-weight: 800;
+  font-weight: 700;
   color: var(--dash-support-blue);
   margin: 0 0 6px;
   line-height: 1.2;
@@ -955,6 +954,8 @@
 
 .dash-advice__head {
   margin-bottom: 20px;
+  padding-left: 0;
+  text-align: left;
 }
 
 .dash-advice__badge {
@@ -972,12 +973,16 @@
   margin: 0 0 10px;
   letter-spacing: -0.01em;
   line-height: 1.15;
-  max-width: 18ch;
+  max-width: none;
+}
+
+.dash-advice__title-main {
+  white-space: nowrap;
 }
 
 .dash-advice__title-accent {
   color: #5f94ff;
-  font-family: "Marck Script", "Segoe Script", cursive;
+  font-family: var(--font-blue-accent);
   font-size: 0.76em;
   font-weight: 400;
 }
@@ -1038,7 +1043,7 @@
   gap: 6px;
   margin-bottom: 10px;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -1078,7 +1083,7 @@
 
 .dash-advice-card__name {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0 0 8px;
   color: var(--dash-mock-text);
   line-height: 1.3;
@@ -1135,7 +1140,7 @@
 
 .dash-advice-card--purple .dash-advice-card__go {
   background: #f8cd8b;
-  color: #3d3420;
+  color: #ffffff;
 }
 
 .dash-advice-card--orange .dash-advice-card__cat,
@@ -1165,7 +1170,7 @@
 
 .dash-advice-card--blue .dash-advice-card__go {
   background: #82a5eb;
-  color: #0f172a;
+  color: #ffffff;
 }
 
 .dash-advice-card--violet .dash-advice-card__cat,
@@ -1223,7 +1228,7 @@
   flex: 1;
   min-width: 0;
   font-size: clamp(18px, 2.1vw, 21px);
-  font-weight: 800;
+  font-weight: 700;
   color: #0f172a;
   line-height: 1.28;
   font-family: var(--font-sans);
@@ -1302,7 +1307,7 @@
 .checkin-form-h1 {
   margin: 0 40px 8px 0;
   font-size: clamp(17px, 2.2vw, 20px);
-  font-weight: 800;
+  font-weight: 700;
   text-align: left;
   color: var(--dash-mock-text);
   line-height: 1.25;
@@ -1353,12 +1358,13 @@
 
 .checkin-mood-emoji {
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   flex-shrink: 0;
   user-select: none;
   pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.12));
 }
 
 .checkin-mood-label {
@@ -1408,7 +1414,7 @@
 
 .checkin-field-title {
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 700;
   color: #5a5668;
 }
 
@@ -1420,7 +1426,7 @@
 
 .checkin-field-value {
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 700;
   color: #5a5668;
   min-width: 28px;
   text-align: right;
@@ -1619,7 +1625,7 @@
   background: linear-gradient(180deg, #9db4ed 0%, #82a5eb 52%, #6a8ad6 100%);
   color: #ffffff;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(130, 165, 235, 0.4);
@@ -1655,7 +1661,7 @@
 .dash-details-title-text {
   margin: 0;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 700;
   color: #1e3a5f;
   letter-spacing: -0.02em;
   line-height: 1.25;
@@ -1743,7 +1749,7 @@
 }
 
 .dash-details-row__strong {
-  font-weight: 800;
+  font-weight: 700;
   color: #1e3a5f;
 }
 

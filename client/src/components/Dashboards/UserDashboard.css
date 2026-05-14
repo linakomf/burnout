@@ -30,7 +30,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   font-size: 1rem;
   color: #1a1d24;
 }
@@ -55,7 +55,7 @@
 .ud-btn {
   padding: 10px 16px;
   border-radius: 10px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   font-size: 0.8125rem;
   font-family: inherit;
   cursor: pointer;
@@ -104,7 +104,7 @@
 
 .ud-hero h1 {
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   letter-spacing: -0.02em;
   margin-bottom: 8px;
   color: #1a1d24;
@@ -127,7 +127,7 @@
   gap: 10px;
   padding: 12px 16px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   font-size: 0.875rem;
   margin-bottom: 18px;
 }
@@ -167,7 +167,7 @@
 
 .ud-section h2 {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold, 700);
   margin-bottom: 16px;
   color: #1a1d24;
   display: flex;
@@ -192,7 +192,7 @@
   padding: 10px 12px;
   background: #f7f9fc;
   color: #7a8494;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -224,7 +224,7 @@
 
 .ud-link-row a {
   color: var(--primary-dark);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold, 700);
   text-decoration: none;
 }
 

@@ -337,7 +337,7 @@ const Landing = () => {
         <div className="land-quote-block" id="quote-block">
           <blockquote className="land-quote">
             <p>{t('landing.quoteText')}</p>
-            <footer className="land-quote-author">— {t('landing.quoteAuthor')}</footer>
+            <footer className="land-quote-author">- {t('landing.quoteAuthor')}</footer>
           </blockquote>
           <div className="land-urgent">
             <div>

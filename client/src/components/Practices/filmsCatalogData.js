@@ -99,7 +99,7 @@ export const FILMS = [
     director: 'Хаяо Миядзаки',
     screenwriter: 'Хаяо Миядзаки',
     quote:
-      'Иногда кажется, что всё вокруг — как во сне: что-то большее, чем просто красивый вид.',
+      'Иногда кажется, что всё вокруг - как во сне: что-то большее, чем просто красивый вид.',
   },
   {
     id: 'f4',
@@ -365,7 +365,7 @@ export const FILMS = [
       atmosphere: ['warm', 'light', 'inspiring', 'nostalgia', 'calm'],
     },
     description:
-      'История дружбы и принятия. Заряжает теплом и верой в людей — хороший фильм, когда нужна поддержка и мотивация.',
+      'История дружбы и принятия. Заряжает теплом и верой в людей - хороший фильм, когда нужна поддержка и мотивация.',
     poster: 'https://upload.wikimedia.org/wikipedia/en/9/93/The_Intouchables.jpg',
     embedUrl: 'https://www.youtube-nocookie.com/embed/34WIbmXk7-0',
     watchUrl: 'https://www.youtube.com/watch?v=34WIbmXk7-0',
@@ -390,7 +390,7 @@ export const FILMS = [
       atmosphere: ['nostalgia', 'inspiring', 'warm', 'calm', 'light'],
     },
     description:
-      'Эпическая история простодушия и стойкости. Напоминает, что важен путь, а не скорость — утешает и вдохновляет.',
+      'Эпическая история простодушия и стойкости. Напоминает, что важен путь, а не скорость - утешает и вдохновляет.',
     poster: 'https://upload.wikimedia.org/wikipedia/en/6/67/Forrest_Gump_poster.jpg',
     embedUrl: 'https://www.youtube-nocookie.com/embed/bLvqoHBptjg',
     watchUrl: 'https://www.youtube.com/watch?v=bLvqoHBptjg',
@@ -565,7 +565,7 @@ export const FILMS = [
       atmosphere: ['inspiring', 'light', 'warm', 'calm'],
     },
     description:
-      'История про веру в себя и упорство — с юмором и драйвом. Хорошо заходит, когда нужна мотивация без мрака.',
+      'История про веру в себя и упорство - с юмором и драйвом. Хорошо заходит, когда нужна мотивация без мрака.',
     poster: 'https://upload.wikimedia.org/wikipedia/en/7/76/Kungfupanda.jpg',
     embedUrl: 'https://www.youtube-nocookie.com/embed/PXi3M627jcU',
     watchUrl: 'https://www.youtube.com/watch?v=PXi3M627jcU',
@@ -615,7 +615,7 @@ export const FILMS = [
       atmosphere: ['aesthetic', 'warm', 'inspiring', 'light', 'nostalgia'],
     },
     description:
-      'Про дружбу и смелость быть собой. Вдохновляет и дарит ощущение полёта — в хорошем смысле.',
+      'Про дружбу и смелость быть собой. Вдохновляет и дарит ощущение полёта - в хорошем смысле.',
     poster: 'https://upload.wikimedia.org/wikipedia/en/9/99/How_to_Train_Your_Dragon_Poster.jpg',
     embedUrl: 'https://www.youtube-nocookie.com/embed/Io4fbrAKbq0',
     watchUrl: 'https://www.youtube.com/watch?v=Io4fbrAKbq0',
@@ -640,7 +640,7 @@ export const FILMS = [
       atmosphere: ['calm', 'cozy_a', 'aesthetic', 'nostalgia', 'warm'],
     },
     description:
-      'Нежная история о детстве и природе. Очень спокойный ритм — как медитация перед сном.',
+      'Нежная история о детстве и природе. Очень спокойный ритм - как медитация перед сном.',
     poster: 'https://upload.wikimedia.org/wikipedia/en/0/02/My_Neighbor_Totoro_-_Tonari_no_Totoro_%28Movie_Poster%29.jpg',
     embedUrl: 'https://www.youtube-nocookie.com/embed/92a7Hj0ijLs',
     watchUrl: 'https://www.youtube.com/watch?v=92a7Hj0ijLs',
@@ -690,7 +690,7 @@ export const FILMS = [
       atmosphere: ['calm', 'aesthetic', 'light', 'warm', 'cozy_a'],
     },
     description:
-      'История взросления и самостоятельности — мягко и по-доброму. Помогает снизить внутреннее напряжение.',
+      'История взросления и самостоятельности - мягко и по-доброму. Помогает снизить внутреннее напряжение.',
     poster: 'https://image.tmdb.org/t/p/w500/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg',
     embedUrl: 'https://www.youtube-nocookie.com/embed/4b7ZFxNkHxd',
     watchUrl: 'https://www.youtube.com/watch?v=4b7ZFxNkHxd',
@@ -715,7 +715,7 @@ export const FILMS = [
       atmosphere: ['nostalgia', 'warm', 'light', 'cozy_a', 'calm'],
     },
     description:
-      'Новогодняя классика про случайности и любовь. Уют, ностальгия и лёгкий юмор — как разговор с близкими.',
+      'Новогодняя классика про случайности и любовь. Уют, ностальгия и лёгкий юмор - как разговор с близкими.',
     poster: 'https://image.tmdb.org/t/p/w500/n0ybibhJtQ5icDqTp8eRytcIHJx.jpg',
     embedUrl: 'https://www.youtube-nocookie.com/embed/1hC_-xz0ka4',
     watchUrl: 'https://www.youtube.com/watch?v=1hC_-xz0ka4',
@@ -740,7 +740,7 @@ export const FILMS = [
       atmosphere: ['nostalgia', 'light', 'warm', 'cozy_a', 'calm'],
     },
     description:
-      'Офисная история с тонким юмором и теплом. Ностальгия и лёгкость — хороший фон для отдыха после дел.',
+      'Офисная история с тонким юмором и теплом. Ностальгия и лёгкость - хороший фон для отдыха после дел.',
     poster: 'https://image.tmdb.org/t/p/w500/9U7YHooiXv3xR3xBvY8QnD8QfJk.jpg',
     embedUrl: 'https://www.youtube-nocookie.com/embed/tS4BDX5BUQ0',
     watchUrl: 'https://www.youtube.com/watch?v=tS4BDX5BUQ0',

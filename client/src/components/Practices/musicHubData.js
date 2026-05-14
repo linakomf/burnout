@@ -1,7 +1,7 @@
 import { natureAt, spaceNature } from './spaceNatureImagery';
 
 export const MUSIC_HERO_IMG = spaceNature.musicHero;
-/** Та же иллюстрация, что в герое — обложка «подборки дня» в плеере */
+/** Та же иллюстрация, что в герое - обложка «подборки дня» в плеере */
 export const MUSIC_FEATURED_POSTER = MUSIC_HERO_IMG;
 
 /** Основные треки / подборки */
@@ -74,7 +74,7 @@ export const MUSIC_TRACKS = [
   },
 ];
 
-/** Подборка дня — тот же контент, что в макете (спокойствие) */
+/** Подборка дня - тот же контент, что в макете (спокойствие) */
 export const FEATURED_TRACK_ID = 'm2';
 
 /** Карточки «под настроение» */

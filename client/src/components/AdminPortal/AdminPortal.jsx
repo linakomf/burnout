@@ -215,7 +215,7 @@ const AdminPortal = () => {
                   <li>Категорий тестов: <strong style={{ color: '#fff' }}>{stats.content.categories}</strong></li>
                   <li>Вопросов в базе: <strong style={{ color: '#fff' }}>{stats.content.questions}</strong></li>
                   <li>Записей дневника за 7 дней: <strong style={{ color: '#fff' }}>{stats.activity.diaryEntriesLast7Days}</strong></li>
-                  <li>Средний mood_score (дневник): <strong style={{ color: '#fff' }}>{stats.activity.diaryAvgMoodScore ?? '—'}</strong></li>
+                  <li>Средний mood_score (дневник): <strong style={{ color: '#fff' }}>{stats.activity.diaryAvgMoodScore ?? '-'}</strong></li>
                   <li>Избранных практик (связей): <strong style={{ color: '#fff' }}>{stats.activity.practiceFavoritesTotal}</strong></li>
                 </ul>
               </div>
@@ -289,7 +289,7 @@ const AdminPortal = () => {
                           <td>
                             <span className={`admin-portal-chip ${u.role}`}>{ROLE_LABEL[u.role] || u.role}</span>
                           </td>
-                          <td>{u.onboarding_burnout_completed ? `${u.onboarding_burnout_percent ?? '—'}%` : '—'}</td>
+                          <td>{u.onboarding_burnout_completed ? `${u.onboarding_burnout_percent ?? '-'}%` : '-'}</td>
                           <td>{new Date(u.created_at).toLocaleDateString('ru')}</td>
                         </tr>
                     )}

@@ -143,7 +143,7 @@ router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
   }
   const userId = parseInt(req.user.user_id, 10);
   if (!Number.isFinite(userId)) {
-    return res.status(400).json({ message: 'Некорректная сессия — войдите снова' });
+    return res.status(400).json({ message: 'Некорректная сессия - войдите снова' });
   }
 
   const { answers } = req.body;
@@ -152,7 +152,7 @@ router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
   }
   const nums = answers.map((a) => parseInt(a, 10));
   if (nums.some((n) => Number.isNaN(n) || n < 0 || n > 4)) {
-    return res.status(400).json({ message: 'Каждый ответ — число от 0 до 4' });
+    return res.status(400).json({ message: 'Каждый ответ - число от 0 до 4' });
   }
   const sum = nums.reduce((s, n) => s + n, 0);
   const percent = Math.min(100, Math.max(0, Math.round(sum / 36 * 100)));
@@ -192,7 +192,7 @@ router.post('/support-request', authMiddleware, async (req, res) => {
   }
   const userId = parseInt(req.user.user_id, 10);
   if (!Number.isFinite(userId)) {
-    return res.status(400).json({ message: 'Некорректная сессия — войдите снова' });
+    return res.status(400).json({ message: 'Некорректная сессия - войдите снова' });
   }
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const displayName = String(body.name ?? '').trim().slice(0, 120);

@@ -12,7 +12,8 @@ import {
   Users,
   Tag,
   Brain,
-  SlidersHorizontal } from
+  SlidersHorizontal,
+  Heart } from
 'lucide-react';
 import './Sidebar.css';
 import { backendPublicUrl } from '../../utils/assetUrl';
@@ -22,6 +23,14 @@ const publicPrefix = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
 const DEFAULT_AVATAR = encodeURI(`${publicPrefix}/photos/character.png`);
 
 const iconProps = { size: 22, strokeWidth: 2.25 };
+
+function navLinkIsActive(path, pathname) {
+  if (path === '/admin') return pathname === '/admin';
+  if (path === '/practices') {
+    return pathname === '/practices' || (pathname.startsWith('/practices/') && !pathname.startsWith('/practices/favorites'));
+  }
+  return pathname === path || pathname.startsWith(`${path}/`);
+}
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -40,6 +49,7 @@ const Sidebar = () => {
       label: t('nav.tests')
     },
     { path: '/practices', icon: <SlidersHorizontal {...iconProps} />, label: t('nav.practices') },
+    { path: '/practices/favorites', icon: <Heart {...iconProps} />, label: t('nav.favorites') },
     { path: '/stats', icon: <BarChart2 {...iconProps} />, label: t('nav.stats') }],
 
     [t]
@@ -71,10 +81,7 @@ const Sidebar = () => {
 
       <nav className="sidebar-nav" aria-label={t('nav.mainMenu')}>
         {links.map((link) => {
-          const isActive =
-          link.path === '/admin' ?
-          location.pathname === '/admin' :
-          location.pathname === link.path || location.pathname.startsWith(`${link.path}/`);
+          const isActive = navLinkIsActive(link.path, location.pathname);
           return (
             <button
               key={link.path}

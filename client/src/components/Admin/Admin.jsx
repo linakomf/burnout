@@ -69,7 +69,7 @@ export const AdminUsers = () => {
                     {u.role === 'student' ? 'Студент' : u.role === 'teacher' ? 'Преподаватель' : 'Админ'}
                   </span>
                 </td>
-                <td>{u.age || '—'}</td>
+                <td>{u.age || '-'}</td>
                 <td>{new Date(u.created_at).toLocaleDateString('ru')}</td>
                 <td>
                   <button
@@ -356,9 +356,9 @@ export const AdminTests = () => {
 
   const SCORING_LABELS = {
     likert_sum: 'Общая шкала (сумма выбранных вариантов)',
-    gad7: 'GAD-7 (4 варианта 0–3)',
-    mbi_student: 'Выгорание MBI-студент (5 вариантов 0–4)',
-    daily5: 'Ежедневный чек-ин (5 вариантов 0–4)'
+    gad7: 'GAD-7 (4 варианта 0-3)',
+    mbi_student: 'Выгорание MBI-студент (5 вариантов 0-4)',
+    daily5: 'Ежедневный чек-ин (5 вариантов 0-4)'
   };
 
   return (
@@ -366,7 +366,7 @@ export const AdminTests = () => {
       <div className="section-header">
         <div>
           <h1 className="page-title">Тесты</h1>
-          <p className="page-sub">Создание и редактирование тестов — изменения сразу видны пользователям в разделе «Тесты»</p>
+          <p className="page-sub">Создание и редактирование тестов - изменения сразу видны пользователям в разделе «Тесты»</p>
         </div>
         <button className="btn btn-primary" onClick={openCreate}>
           <Plus size={16} /> Создать тест
@@ -389,7 +389,7 @@ export const AdminTests = () => {
             <tr key={t.test_id}>
                 <td style={{ fontWeight: 600 }}>{t.title}</td>
                 <td>{t.category_name}</td>
-                <td>{t.question_count != null ? t.question_count : '—'}</td>
+                <td>{t.question_count != null ? t.question_count : '-'}</td>
                 <td>{new Date(t.created_at).toLocaleDateString('ru')}</td>
                 <td>
                   <button
@@ -637,7 +637,7 @@ export const AdminOverview = () => {
           Обращения «Мы рядом»
         </h2>
         <p className="admin-support-overview-lead">
-          Заявки с главной страницы дашборда пользователя. Ниже — скрининг выгорания (онбординг) и последний тест MBI / чек-ин.
+          Заявки с главной страницы дашборда пользователя. Ниже - скрининг выгорания (онбординг) и последний тест MBI / чек-ин.
         </p>
         {supportError ?
         <div className="admin-support-overview-error">{supportError}</div> :
@@ -651,7 +651,7 @@ export const AdminOverview = () => {
         {!supportLoading && supportRequests.length > 0 ?
         <ul className="admin-support-overview-list">
           {supportRequests.map((r) => {
-            const created = r.created_at ? new Date(r.created_at).toLocaleString('ru') : '—';
+            const created = r.created_at ? new Date(r.created_at).toLocaleString('ru') : '-';
             const onb = r.onboarding || {};
             const cat = r.catalog_burnout_test;
             const onbDate = onb.completed_at ?

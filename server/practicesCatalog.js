@@ -2,7 +2,7 @@ const PRACTICES = [
 {
   key: 'breath_478',
   title: 'Дыхание 4-7-8',
-  description: 'Успокаивает нервную систему за 1–2 минуты.',
+  description: 'Успокаивает нервную систему за 1-2 минуты.',
   category: 'breathing',
   durationMin: 2,
   gradient: 'linear-gradient(135deg, #e8c4b8 0%, #f0e6d8 50%, #d4e8d4 100%)',
@@ -12,7 +12,7 @@ const PRACTICES = [
 {
   key: 'box_breathing',
   title: 'Квадратное дыхание',
-  description: 'Равные фазы вдоха и выдоха — концентрация и ровный пульс.',
+  description: 'Равные фазы вдоха и выдоха - концентрация и ровный пульс.',
   category: 'breathing',
   durationMin: 3,
   gradient: 'linear-gradient(145deg, #c5d4b8 0%, #fdf6ee 100%)',
@@ -22,7 +22,7 @@ const PRACTICES = [
 {
   key: 'meditation_body',
   title: 'Сканирование тела',
-  description: 'Короткая медитация осознанности — 5 минут.',
+  description: 'Короткая медитация осознанности - 5 минут.',
   category: 'meditation',
   durationMin: 5,
   gradient: 'linear-gradient(160deg, #b8c5e8 0%, #f5f0ff 100%)',
@@ -52,7 +52,7 @@ const PRACTICES = [
 {
   key: 'affirm_calm',
   title: 'Аффирмации спокойствия',
-  description: 'Короткие фразы поддержки — читайте вслух или про себя.',
+  description: 'Короткие фразы поддержки - читайте вслух или про себя.',
   category: 'affirmations',
   durationMin: 2,
   gradient: 'linear-gradient(135deg, #fce8ec 0%, #fff 100%)',
@@ -62,7 +62,7 @@ const PRACTICES = [
 {
   key: 'micro_break',
   title: 'Микропауза от экрана',
-  description: '1 минута без устройств — взгляд вдаль и моргание.',
+  description: '1 минута без устройств - взгляд вдаль и моргание.',
   category: 'quick',
   durationMin: 1,
   gradient: 'linear-gradient(135deg, #e0ebe4 0%, #fafcf8 100%)',

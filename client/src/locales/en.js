@@ -1,6 +1,6 @@
 export default {
   dash: {
-    greeting: { morning: 'GOOD MORNING', day: 'GOOD AFTERNOON', evening: 'GOOD EVENING', friend: 'friend' },
+    greeting: { morning: 'Good morning', day: 'Good afternoon', evening: 'Good evening', friend: 'friend' },
     notif: 'Notifications',
     langAria: 'Interface language',
     tabs: { today: 'Today', week: 'This week' },
@@ -25,7 +25,7 @@ export default {
     },
     dailyTest: {
       title: 'Daily test: burnout level',
-      desc: 'A short well-being survey — recommendations adapt to your marks.',
+      desc: 'A short well-being survey - recommendations adapt to your marks.',
       metaQuestions: '9 questions',
       metaDuration: '~5 minutes',
       metaInstant: 'Instant result',
@@ -40,7 +40,7 @@ export default {
     },
     supportNearby: {
       title: "We're here",
-      desc: "If it's hard right now — you don't have to go through it alone. Our support team is ready to listen.",
+      desc: "If it's hard right now - you don't have to go through it alone. Our support team is ready to listen.",
       cta: 'Message a specialist',
       ctaAria: 'Contact the support team',
       mailSubject: 'Message from the app'
@@ -52,7 +52,6 @@ export default {
       headline: 'ADVICE OF THE DAY: RECOVER THROUGH WHAT FEELS CLOSE TO YOU',
       subLine1: 'Recommendations are personalized using your current state',
       subLine2: 'and your test results.',
-      subLine3: 'Pick the direction that feels most right for you right now.',
       cards: {
         music: {
           category: 'Music',
@@ -63,19 +62,19 @@ export default {
         films: {
           category: 'Films',
           title: 'Film picks “Soft evening”',
-          desc: 'Calm viewing without heavy drama — a light mental switch.',
+          desc: 'Calm viewing without heavy drama - a light mental switch.',
           duration: '1 film'
         },
         walk: {
           category: 'Activity',
           title: 'Walk outdoors',
-          desc: '15–20 minutes with no goal — less scrolling, more grounding.',
-          duration: '15–30 min'
+          desc: '15-20 minutes with no goal - less scrolling, more grounding.',
+          duration: '15-30 min'
         },
         read: {
           category: 'Reading',
           title: 'A book for a gentle switch',
-          desc: 'A short piece without pressure — a pause between tasks.',
+          desc: 'A short piece without pressure - a pause between tasks.',
           duration: '10 min'
         },
         meditate: {
@@ -96,7 +95,7 @@ export default {
       cta: 'Contact a psychologist',
       ctaSub: 'We will reply as soon as we can',
       formTitle: 'Contact a psychologist',
-      formLead: 'Leave your details and a short request — we will get back to you soon.',
+      formLead: 'Leave your details and a short request - we will get back to you soon.',
       successTitle: 'Request sent',
       successText: 'Thank you! We will contact you using the details you provided.',
       fillAll: 'Please fill in all fields',
@@ -139,9 +138,9 @@ export default {
       liMood: 'Mood',
       liStress: 'Stress',
       liEnergy: 'Energy',
-      liMoodExp: '— higher means you feel more comfortable subjectively.',
-      liStressExp: '— reflects load; at high values, pauses and support help.',
-      liEnergyExp: '— how alert you feel; low values suggest rest and sleep.',
+      liMoodExp: '- higher means you feel more comfortable subjectively.',
+      liStressExp: '- reflects load; at high values, pauses and support help.',
+      liEnergyExp: '- how alert you feel; low values suggest rest and sleep.',
       foot: 'For full history, open the Analytics section.',
       close: 'Close',
       analytics: 'Open analytics'
@@ -149,7 +148,7 @@ export default {
     onboard: {
       title: 'Welcome',
       body:
-      'Open Tests (e.g. GAD-7) and keep a daily check-in — then Analytics will show your trends. Then open Space: we will suggest exercises based on your results. In AI Journal you can log how you feel and get gentle support (not a diagnosis).',
+      'Open Tests (e.g. GAD-7) and keep a daily check-in - then Analytics will show your trends. Then open Space: we will suggest exercises based on your results. In AI Journal you can log how you feel and get gentle support (not a diagnosis).',
       later: 'Later',
       toTests: 'Go to tests'
     },
@@ -194,7 +193,7 @@ export default {
       time: '2 min',
       desc: 'This exercise helps lower anxiety by slowing the breath and engaging the parasympathetic system.',
       detail:
-      'Breathe slowly: inhale 4, hold 2, exhale 6. Repeat 5–8 cycles. This supports the parasympathetic system and can lower heart rate and cortisol. Seated or before bed works well.'
+      'Breathe slowly: inhale 4, hold 2, exhale 6. Repeat 5-8 cycles. This supports the parasympathetic system and can lower heart rate and cortisol. Seated or before bed works well.'
     },
     1: {
       title: 'Calm mind',
@@ -229,6 +228,7 @@ export default {
     diary: 'AI Journal',
     tests: 'Tests',
     practices: 'Space',
+    favorites: 'Favorites',
     stats: 'Statistics',
     profile: 'Profile',
     expand: 'Expand menu',
@@ -255,7 +255,7 @@ export default {
     heroTitleItalic: 'inner climate',
     heroTitleSuffix: '',
     heroDesc:
-      'A calm space for self-care and practice: tests, journal, meditations, curated picks, and community — clear, kind, and without noise.',
+      'A calm space for self-care and practice: tests, journal, meditations, curated picks, and community - clear, kind, and without noise.',
     ctaStart: 'Start your journey inward',
     ctaWatch: 'See how it works',
     heroWidgetToday: 'Today',
@@ -268,7 +268,7 @@ export default {
     statBar3: '24/7 support and community',
     statBar4: 'Science and care: psychologists and experts',
     catAsideTitle: 'Pick your format',
-    catAsideLead: 'Films, meditations, podcasts, and more — all in one place.',
+    catAsideLead: 'Films, meditations, podcasts, and more - all in one place.',
     catViewAll: 'View all',
     catSectionTitle: 'Choose what supports you',
     catSectionSub: 'Short formats for different moods and schedules.',
@@ -288,20 +288,20 @@ export default {
     catEventsDesc: 'Meetups and practices with the community.',
     catEventsCount: 'activity calendar',
     howTitle: 'How it works',
-    howAsideTitle: 'Small steps — big changes.',
+    howAsideTitle: 'Small steps - big changes.',
     howAsideSub: 'MindTrack is here when you need support.',
     howStep1: 'Answer a few questions about how you’re doing',
     howStep2: 'Get personalized recommendations and a support plan',
     howStep3: 'Practice, track progress, and notice what shifts',
     howStep4: 'Get community and expert support whenever you need it',
     supportTitle: 'Support program',
-    supportLead: 'A clear path without pressure — at your pace.',
+    supportLead: 'A clear path without pressure - at your pace.',
     supportL1: 'Evidence-informed approach',
     supportL2: 'Step-by-step system and goals',
     supportL3: 'Works on phone and desktop',
     supportL4: 'Privacy and respect for boundaries',
     quoteText:
-      'You don’t have to be strong every day. One honest step toward yourself is enough — and we’re here.',
+      'You don’t have to be strong every day. One honest step toward yourself is enough - and we’re here.',
     quoteAuthor: 'The MindTrack team',
     urgentLabel: 'Urgent support',
     urgentHint: 'If things feel heavy right now',
@@ -370,7 +370,7 @@ export default {
   },
   burnoutOnb: {
     profileTitle: 'Set up your profile',
-    profileSubtitle: 'Choose your role, gender, and avatar — then continue to the wellbeing questionnaire.',
+    profileSubtitle: 'Choose your role, gender, and avatar - then continue to the wellbeing questionnaire.',
     toSurvey: 'Continue to survey',
     saving: 'Saving…',
     errSave: 'Could not save. Please try again.',
@@ -392,8 +392,6 @@ export default {
     meditationFormatsSubtitle: 'calm inside your day',
     meditationFormatsColLeft:
       'Short practices to help you slow down, restore your energy, and feel calmer.',
-    meditationFormatsColRight:
-      'Even a few minutes of rest can ease tension, restore focus, and give you space to breathe amid everyday demands.',
     meditationFiltersAria: 'Meditation categories',
     meditationFilterAll: 'All',
     meditationFilterAnxiety: 'Anxiety',
@@ -428,24 +426,26 @@ export default {
     practicesHubKicker: 'MindTrack · Space',
     practicesHubH1: 'Choose your support format',
     practicesHubLead:
-    'Films, meditations, podcasts, music, articles, and events — each opens separately so you can find your way easily.',
-    practicesSpaceHeroLine1: 'A place to be yourself — even when it’s',
+    'Films, meditations, podcasts, music, articles, and events - each opens separately so you can find your way easily.',
+    practicesSpaceHeroLine1: 'A place to be yourself - even when it’s',
     practicesSpaceHeroScript: 'unclear',
     practicesSpaceHeroLine2: ' where to start.',
     practicesSpaceHeroLead:
-    'Films, meditations, podcasts, and more — one gentle step at a time, without rush.',
+    'Films, meditations, podcasts, and more - one gentle step at a time, without rush.',
     practicesSpaceCta: 'Browse sections',
     practicesSpaceSectionEyebrow: 'MindTrack · your space for self-care',
     practicesSpaceHeadL1: 'People come here when',
     practicesSpaceHeadL2a: 'inside ',
     practicesSpaceHeadL2b: ' anxiety and mental noise will not let go',
-    practicesSpaceHeadL3a: 'and rest, grounding, and clarity — ',
+    practicesSpaceHeadL3a: 'and rest, grounding, and clarity - ',
     practicesSpaceHeadL3b: 'still feel far away',
     practicesSpaceHeadL4: 'and it is hard to see where to begin',
     practicesSpaceViewAria: 'Show categories or favorites',
     practicesSpaceViewCategories: 'Categories',
     practicesSpaceViewFavorites: 'Favorites',
     practicesSpaceFavoritesEmpty: 'No favorite practices yet. Tap the heart on cards in Meditations.',
+    practicesFavoritesLead: 'Materials you marked with a heart across Space sections are collected here.',
+    practicesFavoritesFilterAria: 'Favorite categories',
     practicesSpaceT1Quote: 'Choose music, meditation, or a calm film.',
     practicesSpaceT1Name: 'When you’re tired',
     practicesSpaceT2Quote: 'Try breathing, a podcast, or a short article.',
@@ -453,7 +453,7 @@ export default {
     practicesSpaceT3Quote: 'Explore events or gentle activities.',
     practicesSpaceT3Name: 'When you want to move',
     practicesSpaceSpotlightTitle: 'A soft start',
-    practicesSpaceSpotlightSub: 'Two minutes of breath — light as a cloud',
+    practicesSpaceSpotlightSub: 'Two minutes of breath - light as a cloud',
     practicesSpaceSpotlightAria: 'Open a short meditation in the Meditations section',
     practicesTilePopular: 'Popular',
     practicesPocketCategoryEyebrow: 'CATEGORY',
@@ -463,7 +463,7 @@ export default {
     practicesPocketFilmsPill2: 'Soft evening',
     practicesPocketFilmsPill3: '10+ picks',
     practicesPocketMeditationTitle: 'Meditation',
-    practicesPocketMeditationDesc: 'Gentle starts with breath and focus — without pressure.',
+    practicesPocketMeditationDesc: 'Gentle starts with breath and focus - without pressure.',
     practicesPocketMeditationPill1: 'Practices',
     practicesPocketMeditationPill2: 'Breathe',
     practicesPocketMeditationPill3: 'From 2 min',
@@ -494,7 +494,7 @@ export default {
     musicPickOfDay: 'PICK OF THE DAY',
     musicFeaturedBannerTitle: 'Calm in every sound',
     musicFeaturedBannerDesc:
-      'Instrumental playlists with less noise — for breaks between tasks and before sleep.',
+      'Instrumental playlists with less noise - for breaks between tasks and before sleep.',
     musicListenSelection: 'Listen to selection',
     musicMoodPlaylistsTitle: 'Sounds and playlists for your state',
     musicTracksUnit: 'tracks',
@@ -570,11 +570,11 @@ export default {
     podcastsEpisodeLabel: 'Episode {n}',
     podcastsEp1Title: 'Sky-quiet: breathe between tasks',
     podcastsEp1Show: 'Calm Dialogues',
-    podcastsEp1Desc: 'Notice anxiety and soften it without pushing yourself — in one episode.',
+    podcastsEp1Desc: 'Notice anxiety and soften it without pushing yourself - in one episode.',
     podcastsEp1Meta: '24 min · Episode 12',
     podcastsEp2Title: 'Tiredness that isn’t from sleep',
     podcastsEp2Show: 'Mindful Morning',
-    podcastsEp2Desc: 'Where fatigue ends and burnout begins — and gentle next steps.',
+    podcastsEp2Desc: 'Where fatigue ends and burnout begins - and gentle next steps.',
     podcastsEp2Meta: '18 min · Episode 8',
     podcastsEp3Title: 'Sleep without a to-do in your head',
     podcastsEp3Show: 'The School of Calm',
@@ -596,8 +596,8 @@ export default {
     podcastsTopicMotiv: 'Motivation',
     articlesHeroTitle: 'Articles and resources',
     articlesHeroSubtitle:
-      'Burnout at work and in school: signs, recovery, and prevention — for adults and students.',
-    articlesHeroPhotoAlt: 'Pale blue sky with soft clouds — hero image for the articles section',
+      'Burnout at work and in school: signs, recovery, and prevention - for adults and students.',
+    articlesHeroPhotoAlt: 'Pale blue sky with soft clouds - hero image for the articles section',
     articlesFilterAll: 'All articles',
     articlesFilterBurnout: 'Burnout',
     articlesFilterStress: 'Stress',
@@ -613,7 +613,7 @@ export default {
     articlesCtaSub: 'Suggest a topic you’re interested in',
     articlesCtaButton: 'Suggest a topic',
     articlesSuggestMailSubject: 'Article topic suggestion',
-    articlesBook1Title: 'WHO: what burnout is — and what it is not',
+    articlesBook1Title: 'WHO: what burnout is - and what it is not',
     articlesBook2Title: 'Burnout in youth and students: trends',
     articlesBook3Title: 'Recovering from burnout: where to start',
     articlesBook4Title: 'Tired or burned out: how to tell',
@@ -746,16 +746,16 @@ export default {
     eventsDetPinG2: 'Yoga spot near the rose pavilion',
     eventsDetPinG3: 'Dice Cafe, Panfilov st., 110',
     eventsDetPinG4: 'Tour starts at Republic Square',
-    eventsDetTeaserS1: 'A warm acoustic night—voice, guitar, and a calm mood without too much noise.',
+    eventsDetTeaserS1: 'A warm acoustic night-voice, guitar, and a calm mood without too much noise.',
     eventsDetTeaserS2: 'Paintings, objects, and short video works you can enjoy in one relaxed visit.',
-    eventsDetTeaserS3: 'Screening in a cozy hall—good sound and picture away from busy multiplexes.',
+    eventsDetTeaserS3: 'Screening in a cozy hall-good sound and picture away from busy multiplexes.',
     eventsDetTeaserS4: 'Your first time on the wheel: clay, tools, and a piece to pick up after firing.',
     eventsDetTeaserG1: 'A mountain day with a group: steady trail, water breaks, and great views.',
-    eventsDetTeaserG2: 'Morning outdoor yoga with an instructor—gentle and grounded.',
-    eventsDetTeaserG3: 'Board games, tea, and chat—easy to join a table even if you come solo.',
+    eventsDetTeaserG2: 'Morning outdoor yoga with an instructor-gentle and grounded.',
+    eventsDetTeaserG3: 'Board games, tea, and chat-easy to join a table even if you come solo.',
     eventsDetTeaserG4: 'A slow walk through the city center with stories, stops, and coffee.',
     eventsDetAboutS1:
-      'A low-volume acoustic set with soft lighting and comfortable seating—concert night without the crowd crush.',
+      'A low-volume acoustic set with soft lighting and comfortable seating-concert night without the crowd crush.',
     eventsDetAboutS2:
       'Painting, objects, and short videos. You can walk through in an hour or stay with pieces you like. Audio guide in the app.',
     eventsDetAboutS3:
@@ -793,7 +793,7 @@ export default {
     eventsDetG3Suit3: 'Can arrive solo',
     eventsDetG4Suit1: 'Explore the city',
     eventsDetG4Suit2: 'Stories, not dry facts',
-    eventsDetG4Suit3: 'Fine walking 2–3 hours',
+    eventsDetG4Suit3: 'Fine walking 2-3 hours',
     eventsDetOrgName: 'Freedom Events',
     eventsDetOrgDesc: 'Concerts and culture in Almaty.',
     eventsDetOrgDescCraft: 'Creative workshops and studio formats.',
@@ -804,9 +804,9 @@ export default {
     eventsDetOrgDescTour: 'Walking tours and city routes.',
     eventsDetImp1: 'Ticket is valid only for the listed date and showtime.',
     eventsDetImp2: 'Refunds are available up to 48 hours before start unless the organizer states otherwise.',
-    eventsDetImp3: 'We recommend arriving 15–20 minutes early.',
-    eventsDetImp4: 'The post-film discussion is optional—you can leave right after.',
-    eventsDetImp5: 'Fired pieces can be picked up in 10–14 days or sent by courier for a fee.',
+    eventsDetImp3: 'We recommend arriving 15-20 minutes early.',
+    eventsDetImp4: 'The post-film discussion is optional-you can leave right after.',
+    eventsDetImp5: 'Fired pieces can be picked up in 10-14 days or sent by courier for a fee.',
     eventsDetImp6: 'Table reservation is held for 15 minutes from the stated time.',
     eventsDetImpG1: 'Bring ID, water, and snacks; dress for the weather.',
     eventsDetImpG2: 'The instructor may adjust the route for weather or safety.',
@@ -832,14 +832,14 @@ export default {
     eventsHeroSoloModeLead:
       'Events for spending time alone with yourself and recharging.',
     eventsHeroGroupModeLead:
-      'Events for shared rest and connection — when you want company.',
+      'Events for shared rest and connection - when you want company.',
     eventsFilterAll: 'All',
     eventsFilterDate: 'Date',
     eventsFilterTime: 'Time',
     eventsFilterPrice: 'Price',
     eventsFilterMood: 'Mood',
     eventsFilterAdvanced: 'Filters',
-    eventsNoMatches: 'No events in this category yet — try another filter.',
+    eventsNoMatches: 'No events in this category yet - try another filter.',
     eventsFeedListAria: 'Event picks',
     eventsFiltersAria: 'Filter by event type',
     eventsToolbarAria: 'More search options',
@@ -855,7 +855,7 @@ export default {
     eventsTbOptTimeEvening: 'Evening',
     eventsTbOptPriceFree: 'Free',
     eventsTbOptPriceLow: 'Under ₸2000',
-    eventsTbOptPriceMid: '₸2000–4000',
+    eventsTbOptPriceMid: '₸2000-4000',
     eventsTbOptPriceHigh: '₸4000 and up',
     eventsTbOptMoodCalm: 'Calm',
     eventsTbOptMoodEnergy: 'Energetic',
@@ -867,7 +867,7 @@ export default {
     eventsTbAdvOfflineOnly: 'In person only',
     eventsTbAdvOfflineShort: 'In person',
     eventsTbPhLocation: 'Almaty',
-    filmsGlassTagline: 'Here you can be yourself — even when it is still unclear how',
+    filmsGlassTagline: 'Here you can be yourself - even when it is still unclear how',
     filmsGlassBrand: 'Space',
     filmsGlassNavHome: 'Home',
     filmsGlassNavCatalog: 'Films',
@@ -875,13 +875,13 @@ export default {
     filmsGlassFiltersAria: 'Film collection filters',
     filmsCatalogTitle: 'Film catalog',
     filmsCatalogSub:
-      'Collections for anxiety, burnout, sleep, and focus — pick a film and watch right away.',
+      'Collections for anxiety, burnout, sleep, and focus - pick a film and watch right away.',
     filmsCatalogCount: 'Total films: {count}',
     filmsCatalogMindTitle: 'Films for your wellbeing',
     filmsCatalogMindLead:
-      'Each title has a psychological tag — open the filters next to search, or use the search bar.',
+      'Each title has a psychological tag - open the filters next to search, or use the search bar.',
     filmsCatalogCareLine: 'We care about your inner wellbeing',
-    filmsCatalogHeroPhotoAlt: 'Pale blue sky with soft clouds — hero image for the film collection page',
+    filmsCatalogHeroPhotoAlt: 'Pale blue sky with soft clouds - hero image for the film collection page',
     filmsCatalogSearchPh: 'Search by title, studio, or tag',
     filmsCatalogFiltersAria: 'Collection categories',
     filmsCatalogFilterAria: 'Show or hide filters for mood, genre, type, and atmosphere',
@@ -901,12 +901,12 @@ export default {
     filmSectionDescFocus:
       'Structured, engaging films to reset your concentration.',
     filmSectionDescMotivation:
-      'Tales of persistence and self-belief — a nudge without harsh push.',
-    filmsCatalogEmptyCategory: 'Nothing found — adjust filters or search.',
+      'Tales of persistence and self-belief - a nudge without harsh push.',
+    filmsCatalogEmptyCategory: 'Nothing found - adjust filters or search.',
     filmsFilterToolbarAria: 'Extra filters for this list',
-    filmsFilterChipsAria: 'Active filters — use the cross to remove an item',
+    filmsFilterChipsAria: 'Active filters - use the cross to remove an item',
     filmsFilterRemoveChip: 'Remove: {label}',
-    filmsFilterEmpty: 'No films match these filters — try a different option.',
+    filmsFilterEmpty: 'No films match these filters - try a different option.',
     filmsFilterPillMood: 'By state',
     filmsFilterPillGenre: 'Genres',
     filmsFilterPillType: 'Content type',
@@ -959,9 +959,9 @@ export default {
     filmsGlassPlaylistCta: 'Watch',
     filmsGlassHintTitle: 'Gentle time',
     filmsGlassHintBody:
-      'Choose a film for your mood — each list is curated for self-care without overwhelm.',
+      'Choose a film for your mood - each list is curated for self-care without overwhelm.',
     filmsGlassRowCta: 'Whole category',
-    filmsGlassEmpty: 'Nothing found — try another search or filter.',
+    filmsGlassEmpty: 'Nothing found - try another search or filter.',
     filmsGlassWatchExternal: 'Full version',
     filmsGlassPlayerClose: 'Close player',
     filmDetailBack: 'Back',
@@ -1044,9 +1044,7 @@ export default {
     testsProgressHourShort: 'h',
     testsProgressHint: 'Different surveys in period: {n}',
     testsQuote:
-      'Small steps toward understanding yourself today — big changes in your life tomorrow.',
-    testsHeroAside:
-      'MindTrack surveys gently track changes in how you feel and help you find support in time. They’re evidence-based and take just a few minutes.',
+      'Small steps toward understanding yourself today - big changes in your life tomorrow.',
     testsHeroPhotoAlt: 'Calm landscape hero image for the Tests page',
     testsFeaturedBadge: 'Pick for you',
     testsFeaturedTitle: 'Not sure where to start?',
@@ -1057,13 +1055,13 @@ export default {
     testsMinShort: 'min',
     testsFilter: 'Filter by topic',
     testsQuick: '⚡️ Quick start',
-    testsQuickLead: 'Three tracks — we open the first available test in each theme for you.',
+    testsQuickLead: 'Three tracks - we open the first available test in each theme for you.',
     testsCatalog: '📋 Survey catalog',
     testsCatalogHint: 'All surveys with question count and audience. Use the filter above to narrow the list.',
     chatGreetingPrefix: 'Hi,',
     chatGreetingSub: 'Tell me, how was your day?',
     diaryChatHelp: 'Help',
-    chatPlaceholder: '{name}, share your thoughts — draw or just write…',
+    chatPlaceholder: '{name}, share your thoughts - draw or just write…',
     chatInputAria: 'Message for AI journal',
     chatSend: 'Send',
     chatUserFallback: 'Me',
@@ -1094,11 +1092,11 @@ export default {
   testsPath: {
     heal: {
       title: 'Renewal',
-      lead: 'A short survey on overload and recovery — step by step.'
+      lead: 'A short survey on overload and recovery - step by step.'
     },
     discover: {
       title: 'Pulse',
-      lead: 'Anxiety and inner tension — notice what is happening right now.'
+      lead: 'Anxiety and inner tension - notice what is happening right now.'
     },
     insight: {
       title: 'Daily balance',
