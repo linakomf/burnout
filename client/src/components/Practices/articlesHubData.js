@@ -1,15 +1,112 @@
-/** Темы: выгорание, стресс, мотивация, отдых, эмоции, баланс, общение */
+/** Чтение: статьи (темы) и книги (жанровые категории) */
 import { natureAt, spaceNature } from './spaceNatureImagery';
 
+/** Для вкладки «Статьи» — плашки фильтрации */
 export const ARTICLE_CATEGORY_IDS = [
   'burnout',
   'stress',
+  'anxiety',
   'motivation',
   'rest',
-  'emotions',
   'balance',
+  'emotions',
   'communication',
 ];
+
+/** Для вкладки «Книги» */
+export const BOOK_CATEGORY_IDS = [
+  'psychology',
+  'selfgrowth',
+  'readsmotive',
+  'lightread',
+  'restreads',
+  'fiction',
+  'biography',
+  'inspire',
+];
+
+/** Для админки — фильтры статей */
+export const ARTICLE_FILTER_OPTIONS = [
+  { id: 'burnout', labelKey: 'articlesFilterBurnout' },
+  { id: 'stress', labelKey: 'articlesFilterStress' },
+  { id: 'anxiety', labelKey: 'articlesFilterAnxiety' },
+  { id: 'motivation', labelKey: 'articlesFilterMotivation' },
+  { id: 'rest', labelKey: 'articlesFilterRest' },
+  { id: 'balance', labelKey: 'articlesFilterBalance' },
+  { id: 'emotions', labelKey: 'articlesFilterEmotions' },
+  { id: 'communication', labelKey: 'articlesFilterCommunication' },
+];
+
+/** Для админки — фильтры книг */
+export const BOOK_FILTER_OPTIONS = [
+  { id: 'psychology', labelKey: 'booksFilterPsychology' },
+  { id: 'selfgrowth', labelKey: 'booksFilterSelfgrowth' },
+  { id: 'readsmotive', labelKey: 'booksFilterReadsmotive' },
+  { id: 'lightread', labelKey: 'booksFilterLightread' },
+  { id: 'restreads', labelKey: 'booksFilterRestreads' },
+  { id: 'fiction', labelKey: 'booksFilterFiction' },
+  { id: 'biography', labelKey: 'booksFilterBiography' },
+  { id: 'inspire', labelKey: 'booksFilterInspire' },
+];
+
+export const READING_KIND_OPTIONS = [
+  { id: 'article', label: 'Статья' },
+  { id: 'book', label: 'Книга' },
+];
+
+export function isRemoteArticleId(id) {
+  return /^article-\d+$/.test(String(id || ''));
+}
+
+export function isRemoteBookId(id) {
+  return /^book-\d+$/.test(String(id || ''));
+}
+
+export function mapRemoteArticlePayload(row, toUrl) {
+  const urlFn = toUrl || ((p) => p);
+  return {
+    id: row.id,
+    kind: 'article',
+    category: row.category || 'burnout',
+    title: row.title || '',
+    titleKey: null,
+    descriptionShort: row.descriptionShort || '',
+    bodyFull: row.bodyFull || '',
+    url: row.sourceUrl || '',
+    image: urlFn(row.coverImage),
+    isRemoteReading: true,
+  };
+}
+
+export function mapRemoteBookPayload(row, toUrl) {
+  const urlFn = toUrl || ((p) => p);
+  return {
+    id: row.id,
+    kind: 'book',
+    bookCategory: row.category || 'psychology',
+    title: row.title || '',
+    titleKey: null,
+    descriptionShort: row.descriptionShort || '',
+    url: row.readUrl || '',
+    image: urlFn(row.coverImage),
+    isRemoteReading: true,
+  };
+}
+
+export function readingItemTitle(item, t) {
+  if (item.title) return item.title;
+  if (item.titleKey) return t(`pages.${item.titleKey}`);
+  return '';
+}
+
+export function readingItemCategoryLabel(item, t) {
+  if (item.kind === 'book' || item.bookCategory) {
+    const cat = item.bookCategory || item.category;
+    return cat ? t(`pages.booksCat${cat}`) : '';
+  }
+  const cat = item.category;
+  return cat ? t(`pages.articlesCat${cat}`) : '';
+}
 
 const ARTICLES_LIBRARY_CORE = [
   {
@@ -120,26 +217,168 @@ const ARTICLES_LIBRARY_CORE = [
     titleKey: 'articlesBook18Title',
     url: 'https://www.who.int/standards/classifications/frequently-asked-questions/burn-out-an-occupational-phenomenon/',
   },
+  {
+    id: 'ab19',
+    category: 'anxiety',
+    titleKey: 'articlesBook19Title',
+    url: 'https://www.apa.org/topics/anxiety',
+  },
 ];
 
-/**
- * Материалы по темам: выгорание, стресс, мотивация, отдых, эмоции, баланс, общение.
- * @type {Array<{ id: string, category: string, titleKey: string, image: string, url: string }>}
- */
 export const ARTICLES_LIBRARY = ARTICLES_LIBRARY_CORE.map((row, index) => ({
   ...row,
+  kind: 'article',
   image: natureAt(index + 80),
 }));
 
-/** Фон героя страницы статей */
-export const HERO_BG = spaceNature.articlesHero;
+const BOOKS_LIBRARY_CORE = [
+  {
+    id: 'bk1',
+    bookCategory: 'psychology',
+    titleKey: 'booksItemPsych1Title',
+    url: 'https://www.goodreads.com/book/show/1134367.Man_s_Search_for_Meaning',
+  },
+  {
+    id: 'bk2',
+    bookCategory: 'selfgrowth',
+    titleKey: 'booksItemSelf1Title',
+    url: 'https://en.wikipedia.org/wiki/How_to_Win_Friends_and_Influence_People',
+  },
+  {
+    id: 'bk3',
+    bookCategory: 'readsmotive',
+    titleKey: 'booksItemMotive1Title',
+    url: 'https://en.wikipedia.org/wiki/Atomic_Habits',
+  },
+  {
+    id: 'bk4',
+    bookCategory: 'lightread',
+    titleKey: 'booksItemLight1Title',
+    url: 'https://en.wikipedia.org/wiki/The_Little_Prince',
+  },
+  {
+    id: 'bk5',
+    bookCategory: 'restreads',
+    titleKey: 'booksItemRest1Title',
+    url: 'https://en.wikipedia.org/wiki/The_Guernsey_Literary_and_Potato_Peel_Pie_Society',
+  },
+  {
+    id: 'bk6',
+    bookCategory: 'fiction',
+    titleKey: 'booksItemFic1Title',
+    url: 'https://www.gutenberg.org/ebooks/1342',
+  },
+  {
+    id: 'bk7',
+    bookCategory: 'biography',
+    titleKey: 'booksItemBio1Title',
+    url: 'https://en.wikipedia.org/wiki/Becoming_(book)',
+  },
+  {
+    id: 'bk8',
+    bookCategory: 'inspire',
+    titleKey: 'booksItemInsp1Title',
+    url: 'https://en.wikipedia.org/wiki/Educated_(memoir)',
+  },
+  {
+    id: 'bk9',
+    bookCategory: 'psychology',
+    titleKey: 'booksItemPsych2Title',
+    url: 'https://en.wikipedia.org/wiki/Thinking,_Fast_and_Slow',
+  },
+  {
+    id: 'bk10',
+    bookCategory: 'selfgrowth',
+    titleKey: 'booksItemSelf2Title',
+    url: 'https://en.wikipedia.org/wiki/The_7_Habits_of_Highly_Effective_People',
+  },
+  {
+    id: 'bk11',
+    bookCategory: 'readsmotive',
+    titleKey: 'booksItemMotive2Title',
+    url: 'https://en.wikipedia.org/wiki/Drive_(Pink_book)',
+  },
+  {
+    id: 'bk12',
+    bookCategory: 'lightread',
+    titleKey: 'booksItemLight2Title',
+    url: 'https://www.gutenberg.org/ebooks/11',
+  },
+  {
+    id: 'bk13',
+    bookCategory: 'restreads',
+    titleKey: 'booksItemRest2Title',
+    url: 'https://en.wikipedia.org/wiki/The_Alchemist_(novel)',
+  },
+  {
+    id: 'bk14',
+    bookCategory: 'fiction',
+    titleKey: 'booksItemFic2Title',
+    url: 'https://www.gutenberg.org/ebooks/2554',
+  },
+  {
+    id: 'bk15',
+    bookCategory: 'biography',
+    titleKey: 'booksItemBio2Title',
+    url: 'https://en.wikipedia.org/wiki/The_Diary_of_a_Young_Girl',
+  },
+  {
+    id: 'bk16',
+    bookCategory: 'inspire',
+    titleKey: 'booksItemInsp2Title',
+    url: 'https://en.wikipedia.org/wiki/Wild:_From_Lost_to_Found_on_the_Pacific_Crest_Trail',
+  },
+];
 
-export function getFilteredArticles(categoryId) {
-  if (categoryId === 'all') return [...ARTICLES_LIBRARY];
-  return ARTICLES_LIBRARY.filter((a) => a.category === categoryId);
+export const BOOKS_LIBRARY = BOOKS_LIBRARY_CORE.map((row, index) => ({
+  ...row,
+  kind: 'book',
+  image: natureAt(index + 200),
+}));
+
+export const READING_LIBRARY = [...ARTICLES_LIBRARY, ...BOOKS_LIBRARY];
+
+/** @param {Array} pool @param {'article' | 'book'} contentKind @param {string} pillId */
+export function filterReadingList(pool, contentKind, pillId) {
+  const items = pool.filter((item) => item.kind === contentKind);
+  if (pillId === 'all') return items;
+  if (contentKind === 'article') return items.filter((item) => item.category === pillId);
+  return items.filter((item) => item.bookCategory === pillId);
 }
 
-/** Сколько карточек на одной полке (одна линия в сетке) */
+/** @param {'article' | 'book'} contentKind @param {string} pillId */
+export function filterReadingHub(contentKind, pillId) {
+  return filterReadingList(READING_LIBRARY, contentKind, pillId);
+}
+
+export function getFilteredArticles(categoryId) {
+  return filterReadingHub('article', categoryId);
+}
+
+export function getArticleById(rawId) {
+  const id = String(rawId || '').trim();
+  return ARTICLES_LIBRARY.find((a) => a.id === id) || null;
+}
+
+export function getBookById(rawId) {
+  const id = String(rawId || '').trim();
+  return BOOKS_LIBRARY.find((b) => b.id === id) || null;
+}
+
+/** По ключу заголовка: pages.articlesBook1Title → articlesBook1Summary */
+export function articleSummaryLocaleKey(titleKey) {
+  if (!titleKey || typeof titleKey !== 'string') return '';
+  return titleKey.endsWith('Title') ? `${titleKey.slice(0, -5)}Summary` : '';
+}
+
+/** pages.booksItemPsych1Title → booksItemPsych1Desc */
+export function bookDescLocaleKey(titleKey) {
+  if (!titleKey || typeof titleKey !== 'string') return '';
+  return titleKey.endsWith('Title') ? `${titleKey.slice(0, -5)}Desc` : '';
+}
+
+export const HERO_BG = spaceNature.articlesHero;
+
 export const BOOKS_PER_SHELF = 5;
 
 export function buildShelves(list) {

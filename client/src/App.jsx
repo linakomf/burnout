@@ -14,13 +14,25 @@ import Profile from './components/Profile/Profile';
 import Diary from './components/Diary/Diary';
 import Practices from './components/Practices/Practices';
 import { AdminOverview, AdminUsers, AdminCategories, AdminTests } from './components/Admin/Admin';
+import AdminSpace from './components/Admin/AdminSpace';
+import AdminPsychologists from './components/Admin/AdminPsychologists';
 import AdminPortal from './components/AdminPortal/AdminPortal';
+import PsychologistDashboard from './components/Psychologist/PsychologistDashboard';
+import PsychologistProfile from './components/Psychologist/PsychologistProfile';
+import PsychologistPending from './components/Psychologist/PsychologistPending';
+import PsychologistInviteRegister from './components/Psychologist/PsychologistInviteRegister';
+import { psychologistHomePath } from './utils/psychologistNav';
 import AdminDashboard from './components/Dashboards/AdminDashboard';
 import OnboardingBurnout from './components/Onboarding/OnboardingBurnout';
 import Personalization from './components/Personalization/Personalization';
 import './styles/global.css';
 
-const PrivateRoute = ({ children, adminOnly = false }) => {
+const PrivateRoute = ({
+  children,
+  adminOnly = false,
+  psychologistOnly = false,
+  allowProfile = false
+}) => {
   const { user, loading } = useAuth();
   if (loading) return (
     <div className="app-loading-fullscreen">
@@ -28,9 +40,45 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
     </div>);
 
   if (!user) return <Navigate to="/" replace />;
-  if (adminOnly && user.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  if (adminOnly && user.role !== 'admin') return <Navigate to={psychologistHomePath(user)} replace />;
+  if (psychologistOnly && user.role !== 'psychologist') return <Navigate to="/dashboard" replace />;
+  if (!allowProfile && !adminOnly && !psychologistOnly && user.role === 'psychologist') {
+    return <Navigate to={psychologistHomePath(user)} replace />;
+  }
+  if (!allowProfile && !adminOnly && !psychologistOnly && user.role === 'admin') {
+    return <Navigate to="/admin" replace />;
+  }
   return children;
 };
+
+function ProfilePage() {
+  const { user } = useAuth();
+  if (user?.role === 'psychologist') {
+    return <Navigate to="/psychologist/profile" replace />;
+  }
+  if (user?.role === 'admin') {
+    return (
+      <Layout>
+        <Profile />
+      </Layout>
+    );
+  }
+  return (
+    <RequireOnboardingDone>
+      <UserLayout>
+        <Profile />
+      </UserLayout>
+    </RequireOnboardingDone>
+  );
+}
+
+function ApprovedPsychologistRoute({ children }) {
+  const { user } = useAuth();
+  if (user?.psychologist_account_status !== 'approved') {
+    return <Navigate to="/psychologist/pending" replace />;
+  }
+  return children;
+}
 
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -41,6 +89,7 @@ const PublicRoute = ({ children }) => {
 
   if (user) {
     if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
+    if (user.role === 'psychologist') return <Navigate to={psychologistHomePath(user)} replace />;
     if (!user.onboarding_burnout_completed) {
       return <Navigate to="/onboarding/burnout" replace />;
     }
@@ -51,7 +100,12 @@ const PublicRoute = ({ children }) => {
 
 function RequireOnboardingDone({ children }) {
   const { user } = useAuth();
-  if (user && user.role !== 'admin' && !user.onboarding_burnout_completed) {
+  if (
+    user &&
+    user.role !== 'admin' &&
+    user.role !== 'psychologist' &&
+    !user.onboarding_burnout_completed
+  ) {
     return <Navigate to="/onboarding/burnout" replace />;
   }
   return children;
@@ -62,6 +116,10 @@ const UserLayout = ({ children }) =>
     {children}
   </Layout>;
 
+function SpaceToPracticesRedirect() {
+  const { search } = useLocation();
+  return <Navigate to={{ pathname: '/practices', search }} replace />;
+}
 
 /** При переходе на любой маршрут показываем страницу с начала (как обычная навигация). */
 function ScrollToTopOnRoute() {
@@ -94,6 +152,7 @@ const App = () => {
 
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          <Route path="/psychologist/invite/:token" element={<PsychologistInviteRegister />} />
 
           <Route path="/onboarding/burnout" element={
                     <PrivateRoute><OnboardingBurnout /></PrivateRoute>
@@ -127,6 +186,7 @@ const App = () => {
               </RequireOnboardingDone>
             </PrivateRoute>
                     } />
+          <Route path="/space/*" element={<SpaceToPracticesRedirect />} />
           <Route path="/practices/*" element={
                     <PrivateRoute>
               <RequireOnboardingDone>
@@ -149,10 +209,8 @@ const App = () => {
             </PrivateRoute>
                     } />
           <Route path="/profile" element={
-                    <PrivateRoute>
-              <RequireOnboardingDone>
-                <UserLayout><Profile /></UserLayout>
-              </RequireOnboardingDone>
+                    <PrivateRoute allowProfile>
+              <ProfilePage />
             </PrivateRoute>
                     } />
 
@@ -168,6 +226,34 @@ const App = () => {
           <Route path="/admin/tests" element={
                     <PrivateRoute adminOnly><Layout><AdminTests /></Layout></PrivateRoute>
                     } />
+          <Route path="/admin/space" element={
+                    <PrivateRoute adminOnly><Layout><AdminSpace /></Layout></PrivateRoute>
+                  } />
+          <Route path="/admin/psychologists" element={
+                    <PrivateRoute adminOnly><Layout><AdminPsychologists /></Layout></PrivateRoute>
+                  } />
+
+          <Route path="/psychologist" element={
+                    <PrivateRoute psychologistOnly>
+              <ApprovedPsychologistRoute>
+                <Layout><PsychologistDashboard /></Layout>
+              </ApprovedPsychologistRoute>
+            </PrivateRoute>
+                  } />
+          <Route path="/psychologist/pending" element={
+                    <PrivateRoute psychologistOnly><Layout><PsychologistPending /></Layout></PrivateRoute>
+                  } />
+          <Route path="/psychologist/profile" element={
+                    <PrivateRoute psychologistOnly>
+              <Layout><PsychologistProfile /></Layout>
+            </PrivateRoute>
+                  } />
+          <Route path="/admin/films" element={<Navigate to="/admin/space?section=films" replace />} />
+          <Route path="/admin/meditations" element={<Navigate to="/admin/space?section=meditation" replace />} />
+          <Route path="/admin/events" element={<Navigate to="/admin/space?section=events" replace />} />
+          <Route path="/admin/reading" element={<Navigate to="/admin/space?section=reading" replace />} />
+          <Route path="/admin/music" element={<Navigate to="/admin/space?section=music" replace />} />
+          <Route path="/admin/podcasts" element={<Navigate to="/admin/space?section=podcasts" replace />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

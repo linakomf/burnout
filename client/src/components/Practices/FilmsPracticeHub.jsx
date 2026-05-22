@@ -14,7 +14,10 @@ import {
   X,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { spaceHubHref } from './practiceSpaceConfig';
 import { useLanguage } from '../../context/LanguageContext';
+import api from '../../utils/api';
+import { backendPublicUrl } from '../../utils/assetUrl';
 import filmsCatalogHeroPhoto from '../../assets/films-catalog-hero-clouds.png';
 import { spaceNature } from './spaceNatureImagery';
 import { FILMS } from './filmsCatalogData';
@@ -25,7 +28,22 @@ import {
   FILMS_FILTER_TYPE_OPTIONS,
   filmPassesHubFilters,
 } from './filmsHubFilters';
+import PracticeCoverFavorite from './PracticeCoverFavorite';
+import {
+  FAVORITES_KEYS,
+  loadSectionFavorites,
+  saveSectionFavorites,
+  toggleInFavoriteSet,
+} from './sectionFavorites';
 import './FilmsPracticeHub.css';
+
+function normalizeRemoteFilm(f) {
+  return {
+    ...f,
+    poster: backendPublicUrl(f.poster),
+    gallery: Array.isArray(f.gallery) ? f.gallery.map(backendPublicUrl) : [],
+  };
+}
 
 function orderIdsByOptions(options, ids) {
   const rank = new Map(
@@ -70,7 +88,7 @@ function FilmsFilterDropdown({ isOpen, options, selectedIds, t, onToggleOption, 
   );
 }
 
-function FilmsPracticeHub() {
+function FilmsPracticeHub({ embedded = false }) {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const filtersBlockRef = useRef(null);
@@ -81,8 +99,36 @@ function FilmsPracticeHub() {
   const [filtGenres, setFiltGenres] = useState([]);
   const [filtTypes, setFiltTypes] = useState([]);
   const [filtAtmospheres, setFiltAtmospheres] = useState([]);
+  const [remoteFilms, setRemoteFilms] = useState([]);
+  const [favorites, setFavorites] = useState(() => loadSectionFavorites(FAVORITES_KEYS.films));
 
   const closeFilters = useCallback(() => setOpenFilterKey(null), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get('/films')
+      .then((r) => {
+        const rows = r.data?.films || [];
+        if (!cancelled) setRemoteFilms(rows.map(normalizeRemoteFilm));
+      })
+      .catch(() => {
+        if (!cancelled) setRemoteFilms([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const catalogFilms = useMemo(() => [...FILMS, ...remoteFilms], [remoteFilms]);
+
+  useEffect(() => {
+    saveSectionFavorites(FAVORITES_KEYS.films, favorites);
+  }, [favorites]);
+
+  const toggleFilmFavorite = (filmId) => {
+    setFavorites((prev) => toggleInFavoriteSet(prev, filmId));
+  };
 
   useEffect(() => {
     if (!openFilterKey || !filtersToolbarVisible) return undefined;
@@ -151,7 +197,7 @@ function FilmsPracticeHub() {
 
   const filteredFilms = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return FILMS.filter((film) => {
+    return catalogFilms.filter((film) => {
       if (
         !filmPassesHubFilters(film, {
           moods: filtMoods,
@@ -162,14 +208,20 @@ function FilmsPracticeHub() {
       )
         return false;
       if (!query) return true;
+      const hayDescFull =
+        typeof film.descriptionFull === 'string' ? film.descriptionFull.toLowerCase() : '';
+      const hayDescShort =
+        typeof film.description === 'string' ? film.description.toLowerCase() : '';
       return (
         film.title.toLowerCase().includes(query) ||
-        film.source.toLowerCase().includes(query) ||
-        film.genres.toLowerCase().includes(query) ||
+        (film.source && film.source.toLowerCase().includes(query)) ||
+        (film.genres && film.genres.toLowerCase().includes(query)) ||
+        hayDescShort.includes(query) ||
+        hayDescFull.includes(query) ||
         t(`pages.filmPsych_${film.psychTag}`).toLowerCase().includes(query)
       );
     });
-  }, [search, t, filtMoods, filtGenres, filtTypes, filtAtmospheres]);
+  }, [search, t, filtMoods, filtGenres, filtTypes, filtAtmospheres, catalogFilms]);
 
   const anyAdvancedFilter =
     filtMoods.length > 0 ||
@@ -197,17 +249,22 @@ function FilmsPracticeHub() {
   ];
 
   return (
-    <section className="flix-scope flix-scope--catalog flix-scope--mindwell fade-in">
+    <section className={`flix-scope flix-scope--catalog flix-scope--mindwell fade-in${embedded ? ' flix-scope--embedded' : ''}`}>
       <div className="flix-ambient" aria-hidden />
 
       <div className="flix-panel flix-panel--catalog">
         <header className="flix-catalog-header">
           <div className="flix-catalog-mock">
             <div className="flix-catalog-hero-stage">
-              <button type="button" className="flix-back flix-catalog-back" onClick={() => navigate('/practices')}>
-                <ArrowLeft size={18} strokeWidth={2} aria-hidden />
-                {t('pages.practicesBackToHub')}
-              </button>
+              {!embedded ? (
+                <button
+                  type="button"
+                  className="flix-back flix-catalog-back"
+                  onClick={() => navigate(spaceHubHref())}>
+                  <ArrowLeft size={18} strokeWidth={2} aria-hidden />
+                  {t('pages.practicesBack')}
+                </button>
+              ) : null}
               <div
                 className="flix-catalog-hero-photo"
                 style={{ backgroundImage: `url(${filmsCatalogHeroPhoto})` }}
@@ -498,13 +555,19 @@ function FilmsPracticeHub() {
                 >
                   <div className="flix-film-card__poster-wrap">
                     <img src={film.poster} alt="" className="flix-film-card__poster" loading="lazy" />
+                    <PracticeCoverFavorite
+                      isFavorite={favorites.has(film.id)}
+                      onToggle={() => toggleFilmFavorite(film.id)}
+                      ariaLabel={t('pages.meditationModalFavorite')}
+                    />
                   </div>
                   <h3 className="flix-film-card__title">{film.title}</h3>
                   <div className="flix-film-card__meta">
                     <span className="flix-film-card__star" aria-hidden>
                       ★
                     </span>
-                    {film.rating} · {film.year}
+                    {(film.rating && String(film.rating).trim()) || '—'} ·{' '}
+                    {(film.year && String(film.year).trim()) || '—'}
                   </div>
                   <span className="flix-psych-tag">{t(`pages.filmPsych_${film.psychTag}`)}</span>
                 </button>

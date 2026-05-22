@@ -5,6 +5,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
 import { Brain, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { formatAuthAxiosError, mergeField, readFormField } from '../../utils/authFormRead';
+import { psychologistHomePath } from '../../utils/psychologistNav';
 import './Auth.css';
 
 const Login = () => {
@@ -34,9 +35,10 @@ const Login = () => {
     setLoading(true);
     try {
       const user = await login(email, password);
-      if (user.role === 'admin') navigate('/admin');else
-      if (!user.onboarding_burnout_completed) navigate('/onboarding/burnout', { replace: true });else
-      navigate('/dashboard');
+      if (user.role === 'admin') navigate('/admin');
+      else if (user.role === 'psychologist') navigate(psychologistHomePath(user), { replace: true });
+      else if (!user.onboarding_burnout_completed) navigate('/onboarding/burnout', { replace: true });
+      else navigate('/dashboard');
     } catch (err) {
       setError(formatAuthAxiosError(err, t) || t('auth.errLogin'));
     } finally {

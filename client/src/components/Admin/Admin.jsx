@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Tag, BookOpen, Plus, Trash2, Edit2, X, Save, HeartHandshake } from 'lucide-react';
+import { Users, Tag, BookOpen, Plus, Trash2, Edit2, X, Save, HeartHandshake, Clapperboard } from 'lucide-react';
 import api from '../../utils/api';
 import './Admin.css';
 
@@ -571,14 +571,26 @@ export const AdminTests = () => {
 
 export const AdminOverview = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ users: 0, tests: 0, categories: 0 });
+  const [stats, setStats] = useState({ users: 0, tests: 0, categories: 0, films: null });
   const [supportRequests, setSupportRequests] = useState([]);
   const [supportLoading, setSupportLoading] = useState(true);
   const [supportError, setSupportError] = useState('');
 
   useEffect(() => {
-    Promise.all([api.get('/users/all'), api.get('/tests'), api.get('/categories')]).
-    then(([u, t, c]) => setStats({ users: u.data.length, tests: t.data.length, categories: c.data.length })).
+    Promise.all([
+      api.get('/users/all'),
+      api.get('/tests'),
+      api.get('/categories'),
+      api.get('/films').catch(() => ({ data: { films: [] } })),
+    ]).
+    then(([u, t, c, f]) =>
+      setStats({
+        users: u.data.length,
+        tests: t.data.length,
+        categories: c.data.length,
+        films: (f.data.films || []).length,
+      })
+    ).
     catch(() => {});
   }, []);
 
@@ -613,7 +625,7 @@ export const AdminOverview = () => {
       <h1 className="page-title">Панель администратора</h1>
       <p className="page-sub">Обзор системы</p>
 
-      <div className="admin-overview-grid">
+      <div className="admin-overview-grid admin-overview-grid--four">
         <div className="card admin-stat-card" onClick={() => navigate('/admin/users')}>
           <Users size={28} className="admin-stat-icon" />
           <div className="admin-stat-val">{stats.users}</div>
@@ -628,6 +640,11 @@ export const AdminOverview = () => {
           <Tag size={28} className="admin-stat-icon" />
           <div className="admin-stat-val">{stats.categories}</div>
           <div className="admin-stat-label">Категорий</div>
+        </div>
+        <div className="card admin-stat-card" onClick={() => navigate('/admin/space?section=films')}>
+          <Clapperboard size={28} className="admin-stat-icon" />
+          <div className="admin-stat-val">{stats.films ?? '…'}</div>
+          <div className="admin-stat-label">Контент «Пространство»</div>
         </div>
       </div>
 

@@ -1,4 +1,121 @@
+import { backendPublicUrl } from '../../utils/assetUrl';
 import { natureAt, spaceNature } from './spaceNatureImagery';
+
+export const MUSIC_MOOD_OPTIONS = [
+  { id: 'calm', labelKey: 'musicMoodCalm' },
+  { id: 'focus', labelKey: 'musicMoodFocus' },
+  { id: 'sleep', labelKey: 'musicMoodSleep' },
+  { id: 'mood', labelKey: 'musicMoodMorning' },
+];
+
+export const MUSIC_KIND_OPTIONS = [
+  { id: 'track', label: 'Трек (рекомендации)' },
+  { id: 'quick', label: 'Быстрый звук' },
+];
+
+export const MUSIC_QUICK_ICON_OPTIONS = [
+  { id: 'CloudRain', label: 'Дождь' },
+  { id: 'Waves', label: 'Море' },
+  { id: 'Trees', label: 'Лес' },
+  { id: 'Wind', label: 'Ветер' },
+  { id: 'Radio', label: 'Шум' },
+  { id: 'Music', label: 'Музыка' },
+  { id: 'Flame', label: 'Огонь' },
+  { id: 'Bird', label: 'Птицы' },
+];
+
+export { MEDITATION_AUDIO_SOURCE_OPTIONS as MUSIC_AUDIO_SOURCE_OPTIONS } from './meditationHubData';
+
+export function isRemoteMusicId(id) {
+  return /^music-(?:quick-)?\d+$/.test(String(id || ''));
+}
+
+export function mapRemoteMusicTrack(row, toUrl) {
+  const urlFn = toUrl || backendPublicUrl;
+  const poster = urlFn(row.poster || row.coverImage);
+  const audioUrl =
+    row.audioSource === 'file' ? urlFn(row.audioUrl) : row.audioUrl || '';
+  return {
+    id: row.id,
+    kind: row.kind || 'track',
+    title: row.title || '',
+    artist: row.artist || '',
+    mood: row.mood || 'calm',
+    genreLabel: row.genreLabel || '',
+    titleKey: null,
+    artistKey: null,
+    genreKey: null,
+    durationShort: row.durationShort || '3:00',
+    durationMin: row.durationMin || 3,
+    poster,
+    audioSource: row.audioSource || (row.embedUrl ? 'youtube' : 'url'),
+    audioUrl,
+    embedUrl: row.embedUrl || '',
+    watchUrl: row.watchUrl || '',
+    descriptionShort: row.descriptionShort || '',
+    hasAudio: Boolean(row.hasAudio),
+    isRemoteMusic: true,
+  };
+}
+
+export function mapRemoteQuickSound(row, toUrl) {
+  const base = mapRemoteMusicTrack(row, toUrl);
+  return {
+    ...base,
+    kind: 'quick',
+    icon: row.icon || 'Music2',
+    labelKey: null,
+    titleKey: null,
+  };
+}
+
+export function musicTitle(item, t) {
+  if (item.title) return item.title;
+  if (item.titleKey) return t(`pages.${item.titleKey}`);
+  if (item.labelKey) return t(`pages.${item.labelKey}`);
+  return '';
+}
+
+export function musicArtist(item, t) {
+  if (item.artist) return item.artist;
+  if (item.artistKey) return t(`pages.${item.artistKey}`);
+  if (item.kind === 'quick') return t('pages.musicQuickSoundArtist');
+  return '';
+}
+
+export function musicGenre(item, t) {
+  if (item.genreLabel) return item.genreLabel;
+  if (item.genreKey) return t(`pages.${item.genreKey}`);
+  if (item.kind === 'quick') return t('pages.musicQuickSoundGenre');
+  return '';
+}
+
+export function findPlayableInPools(id, tracks, quickSounds) {
+  const t = tracks.find((x) => x.id === id);
+  if (t) return { kind: 'track', ...t };
+  const q = quickSounds.find((x) => x.id === id);
+  if (q) {
+    return {
+      kind: 'quick',
+      id: q.id,
+      titleKey: q.labelKey,
+      labelKey: q.labelKey,
+      title: q.title,
+      artistKey: 'musicQuickSoundArtist',
+      genreKey: 'musicQuickSoundGenre',
+      durationShort: q.durationShort || '∞',
+      poster: q.poster,
+      icon: q.icon,
+      audioSource: q.audioSource || (q.embedUrl ? 'youtube' : 'url'),
+      audioUrl: q.audioUrl,
+      embedUrl: q.embedUrl,
+      watchUrl: q.watchUrl,
+      durationMin: q.durationMin || 3,
+      hasAudio: q.hasAudio !== false,
+    };
+  }
+  return null;
+}
 
 export const MUSIC_HERO_IMG = spaceNature.musicHero;
 /** Та же иллюстрация, что в герое - обложка «подборки дня» в плеере */
@@ -237,21 +354,6 @@ export const STATE_CARDS = [
   },
 ];
 
-export function findPlayableById(id) {
-  const t = MUSIC_TRACKS.find((x) => x.id === id);
-  if (t) return { kind: 'track', ...t };
-  const q = QUICK_SOUNDS.find((x) => x.id === id);
-  if (q)
-    return {
-      kind: 'quick',
-      id: q.id,
-      titleKey: q.labelKey,
-      artistKey: 'musicQuickSoundArtist',
-      genreKey: 'musicQuickSoundGenre',
-      durationShort: '∞',
-      poster: q.poster,
-      embedUrl: q.embedUrl,
-      watchUrl: q.watchUrl,
-    };
-  return null;
+export function findPlayableById(id, tracks = MUSIC_TRACKS, quickSounds = QUICK_SOUNDS) {
+  return findPlayableInPools(id, tracks, quickSounds);
 }

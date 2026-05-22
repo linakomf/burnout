@@ -16,6 +16,9 @@ export const FILM_CATEGORIES = [
   { id: 'motivation', labelKey: 'filmCatMotivation', Icon: Heart },
 ];
 
+/** Совпадает с ключами pages.filmPsych_* в локалях (выбор в админке). */
+export const FILM_PSYCH_TAG_IDS = ['antistress', 'motivating', 'light', 'emotional_release'];
+
 export function filmSectionDescKey(categoryId) {
   return `filmSectionDesc${categoryId.charAt(0).toUpperCase() + categoryId.slice(1)}`;
 }
@@ -806,5 +809,8 @@ export function getFilmById(id) {
 
 export function posterToBackdropUrl(posterUrl) {
   if (!posterUrl || typeof posterUrl !== 'string') return '';
-  return posterUrl.replace('/w500/', '/w1280/');
+  const url = posterUrl.trim();
+  if (!url) return '';
+  if (url.includes('/w500/')) return url.replace('/w500/', '/w1280/');
+  return url;
 }

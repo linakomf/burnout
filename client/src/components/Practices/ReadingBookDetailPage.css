@@ -1,0 +1,112 @@
+.reading-book-detail {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px clamp(16px, 4vw, 28px) 56px;
+  box-sizing: border-box;
+}
+
+.reading-book-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  color: #2b82b2;
+  cursor: pointer;
+}
+
+.reading-book-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 280px) 1fr;
+  gap: clamp(24px, 4vw, 40px);
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .reading-book-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.reading-book-cover {
+  aspect-ratio: 3 / 4;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow:
+    0 16px 48px rgba(30, 50, 80, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+.reading-book-main {
+  min-width: 0;
+}
+
+.reading-book-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(253, 230, 138, 0.45);
+  color: #92400e;
+  margin-bottom: 14px;
+}
+
+[data-theme='dark'] .reading-book-chip {
+  background: rgba(180, 83, 9, 0.25);
+  color: #fcd34d;
+}
+
+.reading-book-title {
+  margin: 0 0 16px;
+  font-size: clamp(1.55rem, 4vw, 2.05rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text-dark);
+  letter-spacing: -0.02em;
+}
+
+.reading-book-desc {
+  font-size: 1.06rem;
+  line-height: 1.72;
+  color: var(--text-dark);
+  margin-bottom: 24px;
+  white-space: pre-line;
+}
+
+.reading-book-read-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 16px;
+  text-decoration: none;
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 45%, #115e59 100%);
+  color: #ecfeff;
+  box-shadow: 0 10px 28px rgba(17, 94, 89, 0.3);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.reading-book-read-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 38px rgba(17, 94, 89, 0.38);
+  color: #fff;
+}
+
+.reading-book-hint {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--text-light);
+  max-width: 520px;
+  line-height: 1.5;
+}

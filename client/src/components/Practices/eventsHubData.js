@@ -138,6 +138,168 @@ export const EVENTS_GROUP_ROW = [
 
 export const ALL_EVENTS = [...EVENTS_SOLO_ROW, ...EVENTS_GROUP_ROW];
 
+/** Тип подборки на странице «События» */
+export const EVENT_KIND_OPTIONS = [
+  { id: 'solo', label: 'Один' },
+  { id: 'group', label: 'В компании' },
+];
+
+/** Категории чипов (filter_cat) — как в EventsPracticeHub, без nature */
+export const EVENT_FILTER_CAT_OPTIONS = [
+  { id: 'concerts', labelKey: 'eventsCatConcerts' },
+  { id: 'cinema', labelKey: 'eventsCatCinema' },
+  { id: 'exhibitions', labelKey: 'eventsCatExhibitions' },
+  { id: 'theater', labelKey: 'eventsCatTheater' },
+  { id: 'workshops', labelKey: 'eventsCatWorkshops' },
+  { id: 'lectures', labelKey: 'eventsCatLectures' },
+  { id: 'other', labelKey: 'eventsCatOther' },
+];
+
+export const EVENT_PRICE_OPTIONS = [
+  { id: 'eventsEvPriceFree', labelKey: 'eventsEvPriceFree' },
+  { id: 'eventsEvPriceFrom1000', labelKey: 'eventsEvPriceFrom1000' },
+  { id: 'eventsEvPriceFrom1500', labelKey: 'eventsEvPriceFrom1500' },
+  { id: 'eventsEvPriceFrom2000', labelKey: 'eventsEvPriceFrom2000' },
+  { id: 'eventsEvPriceFrom3000', labelKey: 'eventsEvPriceFrom3000' },
+  { id: 'eventsEvPriceFrom4000', labelKey: 'eventsEvPriceFrom4000' },
+  { id: 'eventsEvPriceFrom5000', labelKey: 'eventsEvPriceFrom5000' },
+];
+
+export const EVENT_TF_LOC_OPTIONS = [{ id: 'almaty', labelKey: 'eventsEvTagAlmaty' }];
+export const EVENT_TF_DATE_OPTIONS = [
+  { id: 'today', labelKey: 'eventsTbOptDateToday' },
+  { id: 'weekend', labelKey: 'eventsTbOptDateWeekend' },
+  { id: 'this_month', labelKey: 'eventsTbOptDateMonth' },
+];
+export const EVENT_TF_TIME_OPTIONS = [
+  { id: 'morning', labelKey: 'eventsTbOptTimeMorning' },
+  { id: 'afternoon', labelKey: 'eventsTbOptTimeAfternoon' },
+  { id: 'evening', labelKey: 'eventsTbOptTimeEvening' },
+];
+export const EVENT_TF_MOOD_OPTIONS = [
+  { id: 'calm', labelKey: 'eventsTbOptMoodCalm' },
+  { id: 'energy', labelKey: 'eventsTbOptMoodEnergy' },
+  { id: 'social', labelKey: 'eventsTbOptMoodSocial' },
+  { id: 'creative', labelKey: 'eventsTbOptMoodCreative' },
+  { id: 'active', labelKey: 'eventsTbOptMoodActive' },
+  { id: 'curious', labelKey: 'eventsTbOptMoodCurious' },
+];
+
+export function isRemoteEventId(id) {
+  return /^event-\d+$/.test(String(id || ''));
+}
+
+export function mapRemoteEventPayload(row, backendUrl) {
+  const toUrl = backendUrl || ((p) => p);
+  const d = row.detail || {};
+  const gallery = Array.isArray(d.gallery) ? d.gallery.map(toUrl).filter(Boolean) : [];
+  return {
+    id: row.id,
+    kind: row.kind || 'solo',
+    filterCat: row.filterCat || 'other',
+    tf: row.tf || { loc: 'almaty', date: 'this_month', time: 'evening', mood: 'calm' },
+    image: toUrl(row.image),
+    categoryLabel: row.categoryLabel || '',
+    title: row.title || '',
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    priceKey: row.priceKey || 'eventsEvPriceFrom2000',
+    isRemoteEvent: true,
+    detail: {
+      ticketUrl: d.ticketUrl || '',
+      heroImage: toUrl(d.heroImage || row.image),
+      venueLine: d.venueLine || '',
+      teaser: d.teaser || '',
+      aboutText: d.aboutText || '',
+      durationLabel: d.durationLabel || '',
+      ageLabel: d.ageLabel || '',
+      genreLabel: d.genreLabel || '',
+      refundLabel: d.refundLabel || '',
+      venueImage: toUrl(d.venueImage),
+      venuePinText: d.venuePinText || '',
+      organizerName: d.organizerName || '',
+      organizerDesc: d.organizerDesc || '',
+      suitTags: Array.isArray(d.suitTags) ? d.suitTags : [],
+      importantNotes: Array.isArray(d.importantNotes) ? d.importantNotes : [],
+      gallery,
+    },
+  };
+}
+
+export function eventCardTitle(item, t) {
+  if (item.title) return item.title;
+  if (item.titleKey) return t(`pages.${item.titleKey}`);
+  return '';
+}
+
+export function eventCardCategory(item, t) {
+  if (item.categoryLabel) return item.categoryLabel;
+  if (item.categoryKey) return t(`pages.${item.categoryKey}`);
+  const opt = EVENT_FILTER_CAT_OPTIONS.find((o) => o.id === item.filterCat);
+  return opt ? t(`pages.${opt.labelKey}`) : '';
+}
+
+export function eventTagLabel(tag, t) {
+  if (tag.text) return tag.text;
+  if (tag.key) return t(`pages.${tag.key}`);
+  return '';
+}
+
+export function eventDateLine(event, t) {
+  if (!event?.tags) return '';
+  const clockTag = event.tags.find((tag) => tag.kind === 'clock');
+  return clockTag ? eventTagLabel(clockTag, t) : '';
+}
+
+export function eventIsGroup(event) {
+  if (event?.kind === 'group') return true;
+  return Boolean(event?.tags?.some((tag) => tag.key === 'eventsEvTagInCompany'));
+}
+
+/** Единый вид полей детальной страницы (строки для рендера) */
+export function resolveEventDetailView(event, staticDetail, t) {
+  if (!event) return null;
+  if (event.isRemoteEvent && event.detail) {
+    const d = event.detail;
+    return {
+      ticketUrl: d.ticketUrl,
+      heroImage: d.heroImage || event.image,
+      venueLine: d.venueLine,
+      teaser: d.teaser,
+      aboutText: d.aboutText,
+      durationLabel: d.durationLabel,
+      ageLabel: d.ageLabel,
+      genreLabel: d.genreLabel,
+      refundLabel: d.refundLabel,
+      venueImage: d.venueImage,
+      venuePinText: d.venuePinText,
+      organizerName: d.organizerName,
+      organizerDesc: d.organizerDesc,
+      suitTags: d.suitTags || [],
+      importantNotes: d.importantNotes || [],
+      gallery: d.gallery || [],
+    };
+  }
+  if (!staticDetail) return null;
+  return {
+    ticketUrl: staticDetail.ticketUrl,
+    heroImage: staticDetail.heroImage || event.image,
+    venueLine: staticDetail.venueLineKey ? t(`pages.${staticDetail.venueLineKey}`) : '',
+    teaser: staticDetail.teaserKey ? t(`pages.${staticDetail.teaserKey}`) : '',
+    aboutText: staticDetail.aboutKey ? t(`pages.${staticDetail.aboutKey}`) : '',
+    durationLabel: staticDetail.durationKey ? t(`pages.${staticDetail.durationKey}`) : '',
+    ageLabel: staticDetail.ageKey ? t(`pages.${staticDetail.ageKey}`) : '',
+    genreLabel: staticDetail.genreKey ? t(`pages.${staticDetail.genreKey}`) : '',
+    refundLabel: staticDetail.refundKey ? t(`pages.${staticDetail.refundKey}`) : '',
+    venueImage: staticDetail.venueImage,
+    venuePinText: staticDetail.venuePinKey ? t(`pages.${staticDetail.venuePinKey}`) : '',
+    organizerName: staticDetail.organizerNameKey ? t(`pages.${staticDetail.organizerNameKey}`) : '',
+    organizerDesc: staticDetail.organizerDescKey ? t(`pages.${staticDetail.organizerDescKey}`) : '',
+    suitTags: (staticDetail.suitTagKeys || []).map((k) => t(`pages.${k}`)),
+    importantNotes: (staticDetail.importantKeys || []).map((k) => t(`pages.${k}`)),
+    gallery: staticDetail.gallery || [],
+  };
+}
+
 export function findEventById(id) {
   if (!id) return null;
   return ALL_EVENTS.find((e) => e.id === id) ?? null;

@@ -27,8 +27,18 @@ import {
   Users,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { spaceHubHref } from './practiceSpaceConfig';
+import api from '../../utils/api';
+import { backendPublicUrl } from '../../utils/assetUrl';
 import { useLanguage } from '../../context/LanguageContext';
-import { EVENTS_GROUP_ROW, EVENTS_SOLO_ROW } from './eventsHubData';
+import {
+  EVENTS_GROUP_ROW,
+  EVENTS_SOLO_ROW,
+  eventCardCategory,
+  eventCardTitle,
+  eventTagLabel,
+  mapRemoteEventPayload,
+} from './eventsHubData';
 import { natureAt, SPACE_NATURE_HERO_REF } from './spaceNatureImagery';
 import './EventsPracticeHub.css';
 
@@ -149,13 +159,13 @@ function EventFeedCard({ item, t }) {
   return (
     <article className="events-event-card">
       <div className="events-event-card-body">
-        <p className="events-event-cat">{t(`pages.${item.categoryKey}`)}</p>
-        <h3 className="events-event-title">{t(`pages.${item.titleKey}`)}</h3>
+        <p className="events-event-cat">{eventCardCategory(item, t)}</p>
+        <h3 className="events-event-title">{eventCardTitle(item, t)}</h3>
         <ul className="events-event-tags">
           {item.tags.map((tag) => (
-            <li key={`${item.id}-${tag.key}`} className="events-event-tag">
+            <li key={`${item.id}-${tag.key || tag.text}`} className="events-event-tag">
               <EventTagIcon kind={tag.kind} />
-              <span>{t(`pages.${tag.key}`)}</span>
+              <span>{eventTagLabel(tag, t)}</span>
             </li>
           ))}
         </ul>
@@ -215,7 +225,7 @@ function EventsFeedSection({ sectionId, titleKey, items, t, showSeeAll, onSeeAll
 const HERO_SOLO_BG = SPACE_NATURE_HERO_REF;
 const HERO_GROUP_BG = natureAt(62);
 
-function EventsPracticeHub() {
+function EventsPracticeHub({ embedded = false }) {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const filtersSectionRef = useRef(null);
@@ -256,24 +266,48 @@ function EventsPracticeHub() {
     [categories],
   );
 
-  const allEventsFlat = useMemo(() => [...EVENTS_SOLO_ROW, ...EVENTS_GROUP_ROW], []);
+  const [remoteSolo, setRemoteSolo] = useState([]);
+  const [remoteGroup, setRemoteGroup] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get('/events')
+      .then((res) => {
+        if (cancelled) return;
+        const rows = (res.data?.events || []).map((row) =>
+          mapRemoteEventPayload(row, backendPublicUrl)
+        );
+        setRemoteSolo(rows.filter((e) => e.kind === 'solo'));
+        setRemoteGroup(rows.filter((e) => e.kind === 'group'));
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setRemoteSolo([]);
+          setRemoteGroup([]);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const soloCatalog = useMemo(() => [...EVENTS_SOLO_ROW, ...remoteSolo], [remoteSolo]);
+  const groupCatalog = useMemo(() => [...EVENTS_GROUP_ROW, ...remoteGroup], [remoteGroup]);
+  const allEventsFlat = useMemo(() => [...soloCatalog, ...groupCatalog], [soloCatalog, groupCatalog]);
 
   const filteredEvents = useMemo(() => {
-    const base = showAllEvents
-      ? [...EVENTS_SOLO_ROW, ...EVENTS_GROUP_ROW]
-      : mode === 'solo'
-        ? EVENTS_SOLO_ROW
-        : EVENTS_GROUP_ROW;
+    const base = showAllEvents ? allEventsFlat : mode === 'solo' ? soloCatalog : groupCatalog;
     let list = filterCategory === 'all' ? base : base.filter((x) => x.filterCat === filterCategory);
     list = list.filter((item) => matchesToolbarFilters(item, tfLocation, tfDate, tfTime, tfPrice, tfMood));
     const q = eventSearchQuery.trim().toLowerCase();
     if (q) {
       list = list.filter((item) => {
         const parts = [
-          t(`pages.${item.titleKey}`),
-          t(`pages.${item.categoryKey}`),
+          eventCardTitle(item, t),
+          eventCardCategory(item, t),
           t(`pages.${item.priceKey}`),
-          ...item.tags.map((tag) => t(`pages.${tag.key}`)),
+          ...item.tags.map((tag) => eventTagLabel(tag, t)),
         ];
         return parts.join(' ').toLowerCase().includes(q);
       });
@@ -282,6 +316,9 @@ function EventsPracticeHub() {
   }, [
     mode,
     showAllEvents,
+    soloCatalog,
+    groupCatalog,
+    allEventsFlat,
     filterCategory,
     eventSearchQuery,
     tfLocation,
@@ -381,15 +418,22 @@ function EventsPracticeHub() {
   const feedItems = listOnlyView ? allEventsFlat : filteredEvents;
 
   return (
-    <div className={`events-hub fade-in${listOnlyView ? ' events-hub--catalog' : ''}`}>
+    <div className={`events-hub fade-in${listOnlyView ? ' events-hub--catalog' : ''}${embedded ? ' events-hub--embedded' : ''}`}>
       <div className="events-hub-topbar">
-        <button type="button" className="events-hub-back" onClick={() => navigate('/practices')}>
-          <ArrowLeft size={18} strokeWidth={2} aria-hidden />
-          {t('pages.practicesBackToHub')}
-        </button>
+        {!embedded ? (
+          <button
+            type="button"
+            className="events-hub-back"
+            onClick={() => navigate(spaceHubHref())}>
+            <ArrowLeft size={18} strokeWidth={2} aria-hidden />
+            {t('pages.practicesBack')}
+          </button>
+        ) : (
+          <span className="events-hub-topbar-spacer" aria-hidden />
+        )}
         {listOnlyView ? (
           <button type="button" className="events-hub-back events-hub-back--ghost" onClick={exitFullListView}>
-            {t('pages.eventsBackToLanding')}
+            {t('pages.practicesBack')}
           </button>
         ) : null}
       </div>

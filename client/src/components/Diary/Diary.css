@@ -404,7 +404,7 @@
   border-radius: 999px;
   border: 1px solid var(--dash-border-soft);
   background: #ffffff;
-  color: var(--dash-mock-text);
+  color: #6a8ad6;
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -455,34 +455,46 @@
   box-shadow: 0 4px 16px rgba(60, 50, 90, 0.08);
 }
 
-.diary-chat-mock__send--primary {
+.diary-chat-mock__send.diary-chat-mock__send--primary {
   width: 100%;
   margin-top: 14px;
   padding: 15px 22px;
   border-radius: 999px;
-  border: none;
+  border: 1px solid color-mix(in srgb, var(--dash-accent-deep) 28%, #ffffff);
   background: linear-gradient(
     135deg,
     var(--dash-accent-mid) 0%,
     var(--dash-accent) 55%,
     var(--dash-accent-deep) 100%
   );
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   color: #ffffff;
   font-size: 15px;
   font-weight: 700;
+  opacity: 1;
   box-shadow: 0 12px 28px color-mix(in srgb, var(--dash-accent-deep) 42%, transparent);
 }
 
-.diary-chat-mock__send--primary:hover:not(:disabled) {
-  opacity: 0.97;
+.diary-chat-mock__send.diary-chat-mock__send--primary:hover:not(:disabled) {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--dash-accent-mid) 92%, #ffffff) 0%,
+    var(--dash-accent) 55%,
+    var(--dash-accent-deep) 100%
+  );
   transform: translateY(-1px);
   color: #ffffff;
 }
 
-.diary-chat-mock__send--primary:disabled {
-  opacity: 0.45;
+.diary-chat-mock__send.diary-chat-mock__send--primary:disabled {
+  opacity: 1;
+  background: #9db4ed;
+  border-color: #9db4ed;
+  color: #ffffff;
   cursor: not-allowed;
   transform: none;
+  box-shadow: 0 6px 16px rgba(106, 138, 214, 0.25);
 }
 
 .diary-chat-mock__send.diary-chat-mock__send--primary svg {
@@ -491,7 +503,7 @@
   stroke: #ffffff;
 }
 
-.diary-chat-mock__send:hover:not(:disabled) {
+.diary-chat-mock__send:not(.diary-chat-mock__send--primary):hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.72);
   color: #374151;
 }
@@ -572,8 +584,8 @@
 
 [data-theme='dark'] .diary-quick-tag {
   background: #252830;
-  border-color: rgba(255, 255, 255, 0.1);
-  color: #e5e7eb;
+  border-color: rgba(130, 165, 235, 0.28);
+  color: #6a8ad6;
 }
 
 [data-theme='dark'] .diary-chat-mock__msg-avatar {
@@ -581,8 +593,14 @@
   color: #b8a6ff !important;
 }
 
-[data-theme='dark'] .diary-chat-mock__send--primary {
+[data-theme='dark'] .diary-chat-mock__send.diary-chat-mock__send--primary {
   box-shadow: 0 10px 28px color-mix(in srgb, var(--dash-accent-deep) 38%, transparent);
+}
+
+[data-theme='dark'] .diary-chat-mock__send.diary-chat-mock__send--primary:disabled {
+  background: #5a82c4;
+  border-color: #5a82c4;
+  color: #ffffff;
 }
 
 [data-theme='dark'] .diary-nature-hero::before {

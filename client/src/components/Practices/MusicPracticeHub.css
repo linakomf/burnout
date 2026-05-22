@@ -178,10 +178,15 @@
   background-position: center;
 }
 
+.music-hub-mood-card .hub-cover-fav {
+  z-index: 3;
+}
+
 .music-hub-mood-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, transparent 35%, rgba(15, 23, 42, 0.75) 100%);
+  pointer-events: none;
 }
 
 .music-hub-mood-body {
@@ -296,7 +301,27 @@
   cursor: pointer;
 }
 
+.music-hub-rec-thumb-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+}
+
+.music-hub-rec-thumb-wrap .hub-cover-fav {
+  top: 4px;
+  left: 4px;
+  width: 28px;
+  height: 28px;
+}
+
+.music-hub-rec-thumb-wrap .hub-cover-fav svg {
+  width: 14px;
+  height: 14px;
+}
+
 .music-hub-rec-thumb {
+  display: block;
   width: 56px;
   height: 56px;
   border-radius: 12px;
@@ -618,6 +643,20 @@
 
 .music-hub-player-yt:hover {
   text-decoration: underline;
+}
+
+.music-hub-player-audio {
+  margin-top: 8px;
+}
+
+.music-hub-player-audio .pr-meditation-audio {
+  padding: 0;
+}
+
+.music-hub-player-empty-hint {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--mh-muted, #64748b);
 }
 
 @media (max-width: 1180px) {

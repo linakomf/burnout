@@ -79,7 +79,7 @@
 .articles-hub-hero-photo {
   position: relative;
   width: 100%;
-  min-height: max(200px, calc(clamp(280px, min(48vh, 560px), 680px) - 2.5cm));
+  min-height: max(160px, calc(clamp(280px, min(48vh, 560px), 680px) - 10.5cm));
   background-color: var(--mw-sky-mid);
   background-size: cover;
   background-position: center top;
@@ -199,6 +199,52 @@
   letter-spacing: 0.01em;
   color: #6b6478;
   line-height: 1.55;
+}
+
+/* Вкладки «Статьи» | «Книги» */
+.articles-hub-type-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  margin-bottom: 2px;
+}
+
+.articles-hub-type-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(226, 232, 240, 0.98);
+  background: rgba(255, 255, 255, 0.85);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.articles-hub-type-tab:hover {
+  border-color: rgba(106, 138, 214, 0.45);
+  color: #1e293b;
+}
+
+.articles-hub-type-tab.is-active {
+  border-color: rgba(106, 138, 214, 0.55);
+  background: rgba(226, 232, 246, 0.65);
+  color: #3730a3;
+  box-shadow: 0 4px 18px rgba(106, 138, 214, 0.15);
+}
+
+.articles-hub-type-tab:focus-visible {
+  outline: 2px solid rgba(106, 138, 214, 0.45);
+  outline-offset: 2px;
 }
 
 .articles-hub-filters {
@@ -379,6 +425,7 @@
   text-align: left;
   text-decoration: none;
   color: inherit;
+  cursor: pointer;
   padding: 0;
   border: none;
   background: transparent;
@@ -522,6 +569,24 @@
   color: var(--text-light);
 }
 
+[data-theme='dark'] .articles-hub-type-tab {
+  background: color-mix(in srgb, var(--bg-card, #1a222c) 92%, #0f172a);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text-mid);
+}
+
+[data-theme='dark'] .articles-hub-type-tab:hover {
+  border-color: rgba(129, 140, 248, 0.45);
+  color: var(--text-dark);
+}
+
+[data-theme='dark'] .articles-hub-type-tab.is-active {
+  border-color: rgba(129, 140, 248, 0.55);
+  background: color-mix(in srgb, #312e81 38%, var(--bg-card));
+  color: #e0e7ff;
+  box-shadow: 0 4px 22px rgba(0, 0, 0, 0.35);
+}
+
 [data-theme='dark'] .articles-hub-care,
 [data-theme='dark'] .articles-hub-care-icon {
   color: #9db4ed;
@@ -576,7 +641,7 @@
 
 @media (max-width: 720px) {
   .articles-hub-hero-photo {
-    min-height: max(200px, min(42vh, 360px));
+    min-height: max(160px, calc(min(42vh, 360px) - 8cm));
   }
 
   .articles-hub-sheet {

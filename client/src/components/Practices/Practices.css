@@ -249,6 +249,44 @@
   color: #e11d48;
 }
 
+/* Heart on media covers (films, books, music moods, podcasts) — как в медитации */
+.hub-cover-fav.practice-card-fav--cover {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 4;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  border: none;
+  color: #64748b;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+.hub-cover-fav.practice-card-fav--cover:hover {
+  color: #475569;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.hub-cover-fav.practice-card-fav--cover.is-on {
+  color: #e11d48;
+}
+
+[data-theme='dark'] .hub-cover-fav.practice-card-fav--cover {
+  background: rgba(30, 38, 52, 0.92);
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .hub-cover-fav.practice-card-fav--cover:hover {
+  background: rgba(40, 48, 62, 0.98);
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .hub-cover-fav.practice-card-fav--cover.is-on {
+  color: #fb7185;
+}
+
 .practice-card-title {
   font-size: 15px;
   font-weight: 700;
@@ -597,6 +635,29 @@
 
 .pr-meditation-timer {
   padding: 20px 24px 8px;
+}
+
+.meditation-audio-yt-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0.01;
+  pointer-events: none;
+  left: -9999px;
+  border: 0;
+}
+
+.meditation-audio-native-el {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  left: -9999px;
+}
+
+.pr-meditation-audio {
+  position: relative;
 }
 
 .pr-meditation-bar-row {
@@ -4812,6 +4873,208 @@
   gap: 20px;
 }
 
+/* Единая страница «Пространство» — вкладки разделов */
+.practices-space-unified {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.practices-space-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 10px 16px 12px;
+  margin: 0 -4px 8px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 252, 248, 0.98) 0%,
+    rgba(255, 252, 248, 0.94) 72%,
+    rgba(255, 252, 248, 0) 100%
+  );
+  backdrop-filter: blur(10px);
+}
+
+.practices-space-chrome-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-bottom: 10px;
+}
+
+.practices-space-overview-btn {
+  flex-shrink: 0;
+  border: 1px solid rgba(120, 113, 108, 0.28);
+  background: #fff;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: #44403c;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.practices-space-overview-btn:hover {
+  background: #f5f5f4;
+  border-color: rgba(68, 64, 60, 0.35);
+}
+
+.practices-space-chrome-title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1c1917;
+}
+
+.practices-space-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.practices-space-tab {
+  flex-shrink: 0;
+  border: 1px solid rgba(120, 113, 108, 0.2);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: #57534e;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.practices-space-tab:hover {
+  background: #fff;
+  color: #292524;
+}
+
+.practices-space-tab.is-active {
+  background: #4a7c59;
+  border-color: #4a7c59;
+  color: #fff;
+}
+
+.practices-space-tab:focus-visible,
+.practices-space-overview-btn:focus-visible {
+  outline: 2px solid #4a7c59;
+  outline-offset: 2px;
+}
+
+.practices-page--space-section {
+  padding-top: 0;
+}
+
+.events-hub-topbar-spacer {
+  display: block;
+  width: 1px;
+  min-height: 40px;
+}
+
+.practices-space-section-block {
+  scroll-margin-top: 92px;
+  padding: 28px 0 48px;
+  border-top: 1px solid rgba(120, 113, 108, 0.14);
+}
+
+.practices-space-section-block:first-of-type {
+  border-top: none;
+  padding-top: 12px;
+}
+
+.practices-space-section-heading {
+  margin: 0 0 20px;
+  padding: 0 4px;
+  font-family: var(--font-sans);
+  font-size: clamp(1.25rem, 3vw, 1.65rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1c1917;
+}
+
+.flix-scope--embedded,
+.events-hub--embedded,
+.articles-hub--embedded,
+.music-hub--embedded,
+.podcast-hub--embedded,
+.meditation-hub--embedded {
+  margin-top: 0;
+}
+
+/* Единая «Пространство»: без дублирующих шапок и баннеров внутри разделов */
+.practices-space-unified .practices-space-section-block {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.practices-space-unified .practices-space-section-block + .practices-space-section-block {
+  margin-top: clamp(28px, 4vw, 48px);
+}
+
+.flix-scope--embedded .flix-catalog-mock,
+.flix-scope--embedded .flix-catalog-banners {
+  display: none;
+}
+
+.articles-hub--embedded .articles-hub-hero-stage,
+.articles-hub--embedded .articles-hub-care,
+.articles-hub--embedded .articles-hub-title,
+.articles-hub--embedded .articles-hub-lead,
+.articles-hub--embedded .articles-hub-sheet-notch {
+  display: none;
+}
+
+.articles-hub--embedded .articles-hub-catalog-header {
+  margin-bottom: 0;
+}
+
+.articles-hub--embedded .articles-hub-sheet {
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.meditation-hub--embedded .meditation-hub-banner {
+  display: none;
+}
+
+.events-hub--embedded .events-hub-topbar,
+.events-hub--embedded .events-hero-bg,
+.events-hub--embedded .events-hero-wash,
+.events-hub--embedded .events-hero-flowers,
+.events-hub--embedded .events-hero-copy {
+  display: none;
+}
+
+.events-hub--embedded .events-hero {
+  min-height: 0;
+  padding: 0 0 8px;
+  background: transparent;
+}
+
+.events-hub--embedded .events-hero-inner {
+  padding: 0;
+}
+
+.music-hub--embedded .music-hub-head,
+.music-hub--embedded .music-hub-hero {
+  display: none;
+}
+
+.podcast-hub--embedded .podcast-hub-head {
+  display: none;
+}
+
 .practices-space-view-switch {
   position: relative;
   z-index: 1;
@@ -4949,6 +5212,129 @@
 .practices-favorites-chip:hover:not(.is-active) {
   border-color: rgba(107, 155, 212, 0.75);
   color: #4a73a8;
+}
+
+.practices-favorites-chip-count {
+  margin-left: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(106, 138, 214, 0.14);
+  color: #4a73a8;
+}
+
+.practices-favorites-chip.is-active .practices-favorites-chip-count {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.practices-favorites-films-scope {
+  --mw-ink: #1e2428;
+  --mw-muted: #5c6770;
+  width: 100%;
+  margin-top: 4px;
+  background: transparent;
+}
+
+.practices-favorites-films-scope .flix-film-grid {
+  margin: 0;
+  padding: 0;
+}
+
+.practices-favorites-films {
+  margin-top: 0;
+}
+
+.practices-favorites-reading {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 20px 16px;
+}
+
+.practices-favorites-reading-card {
+  width: 100%;
+}
+
+.practices-favorites-music {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.practices-favorites-mood-card {
+  width: 100%;
+}
+
+.practices-favorites-music-track {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(130, 165, 235, 0.22);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.practices-favorites-music-track-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.practices-favorites-music-track-meta strong {
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.practices-favorites-music-track-meta span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.practices-favorites-podcasts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.practices-favorites-podcast-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(130, 165, 235, 0.22);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.practices-favorites-podcast-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.practices-favorites-podcast-meta strong {
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.practices-favorites-podcast-meta span {
+  font-size: 12px;
+  color: #64748b;
 }
 
 .practices-favorites-chip.is-active {

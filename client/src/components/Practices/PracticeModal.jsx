@@ -4,7 +4,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { BarChart3, Clock, Flower2, Leaf, X } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import PracticeTimer from './PracticeTimer';
+import MeditationAudioPlayer from './MeditationAudioPlayer';
 import { MEDITATION_TOPIC_LABEL_KEYS, resolveMeditationTopic } from './PracticeCard';
+import { MEDITATION_LEVEL_LABEL_KEYS, practiceHasPlayableAudio } from './meditationHubData';
 
 const defaultMeditationCover = `${(process.env.PUBLIC_URL || '').replace(/\/$/, '')}/meditation/meditation-modal-cover.png`;
 
@@ -43,6 +45,12 @@ function PracticeModal({
   const practiceTitle = practice.titleKey ? t(`pages.${practice.titleKey}`) : practice.title;
   const meditationTopicId = isMeditation ? resolveMeditationTopic(practice, activeFilter) : null;
   const meditationCategoryKey = meditationTopicId ? MEDITATION_TOPIC_LABEL_KEYS[meditationTopicId] : null;
+  const useAudioPlayer = isMeditation && practiceHasPlayableAudio(practice);
+  const levelKey =
+    MEDITATION_LEVEL_LABEL_KEYS[practice.difficultyLevel] || MEDITATION_LEVEL_LABEL_KEYS.beginner;
+  const tipText =
+    practice.tipBefore?.trim() ||
+    (completed ? t('pages.meditationModalTipDone') : t('pages.meditationModalTipBody'));
 
   const meditationBody = (
     <>
@@ -76,26 +84,35 @@ function PracticeModal({
         </div>
         <div className="practices-modal-meditation-meta-cell">
           <Leaf size={18} strokeWidth={2} className="practices-modal-meditation-meta-ico" aria-hidden />
-          <strong>{t('pages.meditationModalLevelBeginner')}</strong>
+          <strong>{t(`pages.${levelKey}`)}</strong>
           <span>{t('pages.meditationModalLevelLabel')}</span>
         </div>
       </div>
 
-      <PracticeTimer
-        practice={practice}
-        layout="meditation"
-        favorite={favorite}
-        onToggleFavorite={() => onToggleFavorite?.(practice.id)}
-        t={t}
-        onComplete={() => setCompleted(true)}
-        onStop={handleClose}
-      />
+      {useAudioPlayer ? (
+        <MeditationAudioPlayer
+          practice={practice}
+          favorite={favorite}
+          onToggleFavorite={() => onToggleFavorite?.(practice.id)}
+          t={t}
+        />
+      ) : (
+        <PracticeTimer
+          practice={practice}
+          layout="meditation"
+          favorite={favorite}
+          onToggleFavorite={() => onToggleFavorite?.(practice.id)}
+          t={t}
+          onComplete={() => setCompleted(true)}
+          onStop={handleClose}
+        />
+      )}
 
       <div className="practices-modal-meditation-tip">
         <Flower2 size={22} strokeWidth={2} className="practices-modal-meditation-tip-flower" aria-hidden />
         <div className="practices-modal-meditation-tip-copy">
           <strong>{t('pages.meditationModalTipTitle')}</strong>
-          <p>{completed ? t('pages.meditationModalTipDone') : t('pages.meditationModalTipBody')}</p>
+          <p>{tipText}</p>
         </div>
         <span className="practices-modal-meditation-tip-deco" aria-hidden />
       </div>

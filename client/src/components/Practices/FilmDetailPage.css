@@ -326,3 +326,43 @@
 [data-theme='dark'] .film-detail-gallery-cell {
   background: var(--bg-card);
 }
+
+.film-detail-page--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+}
+
+.film-detail-loading-msg {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-mid);
+}
+
+.film-detail-subheading {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 18px 0 10px;
+  color: var(--text-dark);
+}
+
+.film-detail-desc--full {
+  margin-top: 0;
+}
+
+.film-detail-quote {
+  margin: 14px 0 18px;
+  padding: 14px 18px;
+  border-left: 4px solid rgba(184, 188, 232, 0.85);
+  background: rgba(184, 188, 232, 0.14);
+  border-radius: 0 12px 12px 0;
+  font-style: italic;
+  color: var(--text-dark);
+  font-size: 0.98rem;
+}
+
+[data-theme='dark'] .film-detail-quote {
+  background: rgba(184, 188, 232, 0.08);
+  border-left-color: rgba(184, 188, 232, 0.45);
+}

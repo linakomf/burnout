@@ -504,6 +504,40 @@
   color: #94a3b8;
 }
 
+.edit-card textarea.input {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.profile-documents-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-documents-list a {
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dash-accent-deep);
+  text-decoration: none;
+}
+
+.profile-documents-list a:hover {
+  text-decoration: underline;
+}
+
+.profile-page .dash-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
 /* —— dark theme (как dashboard-new) —— */
 
 [data-theme='dark'] .profile-page {

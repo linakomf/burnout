@@ -978,7 +978,7 @@
 .tests-mock-hero-photo {
   position: relative;
   width: 100%;
-  min-height: clamp(220px, 16vw, 380px);
+  min-height: max(140px, calc(clamp(220px, 16vw, 380px) - 3cm));
   background-color: #dbeafe;
   background-size: cover;
   /* кадр: персонаж / горизонт */
@@ -987,7 +987,7 @@
 }
 
 .tests-mock-hero-photo--loading {
-  min-height: clamp(160px, 24vw, 260px);
+  min-height: max(120px, calc(clamp(160px, 24vw, 260px) - 3cm));
   filter: saturate(0.92);
 }
 
@@ -1189,7 +1189,7 @@
 
 .tests-mock-featured-interests {
   border-radius: 28px;
-  border: 1px solid rgba(139, 92, 246, 0.12);
+  border: none;
   background: linear-gradient(127deg, #f3f1ff 0%, #e9eefb 38%, #e2ecff 72%, #eef4ff 100%);
   box-shadow:
     0 10px 40px rgba(100, 110, 180, 0.1),
@@ -1840,7 +1840,7 @@
     color-mix(in srgb, var(--bg-card) 94%, #2d2640) 0%,
     color-mix(in srgb, var(--bg-card) 90%, #1e3050) 100%
   );
-  border-color: var(--border);
+  border: none;
   box-shadow: var(--shadow);
 }
 

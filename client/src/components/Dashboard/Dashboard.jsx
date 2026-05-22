@@ -36,6 +36,7 @@ import {
 import { pickRecommendedTestId } from '../../utils/recommendedTestId';
 import { weekPillLines } from '../../utils/weekPillLines';
 import { natureAt } from '../Practices/spaceNatureImagery';
+import { spaceSectionHref } from '../Practices/practiceSpaceConfig';
 import supportNearbyArt from '../../assets/dash-support-nearby.png';
 import adviceFilmsCover from '../../assets/advice-films.png';
 import adviceReadingCover from '../../assets/advice-reading.png';
@@ -58,11 +59,11 @@ const ADVICE_COVER_BY_KEY = {
 };
 
 const ADVICE_CARD_DEFS = [
-  { key: 'music', path: '/practices/music', natureIdx: 4, theme: 'purple', Icon: Music },
-  { key: 'films', path: '/practices/films', natureIdx: 11, theme: 'orange', Icon: Clapperboard },
-  { key: 'walk', path: '/practices/events', natureIdx: 6, theme: 'green', Icon: Trees },
-  { key: 'read', path: '/practices/articles', natureIdx: 14, theme: 'blue', Icon: BookOpen },
-  { key: 'meditate', path: '/practices/meditation', natureIdx: 9, theme: 'violet', Icon: Moon }
+  { key: 'music', path: spaceSectionHref('music'), natureIdx: 4, theme: 'purple', Icon: Music },
+  { key: 'films', path: spaceSectionHref('films'), natureIdx: 11, theme: 'orange', Icon: Clapperboard },
+  { key: 'walk', path: spaceSectionHref('events'), natureIdx: 6, theme: 'green', Icon: Trees },
+  { key: 'read', path: spaceSectionHref('articles'), natureIdx: 14, theme: 'blue', Icon: BookOpen },
+  { key: 'meditate', path: spaceSectionHref('meditation'), natureIdx: 9, theme: 'violet', Icon: Moon }
 ];
 
 /** Иконки строк в модалке «Подробнее» (настроение / стресс / энергия) */

@@ -5,7 +5,7 @@ export const PRACTICE_CATEGORIES = [
 { id: 'focus', label: 'Медитация' },
 { id: 'podcasts', label: 'Подкасты' },
 { id: 'music', label: 'Музыка' },
-{ id: 'articles', label: 'Статьи' },
+{ id: 'articles', label: 'Статьи и книги' },
 { id: 'events', label: 'События' }];
 
 

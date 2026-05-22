@@ -11,6 +11,13 @@ const { ensureOnboardingSchema } = require('./ensureOnboardingSchema');
 const { ensureTestSchema } = require('./ensureTestSchema');
 const { ensureTestCatalog } = require('./ensureTestCatalog');
 const { ensureSupportRequestsSchema } = require('./ensureSupportRequestsSchema');
+const { ensurePsychologistSchema } = require('./ensurePsychologistSchema');
+const { ensureFilmsSchema } = require('./ensureFilmsSchema');
+const { ensureMeditationsSchema } = require('./ensureMeditationsSchema');
+const { ensureEventsSchema } = require('./ensureEventsSchema');
+const { ensureReadingSchema } = require('./ensureReadingSchema');
+const { ensureMusicSchema } = require('./ensureMusicSchema');
+const { ensurePodcastsSchema } = require('./ensurePodcastsSchema');
 
 if (!process.env.JWT_SECRET?.trim()) {
   const strictProd = process.env.NODE_ENV === 'production' && !process.env.VERCEL;
@@ -92,12 +99,25 @@ app.use('/uploads', express.static(uploadsDir));
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/psychologists', require('./routes/psychologists'));
 app.use('/api/tests', require('./routes/tests'));
 app.use('/api/diary', require('./routes/diary'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/practices', require('./routes/practices'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/admin-portal', require('./routes/adminPortal'));
+app.use('/api/films', require('./routes/films'));
+console.log('✅ Films API: GET/POST /api/films');
+app.use('/api/meditations', require('./routes/meditations'));
+console.log('✅ Meditations API: GET/POST /api/meditations');
+app.use('/api/events', require('./routes/events'));
+console.log('✅ Events API: GET/POST /api/events');
+app.use('/api/reading', require('./routes/reading'));
+console.log('✅ Reading API: GET/POST /api/reading');
+app.use('/api/music', require('./routes/music'));
+console.log('✅ Music API: GET/POST /api/music');
+app.use('/api/podcasts', require('./routes/podcasts'));
+console.log('✅ Podcasts API: GET/POST /api/podcasts');
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
@@ -113,6 +133,13 @@ async function bootstrap() {
     await ensureTestCatalog();
   }
   await ensureSupportRequestsSchema();
+  await ensurePsychologistSchema();
+  await ensureFilmsSchema();
+  await ensureMeditationsSchema();
+  await ensureEventsSchema();
+  await ensureReadingSchema();
+  await ensureMusicSchema();
+  await ensurePodcastsSchema();
 }
 
 let bootstrapPromise = null;

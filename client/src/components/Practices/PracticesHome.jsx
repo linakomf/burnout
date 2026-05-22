@@ -11,6 +11,7 @@ import {
   SPACE_PRACTICES_PILL_MIST_VIDEO,
   SPACE_PRACTICES_PILL_MIST_POSTER,
 } from './spaceNatureImagery';
+import { spaceSectionHref } from './practiceSpaceConfig';
 
 const practiceCategoryPaperSrc = (id) =>
   `${process.env.PUBLIC_URL || ''}/images/practices/category-${id}.png`;
@@ -25,12 +26,12 @@ const POCKET_LABEL = {
 };
 
 const CATEGORIES = [
-  { id: 'films', path: '/practices/films', image: practiceCategoryPaperSrc('films'), featured: false },
-  { id: 'meditation', path: '/practices/meditation', image: practiceCategoryPaperSrc('meditation'), featured: true },
-  { id: 'podcasts', path: '/practices/podcasts', image: practiceCategoryPaperSrc('podcasts'), featured: false },
-  { id: 'music', path: '/practices/music', image: practiceCategoryPaperSrc('music'), featured: false },
-  { id: 'events', path: '/practices/events', image: practiceCategoryPaperSrc('events'), featured: false },
-  { id: 'articles', path: '/practices/articles', image: practiceCategoryPaperSrc('articles'), featured: false },
+  { id: 'films', image: practiceCategoryPaperSrc('films'), featured: false },
+  { id: 'meditation', image: practiceCategoryPaperSrc('meditation'), featured: true },
+  { id: 'podcasts', image: practiceCategoryPaperSrc('podcasts'), featured: false },
+  { id: 'music', image: practiceCategoryPaperSrc('music'), featured: false },
+  { id: 'events', image: practiceCategoryPaperSrc('events'), featured: false },
+  { id: 'articles', image: practiceCategoryPaperSrc('articles'), featured: false },
 ];
 
 const tileContainerMotion = {
@@ -159,6 +160,10 @@ function PracticesHome() {
 
   const scrollToGrid = () => {
     gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const openCategory = (catId) => {
+    navigate(spaceSectionHref(catId));
   };
 
   return (
@@ -325,11 +330,11 @@ function PracticesHome() {
                   cat.featured ? ' practices-landing-tile--featured' : ''
                 }`}
                 variants={tileMotion}
-                onClick={() => navigate(cat.path)}
+                onClick={() => openCategory(cat.id)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    navigate(cat.path);
+                    openCategory(cat.id);
                   }
                 }}
                 role="button"

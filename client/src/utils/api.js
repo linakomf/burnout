@@ -21,6 +21,9 @@ api.interceptors.request.use((config) => {
   }
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
   return config;
 });
 
@@ -29,7 +32,13 @@ api.interceptors.response.use(
   (err) => {
     const reqUrl = err.config?.url || '';
     const isAuthForm = reqUrl.includes('/auth/login') || reqUrl.includes('/auth/register');
-    if (err.response?.status === 401 && !isAuthForm) {
+    const authMsg = err.response?.data?.message;
+    const needsReLogin =
+      err.response?.status === 401 ||
+      (err.response?.status === 403 &&
+        typeof authMsg === 'string' &&
+        /токен|войдите/i.test(authMsg));
+    if (needsReLogin && !isAuthForm) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       clearBannerProfileCache();

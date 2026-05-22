@@ -32,15 +32,24 @@ const upload = multer({
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT user_id, name, email, role, avatar, age, gender, created_at,
-        COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
-        onboarding_burnout_percent,
-        onboarding_burnout_completed_at
-       FROM users WHERE user_id = $1`,
+      `SELECT u.user_id, u.name, u.email, u.role, u.avatar, u.age, u.gender, u.created_at,
+        COALESCE(u.onboarding_burnout_completed, false) AS onboarding_burnout_completed,
+        u.onboarding_burnout_percent,
+        u.onboarding_burnout_completed_at,
+        pp.account_status AS psychologist_account_status,
+        pp.organization AS psychologist_organization,
+        pp.specialist_level AS psychologist_specialist_level
+       FROM users u
+       LEFT JOIN psychologist_profiles pp ON pp.user_id = u.user_id
+       WHERE u.user_id = $1`,
       [req.user.user_id]
     );
     if (result.rows.length === 0) return res.status(404).json({ message: 'Пользователь не найден' });
-    res.json(result.rows[0]);
+    const row = result.rows[0];
+    if (row.role === 'psychologist') {
+      row.onboarding_burnout_completed = true;
+    }
+    res.json(row);
   } catch (err) {
     res.status(500).json({ message: 'Ошибка сервера' });
   }
@@ -64,7 +73,7 @@ router.put('/me', authMiddleware, async (req, res) => {
 
     let nextRole = user.role;
     let roleChanged = false;
-    if (user.role !== 'admin' && Object.prototype.hasOwnProperty.call(req.body, 'role')) {
+    if (user.role !== 'admin' && user.role !== 'psychologist' && Object.prototype.hasOwnProperty.call(req.body, 'role')) {
       const raw = role;
       if (raw !== null && raw !== undefined && String(raw).trim() !== '') {
         const r = String(raw).trim().toLowerCase();
@@ -76,7 +85,9 @@ router.put('/me', authMiddleware, async (req, res) => {
       }
     }
 
-    if (user.role !== 'admin' && (!nextRole || !['student', 'teacher'].includes(nextRole))) {
+    if (user.role === 'psychologist') {
+      nextRole = 'psychologist';
+    } else if (user.role !== 'admin' && (!nextRole || !['student', 'teacher'].includes(nextRole))) {
       nextRole = 'student';
     }
 
@@ -138,8 +149,8 @@ router.put('/me', authMiddleware, async (req, res) => {
 });
 
 router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
-  if (req.user.role === 'admin') {
-    return res.status(400).json({ message: 'Для администратора не требуется' });
+  if (req.user.role === 'admin' || req.user.role === 'psychologist') {
+    return res.status(400).json({ message: 'Для этой учётной записи не требуется' });
   }
   const userId = parseInt(req.user.user_id, 10);
   if (!Number.isFinite(userId)) {
@@ -187,8 +198,8 @@ router.post('/onboarding-burnout', authMiddleware, async (req, res) => {
 router.use('/with-results', require('./usersWithResults'));
 
 router.post('/support-request', authMiddleware, async (req, res) => {
-  if (req.user.role === 'admin') {
-    return res.status(400).json({ message: 'Для учётной записи администратора заявка не требуется' });
+  if (req.user.role === 'admin' || req.user.role === 'psychologist') {
+    return res.status(400).json({ message: 'Для этой учётной записи заявка не требуется' });
   }
   const userId = parseInt(req.user.user_id, 10);
   if (!Number.isFinite(userId)) {
@@ -203,8 +214,8 @@ router.post('/support-request', authMiddleware, async (req, res) => {
   }
   try {
     const ins = await pool.query(
-      `INSERT INTO support_requests (user_id, display_name, contact, message)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO support_requests (user_id, display_name, contact, message, status)
+       VALUES ($1, $2, $3, $4, 'new')
        RETURNING request_id, created_at`,
       [userId, displayName, contact, message]
     );

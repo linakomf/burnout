@@ -27,6 +27,7 @@ import imgReading from '../../assets/advice-reading.png';
 import imgEvents from '../../assets/advice-activity.png';
 import supportScene from '../../assets/dashboard-bg-hills.png';
 import howAsideImg from '../../assets/landing-blossoms-bg.png';
+import { spaceSectionHref } from '../Practices/practiceSpaceConfig';
 import './Landing.css';
 
 const scrollToId = (id) => {
@@ -75,7 +76,7 @@ const Landing = () => {
     desc: t('landing.catFilmsDesc'),
     count: t('landing.catFilmsCount'),
     img: imgFilms,
-    path: '/practices/films'
+    path: spaceSectionHref('films')
   },
   {
     id: 'meditation',
@@ -83,7 +84,7 @@ const Landing = () => {
     desc: t('landing.catMeditationDesc'),
     count: t('landing.catMeditationCount'),
     img: imgMeditation,
-    path: '/practices/meditation'
+    path: spaceSectionHref('meditation')
   },
   {
     id: 'podcasts',
@@ -91,7 +92,7 @@ const Landing = () => {
     desc: t('landing.catPodcastsDesc'),
     count: t('landing.catPodcastsCount'),
     img: imgPodcasts,
-    path: '/practices/podcasts'
+    path: spaceSectionHref('podcasts')
   },
   {
     id: 'articles',
@@ -99,7 +100,7 @@ const Landing = () => {
     desc: t('landing.catReadingDesc'),
     count: t('landing.catReadingCount'),
     img: imgReading,
-    path: '/practices/articles'
+    path: spaceSectionHref('articles')
   },
   {
     id: 'events',
@@ -107,7 +108,7 @@ const Landing = () => {
     desc: t('landing.catEventsDesc'),
     count: t('landing.catEventsCount'),
     img: imgEvents,
-    path: '/practices/events'
+    path: spaceSectionHref('events')
   }];
 
 

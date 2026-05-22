@@ -44,6 +44,24 @@
   gap: 12px;
   padding: 8px 10px;
   margin-bottom: 28px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  border-radius: 12px;
+  transition: background 0.15s ease;
+}
+
+.sidebar-logo:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.sidebar-logo:focus-visible {
+  outline: 2px solid rgba(106, 138, 214, 0.65);
+  outline-offset: 2px;
 }
 
 .logo-icon {
@@ -186,8 +204,13 @@
   font-family: inherit;
 }
 
-.sidebar-profile:hover {
+.sidebar-profile:hover,
+.sidebar-profile.active {
   background: #f5f5f5;
+}
+
+.sidebar-profile.active {
+  background: #cae4bf;
 }
 
 .user-avatar--sticker {

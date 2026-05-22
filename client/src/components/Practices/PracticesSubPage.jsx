@@ -11,7 +11,7 @@ function PracticesSubPage({ title, subtitle, children }) {
     <div className="practices-sub-page fade-in">
       <button type="button" className="practices-sub-back" onClick={() => navigate('/practices')}>
         <ArrowLeft size={18} strokeWidth={2} aria-hidden />
-        {t('pages.practicesBackToHub')}
+        {t('pages.practicesBack')}
       </button>
       <header className="practices-sub-head">
         <h1>{title}</h1>

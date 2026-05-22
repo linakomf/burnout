@@ -1,8 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronDown, Play } from 'lucide-react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import api from '../../utils/api';
+import { backendPublicUrl } from '../../utils/assetUrl';
 import { FILM_CATEGORIES, getFilmById, posterToBackdropUrl } from './filmsCatalogData';
+import { spaceSectionHref } from './practiceSpaceConfig';
 import './FilmDetailPage.css';
 
 function formatDurationString(durationRaw, t) {
@@ -24,25 +27,104 @@ function genreTokens(genresStr) {
 
 const FILM_DETAIL_GALLERY_MAX = 6;
 
+function isRemoteFilmId(id) {
+  return /^film-\d+$/.test(String(id || ''));
+}
+
+function mapRemoteFilmPayload(data) {
+  return {
+    ...data,
+    poster: backendPublicUrl(data.poster),
+    gallery: Array.isArray(data.gallery) ? data.gallery.map(backendPublicUrl) : [],
+    description: data.description || '',
+    descriptionFull: data.descriptionFull || '',
+    source: data.source || '',
+    duration: data.duration || '',
+    year: data.year || '',
+    rating: data.rating || '',
+    categoryId: data.categoryId || 'burnout',
+    psychTag: data.psychTag || 'light',
+    genres: data.genres || '',
+    watchUrl: data.watchUrl || '',
+    embedUrl: data.embedUrl || '',
+    country: data.country || '',
+    director: data.director || '',
+    screenwriter: data.screenwriter || '',
+    quote: data.quote || '',
+  };
+}
+
 function FilmDetailPage() {
   const { filmId } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [galleryOpen, setGalleryOpen] = useState(true);
 
-  const film = useMemo(() => getFilmById(filmId || ''), [filmId]);
+  const staticFilm = useMemo(() => getFilmById(filmId || ''), [filmId]);
+  const fetchRemote = Boolean(filmId && !staticFilm && isRemoteFilmId(filmId));
+  const [remoteFilm, setRemoteFilm] = useState(null);
+  const [remoteLoading, setRemoteLoading] = useState(fetchRemote);
 
-  if (!filmId || !film) {
-    return <Navigate to="/practices/films" replace />;
+  useEffect(() => {
+    if (!fetchRemote) {
+      setRemoteFilm(null);
+      setRemoteLoading(false);
+      return undefined;
+    }
+    let cancelled = false;
+    setRemoteLoading(true);
+    setRemoteFilm(null);
+    api
+      .get(`/films/${filmId}`)
+      .then((res) => {
+        if (!cancelled) setRemoteFilm(mapRemoteFilmPayload(res.data));
+      })
+      .catch(() => {
+        if (!cancelled) setRemoteFilm(null);
+      })
+      .finally(() => {
+        if (!cancelled) setRemoteLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [filmId, fetchRemote]);
+
+  const film = staticFilm || remoteFilm;
+
+  if (!filmId) {
+    return <Navigate to={spaceSectionHref('films')} replace />;
   }
 
+  if (fetchRemote && remoteLoading) {
+    return (
+      <div className="film-detail-page film-detail-page--loading fade-in">
+        <p className="film-detail-loading-msg">{t('pages.filmDetailLoading')}</p>
+      </div>
+    );
+  }
+
+  if (!film) {
+    return <Navigate to={spaceSectionHref('films')} replace />;
+  }
+
+  const descShort = film.description || '';
+  const descFull = typeof film.descriptionFull === 'string' ? film.descriptionFull.trim() : '';
+  const showFullBlock = Boolean(descFull && descFull !== descShort.trim());
+
   const backdrop = posterToBackdropUrl(film.poster);
-  const durationLabel = formatDurationString(film.duration, t);
-  const metaGenres = genreTokens(film.genres).join(', ');
+  const durationLabel = film.duration ? formatDurationString(film.duration, t) : '';
+  const metaGenres = genreTokens(film.genres || '').join(', ');
   const metaLine = [film.year, durationLabel, film.country, metaGenres].filter(Boolean).join(' • ');
-  const tags = genreTokens(film.genres).slice(0, 5);
-  const score = Math.min(10, Math.max(0, parseFloat(film.rating) || 0));
-  const scoreDisplay = Number.isInteger(score) ? String(score) : score.toFixed(1);
+  const tags = genreTokens(film.genres || '').slice(0, 5);
+
+  const ratingNum = parseFloat(film.rating);
+  const hasRating =
+    film.rating != null && String(film.rating).trim() !== '' && !Number.isNaN(ratingNum);
+  const score = hasRating ? Math.min(10, Math.max(0, ratingNum)) : null;
+  const scoreDisplay =
+    score != null ? (Number.isInteger(score) ? String(score) : score.toFixed(1)) : '';
+
   const galleryImages =
     film.gallery && film.gallery.length > 0
       ? film.gallery.slice(0, FILM_DETAIL_GALLERY_MAX)
@@ -51,6 +133,8 @@ function FilmDetailPage() {
   const categoryLabel = t(
     `pages.${FILM_CATEGORIES.find((cItem) => cItem.id === film.categoryId)?.labelKey || 'filmCatBurnout'}`
   );
+
+  const watchHref = film.watchUrl && String(film.watchUrl).trim() ? film.watchUrl : '#';
 
   return (
     <div className="film-detail-page fade-in">
@@ -62,22 +146,24 @@ function FilmDetailPage() {
         />
         <div className="film-detail-hero__gradient" aria-hidden />
 
-        <button type="button" className="film-detail-back" onClick={() => navigate('/practices/films')}>
+        <button type="button" className="film-detail-back" onClick={() => navigate(spaceSectionHref('films'))}>
           <ArrowLeft size={18} strokeWidth={2.2} aria-hidden />
-          {t('pages.filmDetailBack')}
+          {t('pages.practicesBack')}
         </button>
 
         <div className="film-detail-hero__content">
           <div className="film-detail-hero__text-block">
             <h1 className="film-detail-title">{film.title}</h1>
             <p className="film-detail-meta">{metaLine}</p>
-            <p className="film-detail-community-inline">
-              <span className="film-detail-community-inline__label">
-                {t('pages.filmDetailCommunityRating')}
-              </span>
-              <span className="film-detail-community-inline__score">{scoreDisplay}</span>
-              <span className="film-detail-community-inline__max">/10</span>
-            </p>
+            {score != null ? (
+              <p className="film-detail-community-inline">
+                <span className="film-detail-community-inline__label">
+                  {t('pages.filmDetailCommunityRating')}
+                </span>
+                <span className="film-detail-community-inline__score">{scoreDisplay}</span>
+                <span className="film-detail-community-inline__max">/10</span>
+              </p>
+            ) : null}
 
             {film.director ? (
               <p className="film-detail-credit">
@@ -92,7 +178,18 @@ function FilmDetailPage() {
               </p>
             ) : null}
 
-            <p className="film-detail-desc">{film.description}</p>
+            <p className="film-detail-desc">{descShort}</p>
+
+            {film.quote ? (
+              <blockquote className="film-detail-quote">{film.quote}</blockquote>
+            ) : null}
+
+            {showFullBlock ? (
+              <>
+                <h2 className="film-detail-subheading">{t('pages.filmDetailAboutFull')}</h2>
+                <p className="film-detail-desc film-detail-desc--full">{descFull}</p>
+              </>
+            ) : null}
 
             <div className="film-detail-tags">
               {tags.map((tag) => (
@@ -105,7 +202,7 @@ function FilmDetailPage() {
             <div className="film-detail-actions">
               <a
                 className="film-detail-watch"
-                href={film.watchUrl}
+                href={watchHref}
                 target="_blank"
                 rel="noopener noreferrer">
                 <Play size={20} strokeWidth={2.2} fill="currentColor" aria-hidden />

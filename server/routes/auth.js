@@ -97,7 +97,13 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const result = await pool.query('SELECT * FROM users WHERE LOWER(TRIM(email)) = $1', [email]);
+    const result = await pool.query(
+      `SELECT u.*, pp.account_status AS psychologist_account_status
+       FROM users u
+       LEFT JOIN psychologist_profiles pp ON pp.user_id = u.user_id
+       WHERE LOWER(TRIM(u.email)) = $1`,
+      [email]
+    );
     if (result.rows.length === 0) {
       return res.status(401).json({ message: 'Неверный email или пароль' });
     }
@@ -124,9 +130,13 @@ router.post('/login', async (req, res) => {
         avatar: user.avatar,
         age: user.age,
         gender: user.gender ?? null,
-        onboarding_burnout_completed: Boolean(user.onboarding_burnout_completed),
+        onboarding_burnout_completed:
+          user.role === 'psychologist' ?
+          true :
+          Boolean(user.onboarding_burnout_completed),
         onboarding_burnout_percent: user.onboarding_burnout_percent ?? null,
-        onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null
+        onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
+        psychologist_account_status: user.psychologist_account_status ?? null
       }
     });
   } catch (err) {

@@ -1,21 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { getFilmById } from './filmsCatalogData';
+import { spaceSectionHref } from './practiceSpaceConfig';
+import PracticeCoverFavorite from './PracticeCoverFavorite';
+import {
+  FAVORITES_KEYS,
+  loadSectionFavorites,
+  saveSectionFavorites,
+  toggleInFavoriteSet,
+} from './sectionFavorites';
 
 const COLLECTIONS = {
   'banner-1': {
     kicker: 'Мягкий вечер',
     title: 'Мягкий вечер',
     lead:
-      'Фильмы, которые помогают переключиться после насыщенного дня, немного выдохнуть и провести вечер в спокойной атмосфере.',
+      'фильмы, которые помогают переключиться после насыщенного дня, немного выдохнуть и провести вечер в спокойной атмосфере.',
     filmIds: ['f13', 'f14', 'f21', 'f11', 'f8', 'f5'],
   },
   'banner-2': {
     kicker: 'Вернуть силы',
     title: 'Вернуть силы',
-    lead: 'Подборка для дней, когда чувствуешь усталость и выгорание.',
+    lead: 'подборка для дней, когда чувствуешь усталость и выгорание.',
     filmIds: ['f1', 'f7', 'f6', 'f15', 'f2', 'f9'],
   },
 };
@@ -25,12 +33,21 @@ function FilmsBannerCollectionPage() {
   const { bannerId } = useParams();
   const { t } = useLanguage();
   const data = COLLECTIONS[bannerId] || COLLECTIONS['banner-1'];
+  const [favorites, setFavorites] = useState(() => loadSectionFavorites(FAVORITES_KEYS.films));
+
+  useEffect(() => {
+    saveSectionFavorites(FAVORITES_KEYS.films, favorites);
+  }, [favorites]);
+
+  const toggleFilmFavorite = (filmId) => {
+    setFavorites((prev) => toggleInFavoriteSet(prev, filmId));
+  };
 
   return (
     <section className="films-collection-page fade-in">
-      <button type="button" className="films-collection-back" onClick={() => navigate('/practices/films')}>
+      <button type="button" className="films-collection-back" onClick={() => navigate(spaceSectionHref('films'))}>
         <ArrowLeft size={18} strokeWidth={2.2} aria-hidden />
-        {t('pages.filmDetailBack')}
+        {t('pages.practicesBack')}
       </button>
 
       <section className="practices-landing-services films-collection-services">
@@ -102,6 +119,11 @@ function FilmsBannerCollectionPage() {
               >
                 <div className="films-collection-film-card__poster-wrap">
                   <img src={film.poster} alt="" className="films-collection-film-card__poster" loading="lazy" />
+                  <PracticeCoverFavorite
+                    isFavorite={favorites.has(film.id)}
+                    onToggle={() => toggleFilmFavorite(film.id)}
+                    ariaLabel={t('pages.meditationModalFavorite')}
+                  />
                 </div>
                 <h3 className="films-collection-film-card__title">{film.title}</h3>
                 <div className="films-collection-film-card__meta">

@@ -1,6 +1,84 @@
 /** Подкасты - подборка, список выпусков, темы (ключи i18n pages.*) */
 
+import { backendPublicUrl } from '../../utils/assetUrl';
 import { natureAt } from './spaceNatureImagery';
+
+export { MEDITATION_AUDIO_SOURCE_OPTIONS as PODCAST_AUDIO_SOURCE_OPTIONS } from './meditationHubData';
+
+export const PODCAST_TOPIC_OPTIONS = [
+  { id: 'psych', labelKey: 'podcastsTopicPsych' },
+  { id: 'mind', labelKey: 'podcastsTopicMind' },
+  { id: 'relations', labelKey: 'podcastsTopicRelations' },
+  { id: 'growth', labelKey: 'podcastsTopicGrowth' },
+  { id: 'mental', labelKey: 'podcastsTopicMental' },
+  { id: 'motiv', labelKey: 'podcastsTopicMotiv' },
+];
+
+export function isRemotePodcastId(id) {
+  return /^podcast-\d+$/.test(String(id || ''));
+}
+
+export function mapRemotePodcastPayload(row, toUrl) {
+  const urlFn = toUrl || backendPublicUrl;
+  const poster = urlFn(row.poster || row.coverImage);
+  const audioUrl =
+    row.audioSource === 'file' ? urlFn(row.audioUrl) : row.audioUrl || '';
+  const durationDisplay = row.duration || row.totalDisplay || '24:00';
+
+  return {
+    id: row.id,
+    title: row.title || '',
+    showName: row.showName || '',
+    descriptionShort: row.descriptionShort || '',
+    metaLine: row.metaLine || '',
+    topic: row.topic || 'psych',
+    episodeNum: row.episodeNum || 1,
+    durationMin: row.durationMin || 24,
+    duration: durationDisplay,
+    totalDisplay: durationDisplay,
+    progressDisplay: row.progressDisplay || '0:00',
+    isFeaturedPick: Boolean(row.isFeaturedPick),
+    poster,
+    titleKey: null,
+    showKey: null,
+    descKey: null,
+    metaKey: null,
+    audioSource: row.audioSource || (row.embedUrl ? 'youtube' : 'url'),
+    audioUrl,
+    embedUrl: row.embedUrl || '',
+    watchUrl: row.watchUrl || '',
+    hasAudio: Boolean(row.hasAudio),
+    isRemotePodcast: true,
+  };
+}
+
+export function podcastTitle(ep, t) {
+  if (ep.title) return ep.title;
+  if (ep.titleKey) return t(`pages.${ep.titleKey}`);
+  return '';
+}
+
+export function podcastShow(ep, t) {
+  if (ep.showName) return ep.showName;
+  if (ep.showKey) return t(`pages.${ep.showKey}`);
+  return '';
+}
+
+export function podcastDesc(ep, t) {
+  if (ep.descriptionShort) return ep.descriptionShort;
+  if (ep.descKey) return t(`pages.${ep.descKey}`);
+  return '';
+}
+
+export function podcastMeta(ep, t) {
+  if (ep.metaLine) return ep.metaLine;
+  if (ep.metaKey) return t(`pages.${ep.metaKey}`);
+  return '';
+}
+
+export function findEpisodeInPool(id, pool) {
+  return pool.find((e) => e.id === id) || null;
+}
 
 export const PODCAST_EPISODES = [
   {
@@ -86,6 +164,6 @@ export const PODCAST_TOPICS = [
   { id: 'motiv', labelKey: 'podcastsTopicMotiv', style: 'lavender' },
 ];
 
-export function findEpisodeById(id) {
-  return PODCAST_EPISODES.find((e) => e.id === id) || null;
+export function findEpisodeById(id, pool = PODCAST_EPISODES) {
+  return findEpisodeInPool(id, pool);
 }

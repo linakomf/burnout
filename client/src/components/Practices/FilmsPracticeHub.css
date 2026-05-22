@@ -749,7 +749,7 @@
 .flix-catalog-hero-photo {
   position: relative;
   width: 100%;
-  min-height: max(200px, calc(clamp(300px, min(62vh, 680px), 760px) - 4cm));
+  min-height: max(200px, calc(clamp(300px, min(62vh, 680px), 760px) - 7cm));
   background-color: var(--mw-sky-mid, #c5e8f6);
   background-size: cover;
   background-position: center center;
@@ -1410,6 +1410,7 @@
 }
 
 .flix-scope--mindwell .flix-film-card__poster-wrap {
+  position: relative;
   border-radius: 22px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.85);
@@ -1733,6 +1734,7 @@
 }
 
 .films-collection-film-card__poster-wrap {
+  position: relative;
   border-radius: 22px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.85);

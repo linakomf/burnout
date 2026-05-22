@@ -13,8 +13,9 @@ import {
   Tag,
   Brain,
   SlidersHorizontal,
-  Heart } from
-'lucide-react';
+  Heart,
+  HeartHandshake,
+} from 'lucide-react';
 import './Sidebar.css';
 import { backendPublicUrl } from '../../utils/assetUrl';
 import testsNavIcon from '../../assets/tests-nav-icon.png';
@@ -26,8 +27,25 @@ const iconProps = { size: 22, strokeWidth: 2.25 };
 
 function navLinkIsActive(path, pathname) {
   if (path === '/admin') return pathname === '/admin';
+  if (path === '/psychologist') return pathname === '/psychologist';
+  if (path === '/psychologist/profile') return pathname === '/psychologist/profile';
+  if (path === '/admin/space') {
+    return (
+      pathname === '/admin/space' ||
+      pathname.startsWith('/admin/films') ||
+      pathname.startsWith('/admin/meditations') ||
+      pathname.startsWith('/admin/events') ||
+      pathname.startsWith('/admin/reading') ||
+      pathname.startsWith('/admin/music') ||
+      pathname.startsWith('/admin/podcasts')
+    );
+  }
   if (path === '/practices') {
-    return pathname === '/practices' || (pathname.startsWith('/practices/') && !pathname.startsWith('/practices/favorites'));
+    return (
+      pathname === '/practices' ||
+      pathname.startsWith('/space') ||
+      (pathname.startsWith('/practices/') && !pathname.startsWith('/practices/favorites'))
+    );
   }
   return pathname === path || pathname.startsWith(`${path}/`);
 }
@@ -61,23 +79,48 @@ const Sidebar = () => {
     { path: '/admin-dashboard', icon: <BarChart3 {...iconProps} />, label: t('nav.adminCrmDashboard') },
     { path: '/admin/users', icon: <Users {...iconProps} />, label: t('nav.adminUsers') },
     { path: '/admin/categories', icon: <Tag {...iconProps} />, label: t('nav.adminCategories') },
-    { path: '/admin/tests', icon: <Brain {...iconProps} />, label: t('nav.adminTests') }],
+    { path: '/admin/tests', icon: <Brain {...iconProps} />, label: t('nav.adminTests') },
+    { path: '/admin/space', icon: <SlidersHorizontal {...iconProps} />, label: t('nav.adminSpace') },
+    { path: '/admin/psychologists', icon: <HeartHandshake {...iconProps} />, label: t('nav.adminPsychologists') }],
 
     [t]
   );
 
-  const links = user?.role === 'admin' ? adminLinks : studentLinks;
+  const psychologistLinks = useMemo(
+    () => [
+      { path: '/psychologist', icon: <HeartHandshake {...iconProps} />, label: t('nav.psychologistRequests') },
+      { path: '/psychologist/profile', icon: <Users {...iconProps} />, label: t('nav.profile') }
+    ],
+    [t]
+  );
+
+  const links =
+    user?.role === 'admin' ? adminLinks :
+    user?.role === 'psychologist' ? psychologistLinks :
+    studentLinks;
 
   const avatarUrl = user?.avatar ? backendPublicUrl(user.avatar) : DEFAULT_AVATAR;
 
+  const profilePath =
+    user?.role === 'psychologist' ? '/psychologist/profile' : '/profile';
+
+  const profileActive =
+    location.pathname === '/profile' || location.pathname === '/psychologist/profile';
+
   return (
     <aside className={`sidebar sidebar--modern ${collapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar-logo">
+      <button
+        type="button"
+        className="sidebar-logo"
+        onClick={() => navigate('/')}
+        title={t('nav.landingHome')}
+        aria-label={t('nav.landingHome')}
+      >
         <div className="logo-icon" aria-hidden>
           <Brain size={22} strokeWidth={2.25} />
         </div>
         {!collapsed && <span className="logo-text">Burnout</span>}
-      </div>
+      </button>
 
       <nav className="sidebar-nav" aria-label={t('nav.mainMenu')}>
         {links.map((link) => {
@@ -100,8 +143,8 @@ const Sidebar = () => {
       <div className="sidebar-bottom">
         <button
           type="button"
-          className="sidebar-profile"
-          onClick={() => navigate('/profile')}
+          className={`sidebar-profile ${profileActive ? 'active' : ''}`}
+          onClick={() => navigate(profilePath)}
           title={collapsed ? t('nav.profile') : ''}>
           
           <div className="user-avatar user-avatar--sticker">

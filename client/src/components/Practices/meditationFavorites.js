@@ -17,4 +17,5 @@ export function loadMeditationFavorites() {
 export function saveMeditationFavorites(favorites) {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(MEDITATION_FAVORITES_STORAGE_KEY, JSON.stringify([...favorites]));
+  window.dispatchEvent(new Event('burnout:favorites-changed'));
 }
