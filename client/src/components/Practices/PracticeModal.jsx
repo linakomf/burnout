@@ -6,6 +6,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import PracticeTimer from './PracticeTimer';
 import MeditationAudioPlayer from './MeditationAudioPlayer';
 import { MEDITATION_TOPIC_LABEL_KEYS, resolveMeditationTopic } from './PracticeCard';
+import { PODCAST_THEME_LABEL_KEYS } from './podcastHubData';
 import { MEDITATION_LEVEL_LABEL_KEYS, practiceHasPlayableAudio } from './meditationHubData';
 
 const defaultMeditationCover = `${(process.env.PUBLIC_URL || '').replace(/\/$/, '')}/meditation/meditation-modal-cover.png`;
@@ -20,7 +21,8 @@ function PracticeModal({
 }) {
   const { t } = useLanguage();
   const [completed, setCompleted] = useState(false);
-  const isMeditation = variant === 'meditation';
+  const isMeditation = variant === 'meditation' || variant === 'podcast';
+  const isPodcast = variant === 'podcast';
 
   const handleClose = useCallback(() => {
     onClose();
@@ -44,7 +46,8 @@ function PracticeModal({
   const durationLabel = `${String(practice.durationMin).padStart(2, '0')}:00`;
   const practiceTitle = practice.titleKey ? t(`pages.${practice.titleKey}`) : practice.title;
   const meditationTopicId = isMeditation ? resolveMeditationTopic(practice, activeFilter) : null;
-  const meditationCategoryKey = meditationTopicId ? MEDITATION_TOPIC_LABEL_KEYS[meditationTopicId] : null;
+  const topicLabelKeys = isPodcast ? PODCAST_THEME_LABEL_KEYS : MEDITATION_TOPIC_LABEL_KEYS;
+  const meditationCategoryKey = meditationTopicId ? topicLabelKeys[meditationTopicId] : null;
   const useAudioPlayer = isMeditation && practiceHasPlayableAudio(practice);
   const levelKey =
     MEDITATION_LEVEL_LABEL_KEYS[practice.difficultyLevel] || MEDITATION_LEVEL_LABEL_KEYS.beginner;
@@ -79,13 +82,19 @@ function PracticeModal({
         </div>
         <div className="practices-modal-meditation-meta-cell">
           <BarChart3 size={18} strokeWidth={2} className="practices-modal-meditation-meta-ico" aria-hidden />
-          <strong>{practice.mood}</strong>
-          <span>{t('pages.meditationModalFocusLabel')}</span>
+          <strong>{practice.mood || practice.format}</strong>
+          <span>{isPodcast ? t('pages.podcastsModalShowLabel') : t('pages.meditationModalFocusLabel')}</span>
         </div>
         <div className="practices-modal-meditation-meta-cell">
           <Leaf size={18} strokeWidth={2} className="practices-modal-meditation-meta-ico" aria-hidden />
-          <strong>{t(`pages.${levelKey}`)}</strong>
-          <span>{t('pages.meditationModalLevelLabel')}</span>
+          <strong>
+            {isPodcast && practice.episodeNum
+              ? t('pages.podcastsEpisodeLabel', { n: practice.episodeNum })
+              : t(`pages.${levelKey}`)}
+          </strong>
+          <span>
+            {isPodcast ? t('pages.podcastsModalEpisodeLabel') : t('pages.meditationModalLevelLabel')}
+          </span>
         </div>
       </div>
 

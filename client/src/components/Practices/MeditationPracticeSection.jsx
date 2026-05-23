@@ -85,7 +85,7 @@ export default function MeditationPracticeSection({ embedded = false }) {
   };
 
   return (
-    <div className={`meditation-hub meditation-hub--fullbleed fade-in${embedded ? ' meditation-hub--embedded' : ''}`}>
+    <div className={`meditation-hub meditation-hub--fullbleed hub-cover-cards fade-in${embedded ? ' meditation-hub--embedded' : ''}`}>
       <header className="meditation-hub-banner">
         {!embedded ? (
           <div className="meditation-hub-banner-head">

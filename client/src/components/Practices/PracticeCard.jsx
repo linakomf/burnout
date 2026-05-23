@@ -1,7 +1,10 @@
 import React from 'react';
 import { Clock, Heart, Play } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { PODCAST_THEME_LABEL_KEYS } from './podcastHubData';
 import { natureAt } from './spaceNatureImagery';
+
+const COVER_CARD_VARIANTS = new Set(['meditation', 'podcast']);
 
 export const MEDITATION_TOPIC_LABEL_KEYS = {
   anxiety: 'meditationFilterAnxiety',
@@ -27,18 +30,21 @@ function PracticeCard({
   index,
   variant = 'default',
   activeFilter = 'all',
+  isActive = false,
 }) {
   const { t } = useLanguage();
-  const showCover = variant === 'meditation';
+  const showCover = COVER_CARD_VARIANTS.has(variant);
   const practiceTitle = practice.titleKey ? t(`pages.${practice.titleKey}`) : practice.title;
   const coverSrc = practice.coverImage || natureAt(index + 2);
   const topicId = showCover ? resolveMeditationTopic(practice, activeFilter) : null;
-  const topicLabelKey = topicId ? MEDITATION_TOPIC_LABEL_KEYS[topicId] : null;
-  const isSoundsCard = showCover && topicId === 'sounds';
+  const topicKeys = variant === 'podcast' ? PODCAST_THEME_LABEL_KEYS : MEDITATION_TOPIC_LABEL_KEYS;
+  const topicLabelKey = topicId ? topicKeys[topicId] : null;
+  const isSoundsCard = variant === 'meditation' && topicId === 'sounds';
+  const cardCtaKey = variant === 'podcast' ? 'podcastsCardStart' : 'meditationCardStart';
 
   return (
     <article
-      className={`practice-card${showCover ? ' practice-card--with-cover' : ''}${isSoundsCard ? ' practice-card--sounds' : ''}`}
+      className={`practice-card${showCover ? ' practice-card--with-cover' : ''}${isSoundsCard ? ' practice-card--sounds' : ''}${isActive ? ' practice-card--active' : ''}`}
       style={{ animationDelay: `${0.04 + index % 12 * 0.03}s` }}>
       <div
         className={`practice-card-inner${showCover ? ' practice-card-inner--with-cover' : ''}`}
@@ -113,7 +119,7 @@ function PracticeCard({
                 <Clock size={14} strokeWidth={2} aria-hidden />
                 {t('pages.meditationCardDuration', { min: practice.durationMin })}
               </span>
-              <span className="practice-card-cta practice-card-cta--pill">{t('pages.meditationCardStart')}</span>
+              <span className="practice-card-cta practice-card-cta--pill">{t(`pages.${cardCtaKey}`)}</span>
             </div>
           ) : !showCover ? (
             <span className="practice-card-cta">{practice.playLabel}</span>
