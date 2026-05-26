@@ -31,6 +31,33 @@ async function ensureFilmsSchema() {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS films_created_at_idx ON films (created_at DESC);
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS film_collections (
+      collection_id SERIAL PRIMARY KEY,
+      slug VARCHAR(64) UNIQUE NOT NULL,
+      title VARCHAR(120) NOT NULL DEFAULT '',
+      description TEXT NOT NULL DEFAULT '',
+      cover_url TEXT NOT NULL DEFAULT '',
+      sort_order INT NOT NULL DEFAULT 0,
+      is_active BOOLEAN NOT NULL DEFAULT true,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS film_collection_items (
+      collection_id INT NOT NULL REFERENCES film_collections(collection_id) ON DELETE CASCADE,
+      film_id INT NOT NULL REFERENCES films(film_id) ON DELETE CASCADE,
+      sort_order INT NOT NULL DEFAULT 0,
+      PRIMARY KEY (collection_id, film_id)
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS film_collection_items_coll_idx
+    ON film_collection_items (collection_id, sort_order);
+  `);
 }
 
 module.exports = { ensureFilmsSchema };

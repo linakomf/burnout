@@ -7,7 +7,7 @@ import FilmDetailPage from './FilmDetailPage';
 import EventDetailPage from './EventDetailPage';
 import FilmsPracticeHub from './FilmsPracticeHub';
 import MeditationPracticeSection from './MeditationPracticeSection';
-import EventsPracticeHub from './EventsPracticeHub';
+import EventsPracticeHub from './EventsPracticeHubView';
 import ArticlesPracticeHub from './ArticlesPracticeHub';
 import MusicPracticeHub from './MusicPracticeHub';
 import PodcastsPracticeHub from './PodcastsPracticeHub';

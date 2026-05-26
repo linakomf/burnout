@@ -15,6 +15,7 @@ const {
   fetchUserTestHistory,
   fetchRecentCheckins
 } = require('../utils/enrichSupportRequest');
+const { createUserNotification } = require('../utils/userNotifications');
 
 const router = express.Router();
 const uploadsAbs = path.join(__dirname, '..', 'uploads');
@@ -369,30 +370,51 @@ router.patch('/support-requests/:requestId/assign', authMiddleware, adminOnly, a
     return res.status(400).json({ message: 'Некорректный id обращения' });
   }
 
+  const client = await pool.connect();
   try {
+    await client.query('BEGIN');
+    const requestQ = await client.query(
+      `SELECT request_id, user_id, assigned_psychologist_id
+       FROM support_requests
+       WHERE request_id = $1
+       FOR UPDATE`,
+      [requestId]
+    );
+    if (!requestQ.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Обращение не найдено' });
+    }
+
+    const currentRequest = requestQ.rows[0];
+    let assignedPsychologistName = null;
+
     if (psychologistId != null) {
       if (!Number.isFinite(psychologistId)) {
+        await client.query('ROLLBACK');
         return res.status(400).json({ message: 'Некорректный id психолога' });
       }
-      const p = await pool.query(
-        `SELECT u.user_id FROM users u
+      const p = await client.query(
+        `SELECT u.user_id, u.name FROM users u
          INNER JOIN psychologist_profiles pp ON pp.user_id = u.user_id
          WHERE u.user_id = $1 AND u.role = 'psychologist' AND pp.account_status = 'approved'`,
         [psychologistId]
       );
       if (!p.rows.length) {
+        await client.query('ROLLBACK');
         return res.status(400).json({
           message: 'Психолог не найден или не подтверждён. Сначала подтвердите аккаунт во вкладке «Список психологов».'
         });
       }
+      assignedPsychologistName = p.rows[0].name || 'назначенный психолог';
     }
 
     let r;
     if (psychologistId != null && Number.isFinite(psychologistId)) {
       if (!Number.isFinite(adminId)) {
+        await client.query('ROLLBACK');
         return res.status(400).json({ message: 'Некорректная сессия администратора' });
       }
-      r = await pool.query(
+      r = await client.query(
         `UPDATE support_requests SET
           assigned_psychologist_id = $1,
           assigned_at = CURRENT_TIMESTAMP,
@@ -401,8 +423,22 @@ router.patch('/support-requests/:requestId/assign', authMiddleware, adminOnly, a
          RETURNING request_id, assigned_psychologist_id, assigned_at`,
         [psychologistId, adminId, requestId]
       );
+
+      if (currentRequest.assigned_psychologist_id !== psychologistId) {
+        await createUserNotification(client, {
+          userId: currentRequest.user_id,
+          type: 'psychologist_assigned',
+          title: 'Заявка принята',
+          body: `Мы получили вашу заявку и назначили психолога ${assignedPsychologistName}. Он свяжется с вами в ближайшее время.`,
+          payload: {
+            request_id: requestId,
+            psychologist_id: psychologistId,
+            psychologist_name: assignedPsychologistName
+          }
+        });
+      }
     } else {
-      r = await pool.query(
+      r = await client.query(
         `UPDATE support_requests SET
           assigned_psychologist_id = NULL,
           assigned_at = NULL,
@@ -413,12 +449,19 @@ router.patch('/support-requests/:requestId/assign', authMiddleware, adminOnly, a
       );
     }
 
-    if (!r.rows.length) return res.status(404).json({ message: 'Обращение не найдено' });
+    if (!r.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Обращение не найдено' });
+    }
+    await client.query('COMMIT');
     res.json(r.rows[0]);
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('[assign support-request]', err);
     const hint = dbErrorToMessage(err);
     res.status(500).json({ message: hint || 'Не удалось назначить' });
+  } finally {
+    client.release();
   }
 });
 

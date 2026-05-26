@@ -17,6 +17,7 @@ import {
   readingItemCategoryLabel,
   readingItemTitle,
 } from './articlesHubData';
+import { ALL_EVENTS, mapRemoteEventPayload } from './eventsHubData';
 import { FILMS } from './filmsCatalogData';
 import {
   findPlayableById,
@@ -31,16 +32,15 @@ import {
 } from './musicHubData';
 import { loadMeditationFavorites, saveMeditationFavorites } from './meditationFavorites';
 import { mapRemoteMeditationPayload } from './meditationHubData';
+import { EventGridCard } from './EventsPracticeHubParts';
 import {
+  episodeToPracticeCard,
   findEpisodeById,
   mapRemotePodcastPayload,
-  PODCAST_EPISODES,
-  podcastMeta,
-  podcastShow,
-  podcastTitle,
 } from './podcastHubData';
 import { spaceSectionHref } from './practiceSpaceConfig';
 import './FilmsPracticeHub.css';
+import './EventsPracticeHub.css';
 import './ArticlesPracticeHub.css';
 import './MusicPracticeHub.css';
 import './PodcastsPracticeHub.css';
@@ -79,6 +79,7 @@ function PracticesFavorites() {
   const [meditationFavs, setMeditationFavs] = useState(loadMeditationFavorites);
   const [sectionFavs, setSectionFavs] = useState(loadAllSectionFavoriteSets);
   const [selectedPractice, setSelectedPractice] = useState(null);
+  const [modalVariant, setModalVariant] = useState('meditation');
   const [activeCategory, setActiveCategory] = useState('meditation');
 
   const [remoteFilms, setRemoteFilms] = useState([]);
@@ -88,6 +89,7 @@ function PracticesFavorites() {
   const [remoteTracks, setRemoteTracks] = useState([]);
   const [remoteQuick, setRemoteQuick] = useState([]);
   const [remotePodcasts, setRemotePodcasts] = useState([]);
+  const [remoteEvents, setRemoteEvents] = useState([]);
 
   const reloadFavorites = useCallback(() => {
     setMeditationFavs(loadMeditationFavorites());
@@ -106,7 +108,8 @@ function PracticesFavorites() {
       api.get('/meditations').catch(() => ({ data: { meditations: [] } })),
       api.get('/music').catch(() => ({ data: { items: [] } })),
       api.get('/podcasts').catch(() => ({ data: { episodes: [] } })),
-    ]).then(([filmsRes, readingRes, medRes, musicRes, podRes]) => {
+      api.get('/events').catch(() => ({ data: { events: [] } })),
+    ]).then(([filmsRes, readingRes, medRes, musicRes, podRes, eventsRes]) => {
       if (cancelled) return;
       setRemoteFilms((filmsRes.data?.films || []).map(normalizeRemoteFilm));
       const rows = readingRes.data?.items || [];
@@ -126,6 +129,9 @@ function PracticesFavorites() {
       );
       setRemotePodcasts(
         (podRes.data?.episodes || []).map((r) => mapRemotePodcastPayload(r, backendPublicUrl))
+      );
+      setRemoteEvents(
+        (eventsRes.data?.events || []).map((r) => mapRemoteEventPayload(r, backendPublicUrl))
       );
     });
     return () => {
@@ -156,7 +162,20 @@ function PracticesFavorites() {
   );
   const allTracks = useMemo(() => [...MUSIC_TRACKS, ...remoteTracks], [remoteTracks]);
   const allQuick = useMemo(() => [...QUICK_SOUNDS, ...remoteQuick], [remoteQuick]);
-  const allPodcasts = useMemo(() => [...PODCAST_EPISODES, ...remotePodcasts], [remotePodcasts]);
+  const podcastCatalog = useMemo(() => remotePodcasts, [remotePodcasts]);
+  const eventCatalog = useMemo(() => [...ALL_EVENTS, ...remoteEvents], [remoteEvents]);
+
+  useEffect(() => {
+    if (remotePodcasts.length === 0) return;
+    const validIds = new Set(remotePodcasts.map((ep) => ep.id));
+    setSectionFavs((prev) => {
+      const pruned = [...prev.podcasts].filter((id) => validIds.has(id));
+      if (pruned.length === prev.podcasts.size) return prev;
+      const nextSet = new Set(pruned);
+      saveSectionFavorites(FAVORITES_KEYS.podcasts, nextSet);
+      return { ...prev, podcasts: nextSet };
+    });
+  }, [remotePodcasts]);
 
   const favoriteFilms = useMemo(
     () =>
@@ -196,9 +215,17 @@ function PracticesFavorites() {
   const favoritePodcasts = useMemo(
     () =>
       [...sectionFavs.podcasts]
-        .map((id) => findEpisodeById(id, allPodcasts))
+        .map((id) => findEpisodeById(id, podcastCatalog))
         .filter(Boolean),
-    [sectionFavs.podcasts, allPodcasts]
+    [sectionFavs.podcasts, podcastCatalog]
+  );
+
+  const favoriteEvents = useMemo(
+    () =>
+      [...sectionFavs.events]
+        .map((id) => eventCatalog.find((item) => item.id === id))
+        .filter(Boolean),
+    [sectionFavs.events, eventCatalog]
   );
 
   const countsByCategory = useMemo(
@@ -207,10 +234,10 @@ function PracticesFavorites() {
       meditation: favoriteMeditations.length,
       podcasts: favoritePodcasts.length,
       music: favoriteMusic.length,
-      events: 0,
+      events: favoriteEvents.length,
       articles: favoriteReading.length,
     }),
-    [favoriteFilms, favoriteMeditations, favoritePodcasts, favoriteMusic, favoriteReading]
+    [favoriteFilms, favoriteMeditations, favoritePodcasts, favoriteMusic, favoriteEvents, favoriteReading]
   );
 
   const toggleMeditationFavorite = (practiceId) => {
@@ -249,6 +276,7 @@ function PracticesFavorites() {
                       onToggle={() => toggleSectionFavorite('films', film.id)}
                       ariaLabel={t('pages.meditationModalFavorite')}
                     />
+                    <span className="flix-psych-tag">{t(`pages.filmPsych_${film.psychTag}`)}</span>
                   </div>
                   <h3 className="flix-film-card__title">{film.title}</h3>
                   <div className="flix-film-card__meta">
@@ -258,7 +286,6 @@ function PracticesFavorites() {
                     {(film.rating && String(film.rating).trim()) || '—'} ·{' '}
                     {(film.year && String(film.year).trim()) || '—'}
                   </div>
-                  <span className="flix-psych-tag">{t(`pages.filmPsych_${film.psychTag}`)}</span>
                 </button>
               ))}
             </div>
@@ -363,57 +390,69 @@ function PracticesFavorites() {
       case 'podcasts':
         if (favoritePodcasts.length === 0) return null;
         return (
-          <ul className="practices-favorites-podcasts">
-            {favoritePodcasts.map((ep) => (
-              <li key={ep.id}>
-                <button
-                  type="button"
-                  className="practices-favorites-podcast-row"
-                  onClick={() => navigate(spaceSectionHref('podcasts'))}
-                >
-                  <span className="podcast-hub-recent-thumb-wrap">
-                    <span
-                      className="podcast-hub-recent-thumb"
-                      style={{ backgroundImage: `url(${ep.poster})` }}
-                    />
-                    <PracticeCoverFavorite
-                      isFavorite
-                      onToggle={() => toggleSectionFavorite('podcasts', ep.id)}
-                      ariaLabel={t('pages.meditationModalFavorite')}
-                    />
-                  </span>
-                  <span className="practices-favorites-podcast-meta">
-                    <strong>{podcastTitle(ep, t)}</strong>
-                    <span>
-                      {podcastShow(ep, t)} · {podcastMeta(ep, t)}
-                    </span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className="meditation-hub-body hub-cover-cards">
+            <div className="meditation-hub-grid podcast-hub-grid">
+              {favoritePodcasts.map((ep, index) => (
+                <PracticeCard
+                  key={ep.id}
+                  practice={episodeToPracticeCard(ep, t)}
+                  variant="podcast"
+                  isFavorite={sectionFavs.podcasts.has(ep.id)}
+                  onToggleFavorite={() => toggleSectionFavorite('podcasts', ep.id)}
+                  onPlay={(practice) => {
+                    setModalVariant('podcast');
+                    setSelectedPractice(practice);
+                  }}
+                  activeFilter="favorites"
+                  index={index}
+                />
+              ))}
+            </div>
+          </div>
         );
 
       case 'meditation':
         if (favoriteMeditations.length === 0) return null;
         return (
-          <div className="meditation-hub-grid">
-            {favoriteMeditations.map((practice, index) => (
-              <PracticeCard
-                key={practice.id}
-                practice={practice}
-                variant="meditation"
-                isFavorite={meditationFavs.has(practice.id)}
-                onToggleFavorite={toggleMeditationFavorite}
-                onPlay={setSelectedPractice}
-                activeFilter="favorites"
-                index={index}
-              />
-            ))}
+          <div className="meditation-hub-body hub-cover-cards">
+            <div className="meditation-hub-grid">
+              {favoriteMeditations.map((practice, index) => (
+                <PracticeCard
+                  key={practice.id}
+                  practice={practice}
+                  variant="meditation"
+                  isFavorite={meditationFavs.has(practice.id)}
+                  onToggleFavorite={toggleMeditationFavorite}
+                  onPlay={(practice) => {
+                    setModalVariant('meditation');
+                    setSelectedPractice(practice);
+                  }}
+                  activeFilter="favorites"
+                  index={index}
+                />
+              ))}
+            </div>
           </div>
         );
 
       case 'events':
+        if (favoriteEvents.length === 0) return null;
+        return (
+          <div className="flix-catalog-section events-flix-results hub-cover-cards">
+            <div className="events-flix-grid">
+              {favoriteEvents.map((item) => (
+                <EventGridCard
+                  key={item.id}
+                  item={item}
+                  t={t}
+                  isFavorite={sectionFavs.events.has(item.id)}
+                  onToggleFavorite={() => toggleSectionFavorite('events', item.id)}
+                />
+              ))}
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -461,7 +500,7 @@ function PracticesFavorites() {
         })}
       </div>
 
-      <section className="practices-space-favorites meditation-hub" aria-label={t('nav.favorites')}>
+      <section className="practices-space-favorites" aria-label={t('nav.favorites')}>
         {content || <p className="practices-space-favorites-empty">{t(`pages.${emptyKey}`)}</p>}
       </section>
 
@@ -469,10 +508,20 @@ function PracticesFavorites() {
         {selectedPractice && (
           <PracticeModal
             practice={selectedPractice}
-            variant="meditation"
+            variant={modalVariant}
             activeFilter="favorites"
-            favorite={meditationFavs.has(selectedPractice.id)}
-            onToggleFavorite={toggleMeditationFavorite}
+            favorite={
+              modalVariant === 'podcast'
+                ? sectionFavs.podcasts.has(selectedPractice.id)
+                : meditationFavs.has(selectedPractice.id)
+            }
+            onToggleFavorite={() => {
+              if (modalVariant === 'podcast') {
+                toggleSectionFavorite('podcasts', selectedPractice.id);
+              } else {
+                toggleMeditationFavorite(selectedPractice.id);
+              }
+            }}
             onClose={() => setSelectedPractice(null)}
           />
         )}

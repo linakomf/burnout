@@ -5,11 +5,17 @@ import { backendPublicUrl } from '../../utils/assetUrl';
 import { useLanguage } from '../../context/LanguageContext';
 import {
   MUSIC_AUDIO_SOURCE_OPTIONS,
-  MUSIC_KIND_OPTIONS,
+  MUSIC_FILTER_GENRE_OPTIONS,
+  MUSIC_FILTER_MOOD_OPTIONS,
+  MUSIC_GENRE_OPTIONS,
   MUSIC_MOOD_OPTIONS,
-  MUSIC_QUICK_ICON_OPTIONS,
 } from '../Practices/musicHubData';
+import AdminAudienceFields from './AdminAudienceFields';
+import AdminModalPortal from './AdminModalPortal';
+import { emptyAudienceFields } from './audienceTargeting';
 import './Admin.css';
+
+const MAX_TRACK_DURATION_MIN = 1440;
 
 function extractApiError(e) {
   if (!e?.response) {
@@ -24,20 +30,29 @@ function extractApiError(e) {
 }
 
 const initialForm = () => ({
-  kind: 'track',
   title: '',
   artist: '',
-  mood: 'calm',
+  mood: 'calm_down',
   genre_label: '',
-  description_short: '',
   duration_min: '3',
-  icon_name: 'CloudRain',
   audio_source: 'youtube',
   youtube_url: '',
   audio_external_url: '',
   coverFile: null,
   audioFile: null,
+  is_featured_pick: false,
+  ...emptyAudienceFields(),
 });
+
+function labelForMoodId(moodId, t) {
+  const opt = MUSIC_FILTER_MOOD_OPTIONS.find((o) => o.id === moodId);
+  return opt ? t(`pages.${opt.labelKey}`) : moodId || '—';
+}
+
+function labelForGenreId(genreId, t) {
+  const opt = MUSIC_FILTER_GENRE_OPTIONS.find((o) => o.id === genreId);
+  return opt ? t(`pages.${opt.labelKey}`) : genreId || '—';
+}
 
 function ChipGroup({ label, options, value, onChange, t, useLocale }) {
   return (
@@ -69,19 +84,38 @@ export default function AdminMusic({ embedded = false }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [coverBlobUrl, setCoverBlobUrl] = useState('');
+  const [collections, setCollections] = useState([]);
+  const [featuredPickId, setFeaturedPickId] = useState('');
+  const [hubError, setHubError] = useState('');
+  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const [collectionEditSlug, setCollectionEditSlug] = useState(null);
+  const [collectionForm, setCollectionForm] = useState({
+    title: '',
+    trackIds: [],
+    coverFile: null,
+    sort_order: '0',
+  });
+  const [collectionCoverBlob, setCollectionCoverBlob] = useState('');
+  const [collectionSaving, setCollectionSaving] = useState(false);
   const errorBannerRef = useRef(null);
   const fileInputsKey = useRef(0);
+  const collectionFileKey = useRef(0);
 
-  const isTrack = form.kind === 'track';
+  const trackItems = useMemo(() => items.filter((r) => r.kind === 'track'), [items]);
 
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     try {
-      const { data } = await api.get('/music');
+      const { data } = await api.get('/music/hub');
       setItems(data.items || []);
+      setCollections(data.collections || []);
+      setFeaturedPickId(data.featuredTrackId || '');
       return true;
     } catch {
-      if (!silent) setItems([]);
+      if (!silent) {
+        setItems([]);
+        setCollections([]);
+      }
       return false;
     } finally {
       if (!silent) setLoading(false);
@@ -102,6 +136,16 @@ export default function AdminMusic({ embedded = false }) {
     return () => URL.revokeObjectURL(u);
   }, [form.coverFile]);
 
+  useEffect(() => {
+    if (!collectionForm.coverFile) {
+      setCollectionCoverBlob('');
+      return undefined;
+    }
+    const u = URL.createObjectURL(collectionForm.coverFile);
+    setCollectionCoverBlob(u);
+    return () => URL.revokeObjectURL(u);
+  }, [collectionForm.coverFile]);
+
   const coverPreview = useMemo(() => {
     if (coverBlobUrl) return coverBlobUrl;
     if (editingId) {
@@ -119,9 +163,9 @@ export default function AdminMusic({ embedded = false }) {
     fileInputsKey.current += 1;
   };
 
-  const openCreate = (kind = 'track') => {
+  const openCreate = () => {
     setEditingId(null);
-    setForm({ ...initialForm(), kind, mood: 'calm', icon_name: 'CloudRain' });
+    setForm({ ...initialForm(), mood: 'calm_down' });
     setError('');
     setModalOpen(true);
   };
@@ -138,26 +182,22 @@ export default function AdminMusic({ embedded = false }) {
     }
     setEditingId(row.id);
     setForm({
-      kind: row.kind || 'track',
       title: row.title || '',
       artist: row.artist || '',
-      mood: row.mood || 'calm',
+      mood: row.mood || 'calm_down',
       genre_label: row.genreLabel || '',
-      description_short: row.descriptionShort || '',
       duration_min: String(row.durationMin || 3),
-      icon_name: row.icon || 'Music2',
+      is_featured_pick: Boolean(row.isFeaturedPick),
       audio_source: row.audioSource || 'youtube',
       youtube_url,
       audio_external_url,
       coverFile: null,
       audioFile: null,
+      target_role: row.target_role || 'all',
+      target_gender: row.target_gender || 'all',
     });
     setError('');
     setModalOpen(true);
-  };
-
-  const setKind = (kind) => {
-    setForm((prev) => ({ ...prev, kind }));
   };
 
   const handleSave = async () => {
@@ -174,15 +214,16 @@ export default function AdminMusic({ embedded = false }) {
     setSaving(true);
     try {
       const fd = new FormData();
-      fd.append('kind', form.kind);
+      fd.append('kind', 'track');
       fd.append('title', title);
       fd.append('mood', form.mood);
       fd.append('genre_label', form.genre_label.trim());
-      fd.append('description_short', form.description_short.trim());
       fd.append('duration_min', form.duration_min.trim() || '3');
       fd.append('audio_source', form.audio_source);
-      if (isTrack) fd.append('artist', form.artist.trim());
-      if (!isTrack) fd.append('icon_name', form.icon_name);
+      fd.append('artist', form.artist.trim());
+      fd.append('target_role', form.target_role || 'all');
+      fd.append('target_gender', form.target_gender || 'all');
+      fd.append('is_featured_pick', form.is_featured_pick ? '1' : '0');
 
       if (form.audio_source === 'youtube') {
         fd.append('youtube_url', form.youtube_url.trim());
@@ -219,13 +260,113 @@ export default function AdminMusic({ embedded = false }) {
         setError('Сохранено, но список не обновился. Обновите страницу.');
         return;
       }
-      setSuccess(wasEdit ? 'Изменения сохранены.' : 'Запись добавлена.');
+      setSuccess(wasEdit ? 'Трек обновлён.' : 'Трек добавлен.');
       setTimeout(() => setSuccess(''), 4000);
     } catch (e) {
       setError(extractApiError(e));
       errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const closeCollectionModal = () => {
+    setCollectionModalOpen(false);
+    setCollectionEditSlug(null);
+    setCollectionForm({ title: '', trackIds: [], coverFile: null, sort_order: '0' });
+    collectionFileKey.current += 1;
+  };
+
+  const openCreateCollection = () => {
+    setCollectionEditSlug(null);
+    setCollectionForm({ title: '', trackIds: [], coverFile: null, sort_order: String(collections.length) });
+    setHubError('');
+    setCollectionModalOpen(true);
+  };
+
+  const openEditCollection = (col) => {
+    setCollectionEditSlug(col.slug);
+    setCollectionForm({
+      title: col.title || '',
+      trackIds: [...(col.trackIds || [])],
+      coverFile: null,
+      sort_order: String(col.sort_order ?? 0),
+    });
+    setHubError('');
+    setCollectionModalOpen(true);
+  };
+
+  const toggleCollectionTrack = (trackId) => {
+    setCollectionForm((prev) => {
+      const has = prev.trackIds.includes(trackId);
+      return {
+        ...prev,
+        trackIds: has ? prev.trackIds.filter((x) => x !== trackId) : [...prev.trackIds, trackId],
+      };
+    });
+  };
+
+  const saveCollectionModal = async () => {
+    const title = collectionForm.title.trim();
+    if (!title) {
+      setHubError('Укажите название подборки.');
+      return;
+    }
+    setCollectionSaving(true);
+    setHubError('');
+    try {
+      const fd = new FormData();
+      fd.append('title', title);
+      fd.append('sort_order', collectionForm.sort_order || '0');
+      fd.append('track_ids', JSON.stringify(collectionForm.trackIds));
+      if (collectionForm.coverFile) fd.append('cover', collectionForm.coverFile);
+      if (collectionEditSlug) {
+        await api.patch(`/music/collections/${collectionEditSlug}`, fd);
+      } else {
+        await api.post('/music/collections', fd);
+      }
+      closeCollectionModal();
+      await load({ silent: true });
+      setSuccess(collectionEditSlug ? 'Подборка обновлена.' : 'Подборка создана.');
+      setTimeout(() => setSuccess(''), 4000);
+    } catch (e) {
+      setHubError(extractApiError(e));
+    } finally {
+      setCollectionSaving(false);
+    }
+  };
+
+  const deleteCollection = async (slug) => {
+    if (!window.confirm('Удалить эту подборку?')) return;
+    setHubError('');
+    try {
+      await api.delete(`/music/collections/${slug}`);
+      await load({ silent: true });
+    } catch (e) {
+      setHubError(extractApiError(e));
+    }
+  };
+
+  const collectionCoverPreview = useMemo(() => {
+    if (collectionCoverBlob) return collectionCoverBlob;
+    if (collectionEditSlug) {
+      const col = collections.find((c) => c.slug === collectionEditSlug);
+      if (col?.image) return backendPublicUrl(col.image);
+    }
+    return '';
+  }, [collectionCoverBlob, collectionEditSlug, collections]);
+
+  const setFeaturedPick = async (trackId) => {
+    setFeaturedPickId(trackId);
+    if (!trackId) return;
+    setHubError('');
+    try {
+      const fd = new FormData();
+      fd.append('is_featured_pick', '1');
+      await api.patch(`/music/${trackId}`, fd);
+      await load({ silent: true });
+    } catch (e) {
+      setHubError(extractApiError(e));
     }
   };
 
@@ -251,49 +392,115 @@ export default function AdminMusic({ embedded = false }) {
             <h1 className="page-title">Музыка</h1>
           )}
           <p className="page-sub">
-            Треки и быстрые звуки на странице «Музыка». Воспроизведение на сайте: файл, YouTube или ссылка.
-            ID: <code>music-…</code> / <code>music-quick-…</code>.
+            Создавайте подборки с любым названием и назначайте в них треки из списка ниже. На сайте в блоке
+            «Подборки» появятся ваши карточки.
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button type="button" className="btn btn-secondary" onClick={() => openCreate('quick')}>
+          <button type="button" className="btn btn-secondary" onClick={openCreateCollection}>
             <Plus size={16} style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Быстрый звук
+            Создать подборку
           </button>
-          <button type="button" className="btn btn-primary" onClick={() => openCreate('track')}>
+          <button type="button" className="btn btn-primary" onClick={openCreate}>
             <Plus size={16} style={{ verticalAlign: '-2px', marginRight: 6 }} />
-            Трек
+            Добавить трек
           </button>
         </div>
       </div>
 
       {success ? <div className="admin-success-banner" style={{ marginTop: 12 }}>{success}</div> : null}
+      {hubError ? <div className="admin-error-banner" style={{ marginTop: 12 }}>{hubError}</div> : null}
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <h3 className="admin-space-section-title" style={{ marginBottom: 8 }}>
+          Витрина страницы «Музыка»
+        </h3>
+        <p className="admin-film-filters-intro" style={{ marginTop: 0 }}>
+          Создайте подборку, придумайте название, загрузите обложку и отметьте треки из списка ниже.
+        </p>
+
+        <label className="admin-field" style={{ maxWidth: 420, marginTop: 12 }}>
+          <span>Подборка дня</span>
+          <select value={featuredPickId} onChange={(e) => setFeaturedPick(e.target.value)}>
+            <option value="">— не выбрано —</option>
+            {trackItems.map((tr) => (
+              <option key={tr.id} value={tr.id}>
+                {tr.title}
+                {tr.isFeaturedPick ? ' ★' : ''}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {collections.length === 0 ? (
+          <p style={{ marginTop: 16, color: '#64748b' }}>Подборок пока нет — нажмите «Создать подборку».</p>
+        ) : (
+          <table className="admin-table" style={{ marginTop: 16 }}>
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Треков</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {collections.map((col) => (
+                <tr key={col.slug}>
+                  <td>
+                    <strong>{col.title || col.slug}</strong>
+                  </td>
+                  <td>{col.tracksCount ?? col.trackIds?.length ?? 0}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      style={{ marginRight: 8 }}
+                      onClick={() => openEditCollection(col)}
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={() => deleteCollection(col.slug)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
 
       <div className="card" style={{ marginTop: 16 }}>
         <table className="admin-table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Тип</th>
               <th>Название</th>
               <th>Настроение</th>
+              <th>Жанр</th>
+              <th>Подборка дня</th>
               <th>Действия</th>
             </tr>
           </thead>
           <tbody>
-            {items.length === 0 ? (
+            {trackItems.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: 24, color: '#64748b' }}>
-                  Пока нет записей — добавьте трек или быстрый звук.
+                <td colSpan={6} style={{ padding: 24, color: '#64748b' }}>
+                  Пока нет треков — нажмите «Добавить трек».
                 </td>
               </tr>
             ) : (
-              items.map((row) => (
+              trackItems.map((row) => (
                 <tr key={row.id}>
                   <td style={{ fontFamily: 'monospace', fontSize: 13 }}>{row.id}</td>
-                  <td>{row.kind === 'quick' ? 'Быстрый звук' : 'Трек'}</td>
                   <td>{row.title}</td>
-                  <td>{row.mood}</td>
+                  <td>{labelForMoodId(row.mood, t)}</td>
+                  <td>{labelForGenreId(row.genreLabel, t)}</td>
+                  <td>{row.isFeaturedPick ? 'Да' : '—'}</td>
                   <td>
                     <button
                       type="button"
@@ -313,9 +520,121 @@ export default function AdminMusic({ embedded = false }) {
         </table>
       </div>
 
+      {collectionModalOpen ? (
+        <AdminModalPortal>
+          <div
+            className="modal-overlay admin-modal-overlay"
+            role="presentation"
+            onMouseDown={(e) => e.target === e.currentTarget && closeCollectionModal()}
+          >
+            <div
+              className="modal-card admin-test-modal admin-film-modal fade-in"
+              role="dialog"
+              aria-modal="true"
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <h2>{collectionEditSlug ? 'Редактировать подборку' : 'Новая подборка'}</h2>
+                <button type="button" className="modal-close" onClick={closeCollectionModal} aria-label="Закрыть">
+                  <X size={18} />
+                </button>
+              </div>
+              <form
+                className="admin-film-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  saveCollectionModal();
+                }}
+              >
+                <label className="admin-field">
+                  <span>Название подборки *</span>
+                  <input
+                    value={collectionForm.title}
+                    onChange={(e) => setCollectionForm({ ...collectionForm, title: e.target.value })}
+                    placeholder="Например: Спокойный вечер"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Обложка карточки</span>
+                  <input
+                    key={`coll-cover-${collectionFileKey.current}`}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setCollectionForm({ ...collectionForm, coverFile: e.target.files?.[0] || null })
+                    }
+                  />
+                  {collectionCoverPreview ? (
+                    <img src={collectionCoverPreview} alt="" className="admin-film-poster-preview" />
+                  ) : null}
+                </label>
+                <div className="admin-film-tag-group">
+                  <div className="admin-film-tag-label">
+                    Треки в подборке ({collectionForm.trackIds.length})
+                  </div>
+                  {trackItems.length === 0 ? (
+                    <p className="admin-film-filters-intro">Сначала добавьте треки в таблицу ниже.</p>
+                  ) : (
+                    <div
+                      className="admin-music-track-pick-list"
+                      style={{
+                        maxHeight: 280,
+                        overflowY: 'auto',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 12,
+                        padding: 8,
+                      }}
+                    >
+                      {trackItems.map((tr) => {
+                        const on = collectionForm.trackIds.includes(tr.id);
+                        return (
+                          <label
+                            key={tr.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 10,
+                              padding: '8px 10px',
+                              borderRadius: 10,
+                              background: on ? 'rgba(106, 138, 214, 0.12)' : 'transparent',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={on}
+                              onChange={() => toggleCollectionTrack(tr.id)}
+                            />
+                            <span style={{ flex: 1, minWidth: 0 }}>
+                              <strong style={{ display: 'block', fontSize: 14 }}>{tr.title}</strong>
+                              <span style={{ fontSize: 12, color: '#64748b' }}>
+                                {labelForMoodId(tr.mood, t)} · {labelForGenreId(tr.genreLabel, t)}
+                              </span>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                <div className="modal-actions" style={{ marginTop: 20 }}>
+                  <button type="button" className="btn btn-secondary" onClick={closeCollectionModal} disabled={collectionSaving}>
+                    Отмена
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={collectionSaving}>
+                    {collectionSaving ? 'Сохранение…' : 'Сохранить'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </AdminModalPortal>
+      ) : null}
+
       {modalOpen ? (
+        <AdminModalPortal>
         <div
-          className="modal-overlay"
+          className="modal-overlay admin-modal-overlay"
           role="presentation"
           onMouseDown={(e) => e.target === e.currentTarget && closeModal()}>
           <div
@@ -324,10 +643,7 @@ export default function AdminMusic({ embedded = false }) {
             aria-modal="true"
             onMouseDown={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>
-                {editingId ? 'Редактировать' : 'Новая запись'}
-                {isTrack ? ' (трек)' : ' (быстрый звук)'}
-              </h2>
+              <h2>{editingId ? 'Редактировать трек' : 'Новый трек'}</h2>
               <button type="button" className="modal-close" onClick={closeModal} aria-label="Закрыть">
                 <X size={18} />
               </button>
@@ -345,50 +661,18 @@ export default function AdminMusic({ embedded = false }) {
                 </div>
               ) : null}
 
-              {!editingId ? (
-                <label className="admin-field">
-                  <span>Тип *</span>
-                  <select value={form.kind} onChange={(e) => setKind(e.target.value)}>
-                    {MUSIC_KIND_OPTIONS.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : (
-                <p className="admin-film-filters-intro">
-                  Тип: <strong>{isTrack ? 'Трек' : 'Быстрый звук'}</strong>
-                </p>
-              )}
-
               <label className="admin-field">
                 <span>Название *</span>
                 <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
               </label>
 
-              {isTrack ? (
-                <label className="admin-field">
-                  <span>Исполнитель / подпись</span>
-                  <input value={form.artist} onChange={(e) => setForm({ ...form, artist: e.target.value })} />
-                </label>
-              ) : (
-                <label className="admin-field">
-                  <span>Иконка кнопки</span>
-                  <select
-                    value={form.icon_name}
-                    onChange={(e) => setForm({ ...form, icon_name: e.target.value })}>
-                    {MUSIC_QUICK_ICON_OPTIONS.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
+              <label className="admin-field">
+                <span>Исполнитель / подпись</span>
+                <input value={form.artist} onChange={(e) => setForm({ ...form, artist: e.target.value })} />
+              </label>
 
               <ChipGroup
-                label="Настроение (фильтр подборок)"
+                label="Настроение"
                 options={MUSIC_MOOD_OPTIONS}
                 value={form.mood}
                 onChange={(id) => setForm({ ...form, mood: id })}
@@ -396,16 +680,14 @@ export default function AdminMusic({ embedded = false }) {
                 useLocale
               />
 
-              {isTrack ? (
-                <label className="admin-field">
-                  <span>Жанр (текст на карточке)</span>
-                  <input
-                    value={form.genre_label}
-                    onChange={(e) => setForm({ ...form, genre_label: e.target.value })}
-                    placeholder="Эмбиент, природа…"
-                  />
-                </label>
-              ) : null}
+              <ChipGroup
+                label="Жанр"
+                options={MUSIC_GENRE_OPTIONS}
+                value={form.genre_label}
+                onChange={(id) => setForm({ ...form, genre_label: id })}
+                t={t}
+                useLocale
+              />
 
               <label className="admin-field">
                 <span>Обложка{editingId ? '' : ' *'}</span>
@@ -420,20 +702,11 @@ export default function AdminMusic({ embedded = false }) {
               </label>
 
               <label className="admin-field">
-                <span>Краткое описание</span>
-                <textarea
-                  rows={2}
-                  value={form.description_short}
-                  onChange={(e) => setForm({ ...form, description_short: e.target.value })}
-                />
-              </label>
-
-              <label className="admin-field">
                 <span>Длительность (мин) *</span>
                 <input
                   type="number"
                   min={1}
-                  max={180}
+                  max={MAX_TRACK_DURATION_MIN}
                   value={form.duration_min}
                   onChange={(e) => setForm({ ...form, duration_min: e.target.value })}
                 />
@@ -489,6 +762,20 @@ export default function AdminMusic({ embedded = false }) {
                 </label>
               ) : null}
 
+              <label className="admin-field admin-field--checkbox">
+                <input
+                  type="checkbox"
+                  checked={form.is_featured_pick}
+                  onChange={(e) => setForm({ ...form, is_featured_pick: e.target.checked })}
+                />
+                <span>Подборка дня на странице «Музыка»</span>
+              </label>
+
+              <AdminAudienceFields
+                value={{ target_role: form.target_role, target_gender: form.target_gender }}
+                onChange={(aud) => setForm((prev) => ({ ...prev, ...aud }))}
+              />
+
               <div className="modal-actions" style={{ marginTop: 24 }}>
                 <button type="button" className="btn btn-secondary" onClick={closeModal} disabled={saving}>
                   Отмена
@@ -500,6 +787,7 @@ export default function AdminMusic({ embedded = false }) {
             </form>
           </div>
         </div>
+        </AdminModalPortal>
       ) : null}
     </div>
   );

@@ -3,6 +3,7 @@ import { Clock, Heart, Play } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { PODCAST_THEME_LABEL_KEYS } from './podcastHubData';
 import { natureAt } from './spaceNatureImagery';
+import { isVideoCoverAsset } from './practiceMedia';
 
 const COVER_CARD_VARIANTS = new Set(['meditation', 'podcast']);
 
@@ -36,6 +37,7 @@ function PracticeCard({
   const showCover = COVER_CARD_VARIANTS.has(variant);
   const practiceTitle = practice.titleKey ? t(`pages.${practice.titleKey}`) : practice.title;
   const coverSrc = practice.coverImage || natureAt(index + 2);
+  const coverIsVideo = showCover && isVideoCoverAsset(coverSrc);
   const topicId = showCover ? resolveMeditationTopic(practice, activeFilter) : null;
   const topicKeys = variant === 'podcast' ? PODCAST_THEME_LABEL_KEYS : MEDITATION_TOPIC_LABEL_KEYS;
   const topicLabelKey = topicId ? topicKeys[topicId] : null;
@@ -60,7 +62,19 @@ function PracticeCard({
         {showCover ? (
           <div className="practice-card-cover">
             <div className="practice-card-cover-media">
-              <img className="practice-card-cover-img" src={coverSrc} alt="" loading="lazy" decoding="async" />
+              {coverIsVideo ? (
+                <video
+                  className="practice-card-cover-img"
+                  src={coverSrc}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                />
+              ) : (
+                <img className="practice-card-cover-img" src={coverSrc} alt="" loading="lazy" decoding="async" />
+              )}
               {isSoundsCard && (
                 <span className="practice-card-cover-play" aria-hidden>
                   <span className="practice-card-cover-play-icon">

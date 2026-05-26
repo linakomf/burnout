@@ -34,6 +34,17 @@
   background-attachment: fixed;
 }
 
+[data-theme='dark'] .main-content:has(.reading-book-detail) {
+  background-color: #121816;
+  background-image:
+    linear-gradient(180deg, rgba(14, 18, 16, 0.78) 0%, rgba(14, 18, 16, 0.88) 100%),
+    url('../../assets/take-test-landscape-bg.png');
+  background-size: cover;
+  background-position: center 38%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
 [data-theme='dark'] .main-content:has(.film-detail-page) {
   background: transparent;
 }
@@ -50,7 +61,14 @@
 }
 
 [data-theme='dark'] .main-content:has(.analytics-page) {
-  background: transparent;
+  background-color: #121816;
+  background-image:
+    linear-gradient(90deg, rgba(17, 22, 29, 0.9) 0%, rgba(17, 22, 29, 0.84) 28%, rgba(17, 22, 29, 0.62) 54%, rgba(17, 22, 29, 0.34) 100%),
+    url('../../assets/tests-page-blossoms-hero.png');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 [data-theme='dark'] .main-content:has(.articles-books--fullbleed) {
@@ -87,6 +105,15 @@
   background-attachment: fixed;
 }
 
+.main-content:has(.reading-book-detail) {
+  background-color: #e8f0f5;
+  background-image: url('../../assets/take-test-landscape-bg.png');
+  background-size: cover;
+  background-position: center 38%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
 .main-content:has(.film-detail-page) {
   background: transparent;
   padding-top: 0;
@@ -95,8 +122,26 @@
   padding-bottom: 0;
 }
 
+.main-content:has(.event-detail) {
+  background: #ffffff;
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+}
+
+[data-theme='dark'] .main-content:has(.event-detail) {
+  background: var(--bg-app, #0f1419);
+}
+
 .main-content:has(.analytics-page) {
-  background: transparent;
+  background-color: #eef3fb;
+  background-image:
+    linear-gradient(90deg, rgba(245, 247, 251, 0.76) 0%, rgba(245, 247, 251, 0.62) 26%, rgba(245, 247, 251, 0.34) 52%, rgba(245, 247, 251, 0.12) 100%),
+    url('../../assets/tests-page-blossoms-hero.png');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .main-content:has(.dashboard-new),

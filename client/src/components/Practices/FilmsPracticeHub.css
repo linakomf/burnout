@@ -629,6 +629,10 @@
   --mw-sky-mid: #c5e8f6;
   --mw-sky-bot: #b0ddf2;
   --mw-green: #cae4bf;
+  --mw-brand-deep: #6a8ad6;
+  --mw-filter-stroke: #d1d5db;
+  --mw-filter-stroke-active: #6a8ad6;
+  --mw-filter-muted: #94a3b8;
   --mw-ink: #1e2428;
   --mw-muted: #5c6770;
   --mw-glass: rgba(255, 255, 255, 0.78);
@@ -971,6 +975,7 @@
   position: relative;
   z-index: 1;
   display: block;
+  padding-left: 58px;
   max-width: 320px;
   font-size: clamp(1.2rem, 2.2vw, 1.55rem);
   line-height: 1.15;
@@ -983,6 +988,7 @@
   z-index: 1;
   display: block;
   margin-top: 12px;
+  padding-left: 58px;
   max-width: 340px;
   font-size: 14px;
   line-height: 1.45;
@@ -1020,7 +1026,7 @@
   height: auto;
   min-height: 54px;
   border-radius: 18px;
-  border: 1px solid #e2e8f0;
+  border: none;
   background: #fff;
   color: #64748b;
   display: grid;
@@ -1067,14 +1073,17 @@
 }
 
 .flix-scope--mindwell .flix-catalog-filter-btn.is-open {
-  background: #eff6ff;
-  border-color: #93c5fd;
-  color: #1d4ed8;
-  box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.35);
+  border: none;
+  background: linear-gradient(180deg, rgba(157, 180, 237, 0.28) 0%, rgba(240, 244, 252, 0.98) 100%);
+  color: #6a8ad6;
+  box-shadow: 0 4px 16px rgba(106, 138, 214, 0.18);
 }
 
 /* Плашки-фильтры под поиском (как на странице событий) */
 .flix-film-filter-toolbar {
+  position: relative;
+  z-index: 90;
+  isolation: isolate;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -1100,12 +1109,12 @@
   max-width: 100%;
   padding: 6px 6px 6px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(26, 26, 26, 0.12);
-  background: #cae4bf;
+  border: none;
+  background: var(--mw-green, #cae4bf);
   font-size: 12px;
   font-weight: 700;
   color: #1a1a1a;
-  box-shadow: 0 2px 8px rgba(26, 26, 26, 0.06);
+  box-shadow: 0 2px 8px rgba(45, 75, 58, 0.1);
 }
 
 .flix-scope--mindwell .flix-film-filter-chip-icon {
@@ -1152,6 +1161,7 @@
 
 .flix-film-filter-pill-wrap {
   position: relative;
+  z-index: 1;
 }
 
 .flix-film-filter-pill {
@@ -1161,31 +1171,34 @@
   padding: 10px 16px;
   max-width: min(100%, 280px);
   border-radius: 999px;
-  border: 1px solid rgba(226, 232, 240, 0.98);
+  border: 1.5px solid var(--mw-filter-stroke, #d1d5db);
   background: #ffffff;
   font-family: inherit;
   font-size: 12px;
   font-weight: 700;
-  color: #153a5c;
+  color: #4a5578;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(90, 130, 170, 0.08);
-  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
+  box-shadow: none;
+  transition:
+    transform 0.15s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
 }
 
 .flix-film-filter-pill:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 22px rgba(90, 130, 170, 0.12);
-  border-color: rgba(56, 142, 220, 0.35);
+  border-color: #b8c0cc;
 }
 
-/* Иконки в стиле плашек «События»: линейные, синие */
 .flix-film-filter-pill > svg:first-of-type {
   flex-shrink: 0;
-  color: #2563eb;
+  color: var(--mw-filter-muted, #94a3b8);
+  transition: color 0.2s ease;
 }
 
 .flix-film-filter-pill.is-active > svg:first-of-type {
-  color: #1d4ed8;
+  color: var(--mw-filter-stroke-active, #6a8ad6);
 }
 
 .flix-film-filter-pill-text {
@@ -1202,9 +1215,9 @@
 
 .flix-film-filter-pill-chevron {
   flex-shrink: 0;
-  color: #2563eb;
-  opacity: 0.88;
-  transition: transform 0.2s ease;
+  color: var(--mw-filter-muted, #94a3b8);
+  opacity: 1;
+  transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .flix-film-filter-pill-chevron.is-open {
@@ -1212,25 +1225,30 @@
 }
 
 .flix-film-filter-pill.is-active {
-  border-color: rgba(37, 99, 235, 0.5);
-  background: linear-gradient(180deg, #eff6ff 0%, #e8f0fe 100%);
-  color: #1d4ed8;
+  border-color: var(--mw-filter-stroke-active, #6a8ad6);
+  background: #ffffff;
+  color: var(--mw-filter-stroke-active, #6a8ad6);
+}
+
+.flix-film-filter-pill.is-active .flix-film-filter-pill-chevron {
+  color: var(--mw-filter-stroke-active, #6a8ad6);
 }
 
 .flix-film-filter-menu {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  z-index: 40;
+  z-index: 140;
   min-width: 220px;
   max-width: min(320px, 92vw);
   margin: 0;
   padding: 8px;
   list-style: none;
   border-radius: 16px;
-  border: 1px solid rgba(226, 232, 240, 0.98);
+  border: none;
   background: #ffffff;
-  box-shadow: 0 16px 40px rgba(25, 80, 130, 0.18);
+  box-shadow: 0 16px 40px rgba(106, 138, 214, 0.16);
+  overflow: hidden;
 }
 
 .flix-film-filter-menu--end {
@@ -1259,18 +1277,18 @@
   font-family: inherit;
   font-size: 13px;
   font-weight: 700;
-  color: #153a5c;
+  color: #4a5578;
   cursor: pointer;
   transition: background 0.12s;
 }
 
 .flix-film-filter-menu-btn:hover {
-  background: rgba(239, 246, 255, 0.95);
+  background: rgba(157, 180, 237, 0.14);
 }
 
 .flix-film-filter-menu-btn.is-selected {
-  background: rgba(219, 234, 254, 0.95);
-  color: #1d4ed8;
+  background: rgba(157, 180, 237, 0.28);
+  color: #6a8ad6;
 }
 
 .flix-scope--mindwell .flix-genre-row {
@@ -1450,20 +1468,27 @@
   font-size: 11px;
 }
 
-.flix-scope--mindwell .flix-psych-tag {
-  margin-top: 10px;
-  margin-left: 4px;
-  padding: 5px 12px;
+.flix-scope--mindwell .flix-film-card__poster-wrap .flix-psych-tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  padding: 6px 12px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  line-height: 1.2;
   color: rgba(30, 36, 40, 0.85);
-  background: rgba(202, 228, 191, 0.42);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  box-shadow: 0 2px 8px rgba(80, 120, 90, 0.06);
+  background: rgba(202, 228, 191, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow: 0 2px 10px rgba(45, 75, 58, 0.14);
   backdrop-filter: blur(6px);
-  align-self: flex-start;
+  -webkit-backdrop-filter: blur(6px);
+  max-width: min(58%, calc(100% - 56px));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
 }
 
 .flix-scope--mindwell .flix-catalog-empty {
@@ -1775,19 +1800,26 @@
 }
 
 .films-collection-film-card__tag {
-  margin-top: 10px;
-  margin-left: 4px;
-  padding: 5px 12px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  padding: 6px 12px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  line-height: 1.2;
   color: rgba(30, 36, 40, 0.85);
-  background: rgba(202, 228, 191, 0.42);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  box-shadow: 0 2px 8px rgba(80, 120, 90, 0.06);
+  background: rgba(202, 228, 191, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow: 0 2px 10px rgba(45, 75, 58, 0.14);
   backdrop-filter: blur(6px);
-  align-self: flex-start;
+  -webkit-backdrop-filter: blur(6px);
+  max-width: min(58%, calc(100% - 56px));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
 }
 
 [data-theme='dark'] .films-collection-film-card__title {

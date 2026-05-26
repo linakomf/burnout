@@ -10,6 +10,9 @@ import {
   FILMS_FILTER_MOOD_OPTIONS,
   FILMS_FILTER_TYPE_OPTIONS,
 } from '../Practices/filmsHubFilters';
+import AdminAudienceFields from './AdminAudienceFields';
+import AdminModalPortal from './AdminModalPortal';
+import { emptyAudienceFields } from './audienceTargeting';
 import './Admin.css';
 
 const emptyTags = () => ({
@@ -85,11 +88,21 @@ const initialForm = () => ({
   posterFile: null,
   galleryFiles: [],
   galleryKeepUrls: [],
+  ...emptyAudienceFields(),
+});
+
+const initialCollectionForm = () => ({
+  title: '',
+  description: '',
+  filmIds: [],
+  coverFile: null,
+  sort_order: '0',
 });
 
 export default function AdminFilms({ embedded = false }) {
   const { t } = useLanguage();
   const [films, setFilms] = useState([]);
+  const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -97,18 +110,32 @@ export default function AdminFilms({ embedded = false }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [hubError, setHubError] = useState('');
   const [posterBlobUrl, setPosterBlobUrl] = useState('');
+  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const [collectionEditSlug, setCollectionEditSlug] = useState(null);
+  const [collectionForm, setCollectionForm] = useState(initialCollectionForm);
+  const [collectionSaving, setCollectionSaving] = useState(false);
+  const [collectionCoverBlob, setCollectionCoverBlob] = useState('');
   const errorBannerRef = useRef(null);
   const posterInputKeyRef = useRef(0);
+  const collectionFileKeyRef = useRef(0);
 
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     try {
-      const { data } = await api.get('/films');
-      setFilms(data.films || []);
+      const [filmsRes, collectionsRes] = await Promise.all([
+        api.get('/films'),
+        api.get('/films/collections'),
+      ]);
+      setFilms(filmsRes.data?.films || []);
+      setCollections(collectionsRes.data?.collections || []);
       return true;
     } catch (e) {
-      if (!silent) setFilms([]);
+      if (!silent) {
+        setFilms([]);
+        setCollections([]);
+      }
       return false;
     } finally {
       if (!silent) setLoading(false);
@@ -129,6 +156,16 @@ export default function AdminFilms({ embedded = false }) {
     return () => URL.revokeObjectURL(u);
   }, [form.posterFile]);
 
+  useEffect(() => {
+    if (!collectionForm.coverFile) {
+      setCollectionCoverBlob('');
+      return undefined;
+    }
+    const u = URL.createObjectURL(collectionForm.coverFile);
+    setCollectionCoverBlob(u);
+    return () => URL.revokeObjectURL(u);
+  }, [collectionForm.coverFile]);
+
   const posterPreview = useMemo(() => {
     if (posterBlobUrl) return posterBlobUrl;
     if (editingId) {
@@ -137,6 +174,15 @@ export default function AdminFilms({ embedded = false }) {
     }
     return '';
   }, [posterBlobUrl, editingId, films]);
+
+  const collectionCoverPreview = useMemo(() => {
+    if (collectionCoverBlob) return collectionCoverBlob;
+    if (collectionEditSlug) {
+      const collection = collections.find((item) => item.slug === collectionEditSlug);
+      if (collection?.image) return backendPublicUrl(collection.image);
+    }
+    return '';
+  }, [collectionCoverBlob, collectionEditSlug, collections]);
 
   const closeModal = () => {
     setModalOpen(false);
@@ -186,10 +232,53 @@ export default function AdminFilms({ embedded = false }) {
       posterFile: null,
       galleryFiles: [],
       galleryKeepUrls: [...(film.gallery || [])],
+      target_role: film.target_role || 'all',
+      target_gender: film.target_gender || 'all',
     });
     setError('');
     setSuccess('');
     setModalOpen(true);
+  };
+
+  const closeCollectionModal = () => {
+    setCollectionModalOpen(false);
+    setCollectionEditSlug(null);
+    setCollectionForm(initialCollectionForm());
+    setHubError('');
+    collectionFileKeyRef.current += 1;
+  };
+
+  const openCreateCollection = () => {
+    setCollectionEditSlug(null);
+    setCollectionForm({
+      ...initialCollectionForm(),
+      sort_order: String(collections.length),
+    });
+    setHubError('');
+    setCollectionModalOpen(true);
+  };
+
+  const openEditCollection = (collection) => {
+    setCollectionEditSlug(collection.slug);
+    setCollectionForm({
+      title: collection.title || '',
+      description: collection.description || '',
+      filmIds: [...(collection.filmIds || [])],
+      coverFile: null,
+      sort_order: String(collection.sort_order ?? 0),
+    });
+    setHubError('');
+    setCollectionModalOpen(true);
+  };
+
+  const toggleCollectionFilm = (filmId) => {
+    setCollectionForm((prev) => {
+      const has = prev.filmIds.includes(filmId);
+      return {
+        ...prev,
+        filmIds: has ? prev.filmIds.filter((id) => id !== filmId) : [...prev.filmIds, filmId],
+      };
+    });
   };
 
   const toggleTag = (dimension, id) => {
@@ -241,6 +330,8 @@ export default function AdminFilms({ embedded = false }) {
       fd.append('screenwriter', form.screenwriter.trim());
       fd.append('country', form.country.trim());
       fd.append('quote', form.quote.trim());
+      fd.append('target_role', form.target_role || 'all');
+      fd.append('target_gender', form.target_gender || 'all');
 
       if (!editingId) {
         if (!form.posterFile) {
@@ -286,6 +377,60 @@ export default function AdminFilms({ embedded = false }) {
     }
   };
 
+  const saveCollectionModal = async () => {
+    const title = collectionForm.title.trim();
+    const description = collectionForm.description.trim();
+    if (!title) {
+      setHubError('Укажите название подборки.');
+      return;
+    }
+    if (!collectionEditSlug && !collectionForm.coverFile) {
+      setHubError('Загрузите изображение подборки.');
+      return;
+    }
+    if (collectionForm.filmIds.length === 0) {
+      setHubError('Выберите хотя бы один фильм для подборки.');
+      return;
+    }
+
+    setCollectionSaving(true);
+    setHubError('');
+    try {
+      const fd = new FormData();
+      fd.append('title', title);
+      fd.append('description', description);
+      fd.append('sort_order', collectionForm.sort_order || '0');
+      fd.append('film_ids', JSON.stringify(collectionForm.filmIds));
+      if (collectionForm.coverFile) fd.append('cover', collectionForm.coverFile);
+
+      if (collectionEditSlug) {
+        await api.patch(`/films/collections/${collectionEditSlug}`, fd);
+      } else {
+        await api.post('/films/collections', fd);
+      }
+
+      closeCollectionModal();
+      await load({ silent: true });
+      setSuccess(collectionEditSlug ? 'Подборка обновлена.' : 'Подборка создана.');
+      setTimeout(() => setSuccess(''), 4000);
+    } catch (e) {
+      setHubError(extractApiError(e));
+    } finally {
+      setCollectionSaving(false);
+    }
+  };
+
+  const deleteCollection = async (slug) => {
+    if (!window.confirm('Удалить эту подборку?')) return;
+    setHubError('');
+    try {
+      await api.delete(`/films/collections/${slug}`);
+      await load({ silent: true });
+    } catch (e) {
+      setHubError(extractApiError(e));
+    }
+  };
+
   const handleDelete = async (filmKey) => {
     if (!window.confirm('Удалить этот фильм? Изображения будут удалены с сервера.')) return;
     try {
@@ -312,10 +457,16 @@ export default function AdminFilms({ embedded = false }) {
             <code>film-…</code> используется в ссылке на карточку.
           </p>
         </div>
-        <button type="button" className="btn btn-primary" onClick={openCreate}>
-          <Plus size={16} style={{ verticalAlign: '-2px', marginRight: 6 }} />
-          Добавить фильм
-        </button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button type="button" className="btn btn-secondary" onClick={openCreateCollection}>
+            <Plus size={16} style={{ verticalAlign: '-2px', marginRight: 6 }} />
+            Создать подборку
+          </button>
+          <button type="button" className="btn btn-primary" onClick={openCreate}>
+            <Plus size={16} style={{ verticalAlign: '-2px', marginRight: 6 }} />
+            Добавить фильм
+          </button>
+        </div>
       </div>
 
       {success ? (
@@ -323,6 +474,59 @@ export default function AdminFilms({ embedded = false }) {
           {success}
         </div>
       ) : null}
+      {hubError ? <div className="admin-error-banner" style={{ marginTop: 12 }}>{hubError}</div> : null}
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <h3 className="admin-space-section-title" style={{ marginBottom: 8 }}>
+          Подборки страницы «Фильмы»
+        </h3>
+        <p className="admin-film-filters-intro" style={{ marginTop: 0 }}>
+          Для карточки подборки достаточно добавить название, описание, изображение и отметить фильмы из списка ниже.
+        </p>
+
+        {collections.length === 0 ? (
+          <p style={{ marginTop: 16, color: '#64748b' }}>Подборок пока нет — нажмите «Создать подборку».</p>
+        ) : (
+          <table className="admin-table" style={{ marginTop: 16 }}>
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Описание</th>
+                <th>Фильмов</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {collections.map((collection) => (
+                <tr key={collection.slug}>
+                  <td>
+                    <strong>{collection.title}</strong>
+                  </td>
+                  <td>{collection.description || '—'}</td>
+                  <td>{collection.filmIds?.length ?? 0}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      style={{ marginRight: 8 }}
+                      onClick={() => openEditCollection(collection)}
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={() => deleteCollection(collection.slug)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
 
       <div className="card" style={{ marginTop: 16 }}>
         <table className="admin-table">
@@ -362,8 +566,141 @@ export default function AdminFilms({ embedded = false }) {
         </table>
       </div>
 
+      {collectionModalOpen ? (
+        <AdminModalPortal>
+          <div
+            className="modal-overlay admin-modal-overlay"
+            role="presentation"
+            onMouseDown={(e) => e.target === e.currentTarget && closeCollectionModal()}
+          >
+            <div
+              className="modal-card admin-test-modal admin-film-modal fade-in"
+              role="dialog"
+              aria-modal="true"
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <h2>{collectionEditSlug ? 'Редактировать подборку' : 'Новая подборка'}</h2>
+                <button type="button" className="modal-close" onClick={closeCollectionModal} aria-label="Закрыть">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form
+                className="admin-film-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  saveCollectionModal();
+                }}
+              >
+                {hubError ? <div className="admin-error-banner">{hubError}</div> : null}
+
+                <label className="admin-field">
+                  <span>Название подборки *</span>
+                  <input
+                    value={collectionForm.title}
+                    onChange={(e) => setCollectionForm({ ...collectionForm, title: e.target.value })}
+                    placeholder="Например: Мягкий вечер"
+                  />
+                </label>
+
+                <label className="admin-field">
+                  <span>Описание подборки</span>
+                  <textarea
+                    rows={4}
+                    value={collectionForm.description}
+                    onChange={(e) => setCollectionForm({ ...collectionForm, description: e.target.value })}
+                    placeholder="Коротко опишите настроение и смысл подборки"
+                  />
+                </label>
+
+                <label className="admin-field">
+                  <span>Изображение карточки{collectionEditSlug ? '' : ' *'}</span>
+                  <input
+                    key={`film-collection-cover-${collectionFileKeyRef.current}`}
+                    type="file"
+                    accept="image/*"
+                    required={!collectionEditSlug}
+                    onChange={(e) =>
+                      setCollectionForm({ ...collectionForm, coverFile: e.target.files?.[0] || null })
+                    }
+                  />
+                  {collectionCoverPreview ? (
+                    <img src={collectionCoverPreview} alt="" className="admin-film-poster-preview" />
+                  ) : null}
+                </label>
+
+                <div className="admin-film-tag-group">
+                  <div className="admin-film-tag-label">
+                    Фильмы в подборке ({collectionForm.filmIds.length})
+                  </div>
+                  {films.length === 0 ? (
+                    <p className="admin-film-filters-intro">Сначала добавьте фильмы в каталог ниже.</p>
+                  ) : (
+                    <div
+                      style={{
+                        maxHeight: 300,
+                        overflowY: 'auto',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 12,
+                        padding: 8,
+                      }}
+                    >
+                      {films.map((film) => {
+                        const checked = collectionForm.filmIds.includes(film.id);
+                        return (
+                          <label
+                            key={film.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 10,
+                              padding: '8px 10px',
+                              borderRadius: 10,
+                              background: checked ? 'rgba(106, 138, 214, 0.12)' : 'transparent',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleCollectionFilm(film.id)}
+                            />
+                            <span style={{ flex: 1, minWidth: 0 }}>
+                              <strong style={{ display: 'block', fontSize: 14 }}>{film.title}</strong>
+                              <span style={{ fontSize: 12, color: '#64748b' }}>
+                                {film.year || 'Без года'} · {film.categoryId || '—'}
+                              </span>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="modal-actions" style={{ marginTop: 20 }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={closeCollectionModal}
+                    disabled={collectionSaving}
+                  >
+                    Отмена
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={collectionSaving}>
+                    {collectionSaving ? 'Сохранение…' : 'Сохранить'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </AdminModalPortal>
+      ) : null}
+
       {modalOpen ? (
-        <div className="modal-overlay" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && closeModal()}>
+        <AdminModalPortal>
+        <div className="modal-overlay admin-modal-overlay" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && closeModal()}>
           <div
             className="modal-card admin-test-modal admin-film-modal fade-in"
             role="dialog"
@@ -558,6 +895,11 @@ export default function AdminFilms({ embedded = false }) {
                 t={t}
               />
 
+              <AdminAudienceFields
+                value={{ target_role: form.target_role, target_gender: form.target_gender }}
+                onChange={(aud) => setForm((prev) => ({ ...prev, ...aud }))}
+              />
+
               <div className="modal-actions" style={{ marginTop: 24 }}>
                 <button type="button" className="btn btn-secondary" onClick={closeModal} disabled={saving}>
                   Отмена
@@ -569,6 +911,7 @@ export default function AdminFilms({ embedded = false }) {
             </form>
           </div>
         </div>
+        </AdminModalPortal>
       ) : null}
     </div>
   );

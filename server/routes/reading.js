@@ -2,7 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const pool = require('../db');
-const { authMiddleware, adminOnly } = require('../middleware/auth');
+const { authMiddleware, adminOnly, optionalAuthMiddleware } = require('../middleware/auth');
+const { pickTargetRole, pickTargetGender, appendAudienceFilter } = require('../utils/audienceTargeting');
 const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { pickCategory, pickKind } = require('../utils/readingCategories');
 const { unlinkReadingCover } = require('../utils/readingUploadCleanup');
@@ -71,6 +72,8 @@ function rowToPublic(row) {
     coverImage: row.cover_url || '',
     descriptionShort: row.description_short || '',
     isRemoteReading: true,
+    target_role: row.target_role || 'all',
+    target_gender: row.target_gender || 'all',
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -121,15 +124,23 @@ function readBody(body, files, existing) {
     body_full: kind === 'article' ? body_full : '',
     read_url: kind === 'book' ? read_url : read_url || existing?.read_url || '',
     cover_url: files?.cover ? `/uploads/${files.cover.filename}` : undefined,
+    target_role: Object.prototype.hasOwnProperty.call(body, 'target_role')
+      ? pickTargetRole(body.target_role)
+      : existing?.target_role || 'all',
+    target_gender: Object.prototype.hasOwnProperty.call(body, 'target_gender')
+      ? pickTargetGender(body.target_gender)
+      : existing?.target_gender || 'all',
   };
 }
 
-router.get('/', async (_req, res) => {
+router.get('/', optionalAuthMiddleware, async (req, res) => {
   try {
+    const aud = appendAudienceFilter(req.user, '', 1);
     const r = await pool.query(
       `SELECT reading_id, kind, title, category, cover_url, description_short, body_full, read_url,
-              created_at, updated_at
-       FROM reading_items ORDER BY reading_id ASC`
+              target_role, target_gender, created_at, updated_at
+       FROM reading_items WHERE 1=1${aud.sql} ORDER BY reading_id ASC`,
+      aud.params
     );
     const items = r.rows.map(rowToPublic);
     res.json({
@@ -142,15 +153,16 @@ router.get('/', async (_req, res) => {
   }
 });
 
-router.get('/:readingKey', async (req, res) => {
+router.get('/:readingKey', optionalAuthMiddleware, async (req, res) => {
   try {
     const parsed = parseReadingPublicId(req.params.readingKey);
     if (!parsed) return res.status(404).json({ message: 'Материал не найден' });
+    const aud = appendAudienceFilter(req.user, '', 3);
     const r = await pool.query(
       `SELECT reading_id, kind, title, category, cover_url, description_short, body_full, read_url,
-              created_at, updated_at
-       FROM reading_items WHERE reading_id=$1 AND kind=$2`,
-      [parsed.id, parsed.kind]
+              target_role, target_gender, created_at, updated_at
+       FROM reading_items WHERE reading_id=$1 AND kind=$2${aud.sql}`,
+      [parsed.id, parsed.kind, ...aud.params]
     );
     if (r.rows.length === 0) return res.status(404).json({ message: 'Материал не найден' });
     res.json(rowToPublic(r.rows[0]));
@@ -171,10 +183,10 @@ router.post('/', authMiddleware, adminOnly, withCoverUpload, async (req, res) =>
     if (parsed.error) return res.status(400).json({ message: parsed.error });
 
     const ins = await pool.query(
-      `INSERT INTO reading_items (kind, title, category, cover_url, description_short, body_full, read_url)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)
+      `INSERT INTO reading_items (kind, title, category, cover_url, description_short, body_full, read_url, target_role, target_gender)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING reading_id, kind, title, category, cover_url, description_short, body_full, read_url,
-                 created_at, updated_at`,
+                 target_role, target_gender, created_at, updated_at`,
       [
         parsed.kind,
         title,
@@ -183,6 +195,8 @@ router.post('/', authMiddleware, adminOnly, withCoverUpload, async (req, res) =>
         parsed.description_short,
         parsed.body_full,
         parsed.read_url,
+        parsed.target_role,
+        parsed.target_gender,
       ]
     );
 
@@ -225,6 +239,12 @@ router.patch('/:readingKey', authMiddleware, adminOnly, withCoverUpload, async (
       safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
       patch.cover_url = parsed.cover_url;
     }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'target_role')) {
+      patch.target_role = parsed.target_role;
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'target_gender')) {
+      patch.target_gender = parsed.target_gender;
+    }
 
     const keys = Object.keys(patch);
     if (keys.length === 0) {
@@ -239,7 +259,7 @@ router.patch('/:readingKey', authMiddleware, adminOnly, withCoverUpload, async (
       `UPDATE reading_items SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP
        WHERE reading_id=$${keys.length + 1}
        RETURNING reading_id, kind, title, category, cover_url, description_short, body_full, read_url,
-                 created_at, updated_at`,
+                 target_role, target_gender, created_at, updated_at`,
       vals
     );
 

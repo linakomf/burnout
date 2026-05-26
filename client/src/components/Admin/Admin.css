@@ -89,12 +89,50 @@
 .question-builder label { margin-bottom: 8px; }
 .options-builder { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-.admin-test-modal { max-width: 600px; max-height: 85vh; overflow-y: auto; }
+.admin-test-modal {
+  max-width: 600px;
+  max-height: min(90vh, calc(100dvh - 32px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+  isolation: isolate;
+}
 
 .admin-film-modal {
   max-width: 920px;
-  width: calc(100vw - 32px);
-  max-height: 90vh;
+  width: min(920px, calc(100vw - 32px));
+  max-height: min(92vh, calc(100dvh - 32px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+  isolation: isolate;
+}
+
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  min-height: 100dvh;
+}
+
+.admin-space-unified.fade-in,
+.admin-section.fade-in {
+  animation: fadeInOpacity 0.35s ease forwards;
+}
+
+.admin-modal-overlay .modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: -30px -30px 12px;
+  padding: 24px 30px 10px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 10px 24px rgba(255, 255, 255, 0.96);
+}
+
+[data-theme='dark'] .admin-modal-overlay .modal-header {
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--bg-card) 94%, #000000);
 }
 
 .admin-field {
@@ -465,4 +503,31 @@
   font-weight: 700;
   margin: 0 0 6px;
   color: var(--text-dark);
+}
+
+.admin-audience-fields {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.admin-audience-intro {
+  margin-bottom: 4px;
+}
+
+.admin-audience-hint {
+  font-size: 0.8125rem;
+  color: var(--text-light, #64748b);
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.admin-audience-group {
+  margin-top: 12px;
+}
+
+.admin-audience-cell {
+  font-size: 0.8125rem;
+  color: var(--text-light, #64748b);
+  white-space: nowrap;
 }

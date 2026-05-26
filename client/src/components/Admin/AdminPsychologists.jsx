@@ -7,6 +7,7 @@ import {
   ROLE_LABELS,
   contactHref
 } from '../Psychologist/psychConstants';
+import AdminModalPortal from './AdminModalPortal';
 import './Admin.css';
 import '../Psychologist/Psychologist.css';
 
@@ -251,7 +252,8 @@ export default function AdminPsychologists() {
       ) : null}
 
       {inviteOpen ? (
-        <div className="modal-overlay" onClick={() => setInviteOpen(false)}>
+        <AdminModalPortal>
+        <div className="modal-overlay admin-modal-overlay" onClick={() => setInviteOpen(false)}>
           <div className="modal-card fade-in" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Пригласить психолога</h2>
@@ -305,6 +307,7 @@ export default function AdminPsychologists() {
             </form>
           </div>
         </div>
+        </AdminModalPortal>
       ) : null}
     </div>
   );

@@ -19,8 +19,6 @@ import { useLanguage } from '../../context/LanguageContext';
 import api from '../../utils/api';
 import { backendPublicUrl } from '../../utils/assetUrl';
 import filmsCatalogHeroPhoto from '../../assets/films-catalog-hero-clouds.png';
-import { spaceNature } from './spaceNatureImagery';
-import { FILMS } from './filmsCatalogData';
 import {
   FILMS_FILTER_ATMOS_OPTIONS,
   FILMS_FILTER_GENRE_OPTIONS,
@@ -42,6 +40,14 @@ function normalizeRemoteFilm(f) {
     ...f,
     poster: backendPublicUrl(f.poster),
     gallery: Array.isArray(f.gallery) ? f.gallery.map(backendPublicUrl) : [],
+  };
+}
+
+function normalizeRemoteCollection(collection) {
+  return {
+    ...collection,
+    image: backendPublicUrl(collection.image),
+    filmIds: Array.isArray(collection.filmIds) ? collection.filmIds : [],
   };
 }
 
@@ -100,27 +106,27 @@ function FilmsPracticeHub({ embedded = false }) {
   const [filtTypes, setFiltTypes] = useState([]);
   const [filtAtmospheres, setFiltAtmospheres] = useState([]);
   const [remoteFilms, setRemoteFilms] = useState([]);
+  const [remoteCollections, setRemoteCollections] = useState([]);
   const [favorites, setFavorites] = useState(() => loadSectionFavorites(FAVORITES_KEYS.films));
 
   const closeFilters = useCallback(() => setOpenFilterKey(null), []);
 
   useEffect(() => {
     let cancelled = false;
-    api
-      .get('/films')
-      .then((r) => {
-        const rows = r.data?.films || [];
-        if (!cancelled) setRemoteFilms(rows.map(normalizeRemoteFilm));
-      })
-      .catch(() => {
-        if (!cancelled) setRemoteFilms([]);
-      });
+    Promise.all([
+      api.get('/films').catch(() => ({ data: { films: [] } })),
+      api.get('/films/collections').catch(() => ({ data: { collections: [] } })),
+    ]).then(([filmsRes, collectionsRes]) => {
+      if (cancelled) return;
+      setRemoteFilms((filmsRes.data?.films || []).map(normalizeRemoteFilm));
+      setRemoteCollections((collectionsRes.data?.collections || []).map(normalizeRemoteCollection));
+    });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const catalogFilms = useMemo(() => [...FILMS, ...remoteFilms], [remoteFilms]);
+  const catalogFilms = useMemo(() => remoteFilms, [remoteFilms]);
 
   useEffect(() => {
     saveSectionFavorites(FAVORITES_KEYS.films, favorites);
@@ -229,24 +235,23 @@ function FilmsPracticeHub({ embedded = false }) {
     filtTypes.length > 0 ||
     filtAtmospheres.length > 0;
 
-  const heroBanners = [
-    {
-      id: 'banner-1',
-      filmId: 'f3',
-      image: spaceNature.filmBannerEvening,
-      badge: 'rest',
-      titleKey: 'filmsBannerSoftEveningTitle',
-      subtitleKey: 'filmsBannerSoftEveningSub',
-    },
-    {
-      id: 'banner-2',
-      filmId: 'f2',
-      image: spaceNature.filmBannerRestore,
-      badge: 'energy',
-      titleKey: 'filmsBannerRestoreTitle',
-      subtitleKey: 'filmsBannerRestoreSub',
-    },
-  ];
+  const heroBanners = useMemo(() => {
+    const accessibleRemote = remoteCollections
+      .map((collection, index) => ({
+        ...collection,
+        badge: index % 2 === 0 ? 'rest' : 'energy',
+        filmIds: (collection.filmIds || []).filter((filmId) => catalogFilms.some((film) => film.id === filmId)),
+      }))
+      .filter((collection) => collection.filmIds.length > 0 && collection.image);
+
+    return accessibleRemote.map((collection) => ({
+      id: collection.slug,
+      image: collection.image,
+      badge: collection.badge,
+      title: collection.title,
+      subtitle: collection.description,
+    }));
+  }, [catalogFilms, remoteCollections]);
 
   return (
     <section className={`flix-scope flix-scope--catalog flix-scope--mindwell fade-in${embedded ? ' flix-scope--embedded' : ''}`}>
@@ -294,8 +299,6 @@ function FilmsPracticeHub({ embedded = false }) {
 
           <div className="flix-catalog-banners" aria-label={t('pages.filmsCatalogBannersAria')}>
             {heroBanners.map((banner) => {
-              const film = FILMS.find((item) => item.id === banner.filmId);
-              if (!film) return null;
               const BadgeIco = banner.badge === 'rest' ? Ban : Sparkles;
               return (
                 <button
@@ -309,8 +312,8 @@ function FilmsPracticeHub({ embedded = false }) {
                   <span className="flix-catalog-banner__badge" aria-hidden>
                     <BadgeIco size={18} strokeWidth={2.2} />
                   </span>
-                  <span className="flix-catalog-banner__title">{t(`pages.${banner.titleKey}`)}</span>
-                  <span className="flix-catalog-banner__subtitle">{t(`pages.${banner.subtitleKey}`)}</span>
+                  <span className="flix-catalog-banner__title">{banner.title}</span>
+                  <span className="flix-catalog-banner__subtitle">{banner.subtitle}</span>
                   <span className="flix-catalog-banner__arrow" aria-hidden>
                     <ArrowRight size={20} strokeWidth={2.2} />
                   </span>
@@ -560,6 +563,7 @@ function FilmsPracticeHub({ embedded = false }) {
                       onToggle={() => toggleFilmFavorite(film.id)}
                       ariaLabel={t('pages.meditationModalFavorite')}
                     />
+                    <span className="flix-psych-tag">{t(`pages.filmPsych_${film.psychTag}`)}</span>
                   </div>
                   <h3 className="flix-film-card__title">{film.title}</h3>
                   <div className="flix-film-card__meta">
@@ -569,7 +573,6 @@ function FilmsPracticeHub({ embedded = false }) {
                     {(film.rating && String(film.rating).trim()) || '—'} ·{' '}
                     {(film.year && String(film.year).trim()) || '—'}
                   </div>
-                  <span className="flix-psych-tag">{t(`pages.filmPsych_${film.psychTag}`)}</span>
                 </button>
               ))}
             </div>

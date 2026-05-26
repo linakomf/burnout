@@ -18,6 +18,7 @@ const { ensureEventsSchema } = require('./ensureEventsSchema');
 const { ensureReadingSchema } = require('./ensureReadingSchema');
 const { ensureMusicSchema } = require('./ensureMusicSchema');
 const { ensurePodcastsSchema } = require('./ensurePodcastsSchema');
+const { ensureAudienceSchema } = require('./ensureAudienceSchema');
 
 if (!process.env.JWT_SECRET?.trim()) {
   const strictProd = process.env.NODE_ENV === 'production' && !process.env.VERCEL;
@@ -140,6 +141,7 @@ async function bootstrap() {
   await ensureReadingSchema();
   await ensureMusicSchema();
   await ensurePodcastsSchema();
+  await ensureAudienceSchema();
 }
 
 let bootstrapPromise = null;

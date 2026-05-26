@@ -2,21 +2,24 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
+const { pickTargetRole, pickTargetGender, appendTestAudienceFilter } = require('../utils/audienceTargeting');
 const { computeTestResult } = require('../scoring');
 const { applyCanonicalToTestRow, applyCanonicalToTestRows } = require('../testCanonical');
 
 router.get('/', authMiddleware, async (req, res) => {
-  const role = req.user.role;
   try {
+    const isAdmin = req.user.role === 'admin';
+    const aud = isAdmin
+      ? { sql: '', params: [], nextIndex: 1 }
+      : appendTestAudienceFilter(req.user, 't', 'c', 1);
     const result = await pool.query(
-      `SELECT t.*, c.name as category_name, c.target_role,
+      `SELECT t.*, c.name as category_name, c.target_role, c.target_gender,
        (SELECT COUNT(*)::int FROM questions q WHERE q.test_id = t.test_id) AS question_count
        FROM tests t 
        LEFT JOIN categories c ON t.category_id = c.category_id
-       WHERE t.test_id <> 1
-         AND (c.target_role = 'all' OR c.target_role = $1)
+       WHERE t.test_id <> 1${aud.sql}
        ORDER BY t.created_at DESC`,
-      [role]
+      aud.params
     );
     res.json(applyCanonicalToTestRows(result.rows));
   } catch (err) {
@@ -142,7 +145,7 @@ function normalizeQuestionPayload(q) {
 }
 
 router.post('/', authMiddleware, adminOnly, async (req, res) => {
-  const { title, description, category_id, questions, scoring_type } = req.body;
+  const { title, description, category_id, questions, scoring_type, target_role, target_gender } = req.body;
   const catId = normalizeCategoryId(category_id);
   const scoring = typeof scoring_type === 'string' && scoring_type.trim() ? scoring_type.trim() : 'likert_sum';
 
@@ -157,8 +160,15 @@ router.post('/', authMiddleware, adminOnly, async (req, res) => {
   try {
     await client.query('BEGIN');
     const testResult = await client.query(
-      'INSERT INTO tests (title, description, category_id, scoring_type) VALUES ($1,$2,$3,$4) RETURNING *',
-      [String(title).trim(), description != null ? String(description).trim() : '', catId, scoring]
+      'INSERT INTO tests (title, description, category_id, scoring_type, target_role, target_gender) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
+      [
+        String(title).trim(),
+        description != null ? String(description).trim() : '',
+        catId,
+        scoring,
+        pickTargetRole(target_role),
+        pickTargetGender(target_gender),
+      ]
     );
     const testId = testResult.rows[0].test_id;
 
@@ -200,7 +210,7 @@ router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
     return res.status(400).json({ message: 'Некорректный id теста' });
   }
 
-  const { title, description, category_id, questions, scoring_type } = req.body;
+  const { title, description, category_id, questions, scoring_type, target_role, target_gender } = req.body;
   const catId = normalizeCategoryId(category_id);
 
   if (!title || !String(title).trim()) {
@@ -224,8 +234,16 @@ router.put('/:id', authMiddleware, adminOnly, async (req, res) => {
     }
 
     await client.query(
-      'UPDATE tests SET title=$1, description=$2, category_id=$3, scoring_type=$4 WHERE test_id=$5',
-      [String(title).trim(), description != null ? String(description).trim() : '', catId, scoring, testId]
+      'UPDATE tests SET title=$1, description=$2, category_id=$3, scoring_type=$4, target_role=$5, target_gender=$6 WHERE test_id=$7',
+      [
+        String(title).trim(),
+        description != null ? String(description).trim() : '',
+        catId,
+        scoring,
+        pickTargetRole(target_role),
+        pickTargetGender(target_gender),
+        testId,
+      ]
     );
 
     if (Array.isArray(questions)) {

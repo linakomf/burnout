@@ -161,8 +161,13 @@ const Dashboard = () => {
     contact: '',
     message: ''
   });
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+  const [notificationsError, setNotificationsError] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [checkinVersion, setCheckinVersion] = useState(0);
   const heroBgVideoRef = useRef(null);
+  const notifWrapRef = useRef(null);
   const [checkinForm, setCheckinForm] = useState({
     moodIndex: 2,
     energy: 5,
@@ -220,12 +225,61 @@ const Dashboard = () => {
   }, [heroBannerVideoSrc]);
 
   useEffect(() => {
+    let cancelled = false;
+    setNotificationsLoading(true);
+    setNotificationsError(false);
+
+    api
+      .get('/users/notifications', { params: { limit: 20 } })
+      .then(({ data }) => {
+        if (cancelled) return;
+        setNotifications(Array.isArray(data?.rows) ? data.rows : []);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setNotifications([]);
+          setNotificationsError(true);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setNotificationsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.user_id]);
+
+  useEffect(() => {
     if (loading) return;
     try {
       if (!localStorage.getItem(ONBOARD_KEY)) setShowOnboarding(true);
     } catch {
     }
   }, [loading]);
+
+  useEffect(() => {
+    if (!notifOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (!notifWrapRef.current?.contains(event.target)) {
+        setNotifOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setNotifOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [notifOpen]);
 
   const dismissOnboarding = (goTests) => {
     try {
@@ -293,6 +347,42 @@ const Dashboard = () => {
     if (h < 18) return t('dash.greeting.day');
     return t('dash.greeting.evening');
   }, [t]);
+
+  const unreadNotificationsCount = useMemo(
+    () => notifications.reduce((sum, item) => sum + (item.is_read ? 0 : 1), 0),
+    [notifications]
+  );
+
+  const formatNotificationDate = (createdAt) => {
+    const value = new Date(createdAt);
+    if (Number.isNaN(value.getTime())) return '';
+    if (lang === 'en') return format(value, 'MMM d, HH:mm', { locale: enUS });
+    return format(value, 'd MMMM, HH:mm', { locale: ru });
+  };
+
+  const toggleNotifications = async () => {
+    const nextOpen = !notifOpen;
+    setNotifOpen(nextOpen);
+    if (!nextOpen || unreadNotificationsCount === 0) return;
+
+    setNotifications((current) =>
+      current.map((item) =>
+        item.is_read ?
+        item :
+        {
+          ...item,
+          is_read: true,
+          read_at: item.read_at || new Date().toISOString()
+        }
+      )
+    );
+
+    try {
+      await api.patch('/users/notifications/read-all');
+    } catch {
+      /* keep the visible list even if mark-as-read sync fails */
+    }
+  };
 
   const adviceCards = useMemo(
     () =>
@@ -437,9 +527,65 @@ const Dashboard = () => {
             🌿
           </span>
         </h1>
-        <button type="button" className="notif-btn" aria-label={t('dash.notif')}>
-          <Bell size={20} />
-        </button>
+        <div className="dash-header-actions" ref={notifWrapRef}>
+          <button
+            type="button"
+            className={`notif-btn ${notifOpen ? 'notif-btn--open' : ''}`}
+            aria-label={t('dash.notif')}
+            aria-expanded={notifOpen}
+            onClick={toggleNotifications}
+          >
+            <Bell size={20} />
+            {unreadNotificationsCount > 0 ? <span className="notif-btn-dot" aria-hidden /> : null}
+          </button>
+
+          {notifOpen ? (
+            <div className="dash-notif-popover" role="dialog" aria-label={t('dash.notifications.title')}>
+              <div className="dash-notif-popover__head">
+                <div>
+                  <div className="dash-notif-popover__title">{t('dash.notifications.title')}</div>
+                  <div className="dash-notif-popover__sub">
+                    {unreadNotificationsCount > 0 ?
+                      t('dash.notifications.unread', { n: unreadNotificationsCount }) :
+                      t('dash.notifications.allRead')}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="dash-notif-popover__close"
+                  onClick={() => setNotifOpen(false)}
+                  aria-label={t('dash.close')}
+                >
+                  <X size={16} strokeWidth={2.2} />
+                </button>
+              </div>
+
+              {notificationsLoading ? (
+                <div className="dash-notif-state">{t('dash.notifications.loading')}</div>
+              ) : notificationsError ? (
+                <div className="dash-notif-state">{t('dash.notifications.loadError')}</div>
+              ) : notifications.length === 0 ? (
+                <div className="dash-notif-state">{t('dash.notifications.empty')}</div>
+              ) : (
+                <div className="dash-notif-list">
+                  {notifications.map((item) => (
+                    <article
+                      key={item.notification_id}
+                      className={`dash-notif-card ${item.is_read ? '' : 'dash-notif-card--unread'}`}
+                    >
+                      <div className="dash-notif-card__row">
+                        <h3 className="dash-notif-card__title">{item.title}</h3>
+                        {!item.is_read ? <span className="dash-notif-card__badge">{t('dash.notifications.new')}</span> : null}
+                      </div>
+                      <p className="dash-notif-card__text">{item.body}</p>
+                      <span className="dash-notif-card__time">{formatNotificationDate(item.created_at)}</span>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
       </header>
 
       <div className="dash-tabs">

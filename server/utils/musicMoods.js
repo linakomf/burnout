@@ -1,8 +1,24 @@
-/** Настроения треков — как mood в musicHubData / MusicPracticeHub */
+/** Настроения треков — фильтры страницы «Музыка» */
 
 const KINDS = new Set(['track', 'quick']);
 
-const MOODS = new Set(['calm', 'focus', 'sleep', 'mood']);
+const MOODS = new Set([
+  'tired',
+  'calm_down',
+  'distract',
+  'concentration',
+  'rest',
+  'anxious',
+  'recovery',
+  'motivation',
+  'evening',
+  'morning',
+  /* legacy */
+  'calm',
+  'focus',
+  'sleep',
+  'mood',
+]);
 
 const QUICK_ICONS = new Set([
   'CloudRain',
@@ -14,8 +30,9 @@ const QUICK_ICONS = new Set([
   'Flame',
   'Bird',
 ]);
+const MAX_TRACK_DURATION_MIN = 1440;
 
-function pickMood(raw, fallback = 'calm') {
+function pickMood(raw, fallback = 'calm_down') {
   const v = String(raw || '').trim();
   return MOODS.has(v) ? v : fallback;
 }
@@ -31,7 +48,7 @@ function pickIcon(raw) {
 }
 
 function formatDurationDisplay(minutes) {
-  const m = Math.max(1, Math.min(180, parseInt(minutes, 10) || 3));
+  const m = Math.max(1, Math.min(MAX_TRACK_DURATION_MIN, parseInt(minutes, 10) || 3));
   return `${m}:00`;
 }
 

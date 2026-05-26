@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Tag, BookOpen, Plus, Trash2, Edit2, X, Save, HeartHandshake, Clapperboard } from 'lucide-react';
 import api from '../../utils/api';
+import AdminAudienceFields from './AdminAudienceFields';
+import AdminModalPortal from './AdminModalPortal';
+import { emptyAudienceFields, formatAudienceSummary } from './audienceTargeting';
 import './Admin.css';
 
 const SUPPORT_LEVEL_LABEL = {
@@ -93,7 +96,7 @@ export const AdminCategories = () => {
   const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ name: '', description: '', target_role: 'all' });
+  const [form, setForm] = useState({ name: '', description: '', ...emptyAudienceFields() });
 
   useEffect(() => {
     api.get('/categories').then((r) => setCategories(r.data));
@@ -109,12 +112,17 @@ export const AdminCategories = () => {
     }
     setShowModal(false);
     setEditing(null);
-    setForm({ name: '', description: '', target_role: 'all' });
+    setForm({ name: '', description: '', ...emptyAudienceFields() });
   };
 
   const handleEdit = (cat) => {
     setEditing(cat);
-    setForm({ name: cat.name, description: cat.description, target_role: cat.target_role });
+    setForm({
+      name: cat.name,
+      description: cat.description,
+      target_role: cat.target_role || 'all',
+      target_gender: cat.target_gender || 'all',
+    });
     setShowModal(true);
   };
 
@@ -123,8 +131,6 @@ export const AdminCategories = () => {
     await api.delete(`/categories/${id}`);
     setCategories(categories.filter((c) => c.category_id !== id));
   };
-
-  const TARGET_LABELS = { all: 'Для всех', student: 'Студенты', teacher: 'Преподаватели' };
 
   return (
     <div className="admin-section fade-in">
@@ -150,13 +156,14 @@ export const AdminCategories = () => {
             </div>
             <h3 className="cat-name">{cat.name}</h3>
             <p className="cat-desc">{cat.description}</p>
-            <span className="cat-target">{TARGET_LABELS[cat.target_role]}</span>
+            <span className="cat-target">{formatAudienceSummary(cat)}</span>
           </div>
         )}
       </div>
 
       {showModal &&
-      <div className="modal-overlay" onClick={() => setShowModal(false)}>
+      <AdminModalPortal>
+      <div className="modal-overlay admin-modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-card fade-in" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editing ? 'Редактировать' : 'Новая категория'}</h2>
@@ -170,20 +177,17 @@ export const AdminCategories = () => {
               <label>Описание</label>
               <input className="input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
-            <div className="form-group" style={{ marginTop: 14 }}>
-              <label>Для кого</label>
-              <select className="input" value={form.target_role} onChange={(e) => setForm({ ...form, target_role: e.target.value })}>
-                <option value="all">Для всех</option>
-                <option value="student">Студенты</option>
-                <option value="teacher">Преподаватели</option>
-              </select>
-            </div>
+            <AdminAudienceFields
+              value={{ target_role: form.target_role, target_gender: form.target_gender }}
+              onChange={(aud) => setForm((prev) => ({ ...prev, ...aud }))}
+            />
             <div className="modal-actions" style={{ marginTop: 24 }}>
               <button className="btn btn-ghost" onClick={() => setShowModal(false)}>Отмена</button>
               <button className="btn btn-primary" onClick={handleSave}><Save size={14} /> Сохранить</button>
             </div>
           </div>
         </div>
+      </AdminModalPortal>
       }
     </div>);
 
@@ -196,7 +200,8 @@ const emptyTestForm = () => ({
   description: '',
   category_id: '',
   scoring_type: 'likert_sum',
-  questions: []
+  questions: [],
+  ...emptyAudienceFields(),
 });
 
 export const AdminTests = () => {
@@ -259,7 +264,9 @@ export const AdminTests = () => {
         questions:
         data.questions && data.questions.length > 0 ?
         mapQuestionsFromApi(data.questions) :
-        [{ question_text: '', options: [...DEFAULT_OPTIONS] }]
+        [{ question_text: '', options: [...DEFAULT_OPTIONS] }],
+        target_role: data.target_role || 'all',
+        target_gender: data.target_gender || 'all',
       });
     } catch {
       setLoadError('Не удалось загрузить тест');
@@ -328,7 +335,9 @@ export const AdminTests = () => {
       questions: form.questions.map((q) => ({
         question_text: q.question_text,
         options: q.options
-      }))
+      })),
+      target_role: form.target_role || 'all',
+      target_gender: form.target_gender || 'all',
     };
 
     setSaving(true);
@@ -379,6 +388,7 @@ export const AdminTests = () => {
             <tr>
               <th>Название</th>
               <th>Категория</th>
+              <th>Показ</th>
               <th>Вопросов</th>
               <th>Дата</th>
               <th>Действия</th>
@@ -389,6 +399,7 @@ export const AdminTests = () => {
             <tr key={t.test_id}>
                 <td style={{ fontWeight: 600 }}>{t.title}</td>
                 <td>{t.category_name}</td>
+                <td className="admin-audience-cell">{formatAudienceSummary(t)}</td>
                 <td>{t.question_count != null ? t.question_count : '-'}</td>
                 <td>{new Date(t.created_at).toLocaleDateString('ru')}</td>
                 <td>
@@ -415,7 +426,8 @@ export const AdminTests = () => {
       </div>
 
       {showModal &&
-      <div className="modal-overlay" onClick={closeModal}>
+      <AdminModalPortal>
+      <div className="modal-overlay admin-modal-overlay" onClick={closeModal}>
           <div className="modal-card admin-test-modal fade-in" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editingId != null ? 'Редактировать тест' : 'Создать тест'}</h2>
@@ -483,6 +495,11 @@ export const AdminTests = () => {
               )}
               </select>
             </div>
+
+            <AdminAudienceFields
+              value={{ target_role: form.target_role, target_gender: form.target_gender }}
+              onChange={(aud) => setForm((prev) => ({ ...prev, ...aud }))}
+            />
 
             <div className="questions-section">
               <div
@@ -564,6 +581,7 @@ export const AdminTests = () => {
             </div>
           </div>
         </div>
+      </AdminModalPortal>
       }
     </div>);
 

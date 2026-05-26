@@ -78,6 +78,28 @@ async function ensureCoreSchema() {
     );
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_notifications (
+      notification_id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+      type VARCHAR(80) NOT NULL DEFAULT 'system',
+      title VARCHAR(200) NOT NULL,
+      body TEXT NOT NULL,
+      payload JSONB,
+      is_read BOOLEAN NOT NULL DEFAULT FALSE,
+      read_at TIMESTAMP,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_user_notifications_user_created
+      ON user_notifications (user_id, created_at DESC);
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_user_notifications_user_unread
+      ON user_notifications (user_id, is_read, created_at DESC);
+  `);
+
   const catCheck = await pool.query('SELECT COUNT(*)::int AS c FROM categories');
   if (catCheck.rows[0].c === 0) {
     await pool.query(`

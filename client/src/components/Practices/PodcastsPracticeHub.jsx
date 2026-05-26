@@ -4,7 +4,6 @@ import {
   BookOpen,
   ChevronDown,
   Clock,
-  Download,
   Heart,
   Mic2,
   Search,
@@ -232,6 +231,7 @@ function PodcastsPracticeHub({ embedded = false }) {
 
   const titleFor = (ep) => podcastTitle(ep, t);
   const showFor = (ep) => podcastShow(ep, t);
+  const descFor = (ep) => podcastDesc(ep, t);
 
   const playPractice = (practice) => {
     setActiveId(practice.id);
@@ -538,8 +538,13 @@ function PodcastsPracticeHub({ embedded = false }) {
                   style={{ backgroundImage: `url(${active.poster})` }}
                 />
                 <div className="podcast-hub-player-meta-top">
-                  <strong>{titleFor(active)}</strong>
-                  <span>{showFor(active)}</span>
+                  <strong className="podcast-hub-player-title">{titleFor(active)}</strong>
+                  {showFor(active) ? (
+                    <span className="podcast-hub-player-show">{showFor(active)}</span>
+                  ) : null}
+                  {descFor(active) ? (
+                    <p className="podcast-hub-player-desc">{descFor(active)}</p>
+                  ) : null}
                 </div>
                 <div className="podcast-hub-player-body">
                   {playerPractice && (active.embedUrl || active.audioUrl) ? (
@@ -554,31 +559,6 @@ function PodcastsPracticeHub({ embedded = false }) {
                   ) : (
                     <p className="podcast-hub-player-empty-hint">{t('pages.podcastsPlayerEmpty')}</p>
                   )}
-                  <div className="podcast-hub-player-foot">
-                    <button
-                      type="button"
-                      className={`podcast-hub-foot-btn ${favorites.has(active.id) ? 'is-on' : ''}`}
-                      onClick={() => toggleFav(active.id)}
-                    >
-                      <Heart
-                        size={18}
-                        strokeWidth={2}
-                        fill={favorites.has(active.id) ? 'currentColor' : 'none'}
-                      />
-                      {t('pages.podcastsFavorite')}
-                    </button>
-                    {active.watchUrl ? (
-                      <a
-                        className="podcast-hub-foot-btn"
-                        href={active.watchUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Download size={18} strokeWidth={2} />
-                        {t('pages.podcastsDownload')}
-                      </a>
-                    ) : null}
-                  </div>
                 </div>
               </>
             ) : (

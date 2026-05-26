@@ -8,6 +8,7 @@ import MeditationAudioPlayer from './MeditationAudioPlayer';
 import { MEDITATION_TOPIC_LABEL_KEYS, resolveMeditationTopic } from './PracticeCard';
 import { PODCAST_THEME_LABEL_KEYS } from './podcastHubData';
 import { MEDITATION_LEVEL_LABEL_KEYS, practiceHasPlayableAudio } from './meditationHubData';
+import { isVideoCoverAsset } from './practiceMedia';
 
 const defaultMeditationCover = `${(process.env.PUBLIC_URL || '').replace(/\/$/, '')}/meditation/meditation-modal-cover.png`;
 
@@ -43,6 +44,7 @@ function PracticeModal({
   if (typeof document === 'undefined') return null;
 
   const coverSrc = practice.coverImage || defaultMeditationCover;
+  const coverIsVideo = isVideoCoverAsset(coverSrc);
   const durationLabel = `${String(practice.durationMin).padStart(2, '0')}:00`;
   const practiceTitle = practice.titleKey ? t(`pages.${practice.titleKey}`) : practice.title;
   const meditationTopicId = isMeditation ? resolveMeditationTopic(practice, activeFilter) : null;
@@ -64,7 +66,21 @@ function PracticeModal({
       </div>
 
       <div className="practices-modal-meditation-hero">
-        <div className="practices-modal-meditation-cover" style={{ backgroundImage: `url(${coverSrc})` }} role="img" aria-hidden />
+        <div className="practices-modal-meditation-cover" role="img" aria-hidden>
+          {coverIsVideo ? (
+            <video
+              className="practices-modal-meditation-cover-media"
+              src={coverSrc}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+            />
+          ) : (
+            <div className="practices-modal-meditation-cover-media" style={{ backgroundImage: `url(${coverSrc})` }} />
+          )}
+        </div>
         <div className="practices-modal-meditation-copy">
           <h2 className="practices-modal-meditation-title">{practiceTitle}</h2>
           <p className="practices-modal-meditation-subtitle">

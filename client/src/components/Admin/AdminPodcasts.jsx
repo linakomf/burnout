@@ -3,11 +3,23 @@ import { Edit2, Plus, Trash2, X } from 'lucide-react';
 import api from '../../utils/api';
 import { backendPublicUrl } from '../../utils/assetUrl';
 import { useLanguage } from '../../context/LanguageContext';
+import { PODCAST_AUDIO_SOURCE_OPTIONS } from '../Practices/podcastHubData';
 import {
-  PODCAST_AUDIO_SOURCE_OPTIONS,
-  PODCAST_TOPIC_OPTIONS,
-} from '../Practices/podcastHubData';
+  getEpisodeFilterTags,
+  PODCAST_FILTER_FORMAT_OPTIONS,
+  PODCAST_FILTER_SITUATION_OPTIONS,
+  PODCAST_FILTER_THEME_OPTIONS,
+} from '../Practices/podcastHubFilters';
+import AdminAudienceFields from './AdminAudienceFields';
+import AdminModalPortal from './AdminModalPortal';
+import { emptyAudienceFields } from './audienceTargeting';
 import './Admin.css';
+
+const emptyPodcastTags = () => ({
+  theme: [],
+  situation: [],
+  format: [],
+});
 
 function extractApiError(e) {
   if (!e?.response) {
@@ -26,7 +38,7 @@ const initialForm = () => ({
   show_name: '',
   description_short: '',
   meta_line: '',
-  topic: 'psych',
+  tags: emptyPodcastTags(),
   episode_num: '1',
   duration_min: '24',
   is_featured_pick: false,
@@ -35,25 +47,45 @@ const initialForm = () => ({
   audio_external_url: '',
   coverFile: null,
   audioFile: null,
+  ...emptyAudienceFields(),
 });
 
-function TopicChipGroup({ label, options, value, onChange, t }) {
+function FilterChipGroup({ label, options, selectedIds, onToggle, t }) {
+  const opts = options.filter((o) => o.id != null);
   return (
     <div className="admin-film-tag-group">
       <div className="admin-film-tag-label">{label}</div>
       <div className="admin-film-tag-chips">
-        {options.map((opt) => (
-          <button
-            key={opt.id}
-            type="button"
-            className={`admin-film-chip ${value === opt.id ? 'is-on' : ''}`}
-            onClick={() => onChange(opt.id)}>
-            {t(`pages.${opt.labelKey}`)}
-          </button>
-        ))}
+        {opts.map((opt) => {
+          const id = opt.id;
+          const active = selectedIds.includes(id);
+          return (
+            <button
+              key={String(id)}
+              type="button"
+              className={`admin-film-chip ${active ? 'is-on' : ''}`}
+              onClick={() => onToggle(id)}>
+              {t(`pages.${opt.labelKey}`)}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
+}
+
+function formatTagsSummary(row, t) {
+  const tags =
+    row.tags && (row.tags.theme?.length || row.tags.situation?.length || row.tags.format?.length)
+      ? row.tags
+      : getEpisodeFilterTags(row);
+  const parts = [];
+  const themeOpt = PODCAST_FILTER_THEME_OPTIONS.find((o) => tags.theme?.[0] === o.id);
+  if (themeOpt) parts.push(t(`pages.${themeOpt.labelKey}`));
+  const n =
+    (tags.theme?.length || 0) + (tags.situation?.length || 0) + (tags.format?.length || 0);
+  if (n > 1) parts.push(`+${n - 1}`);
+  return parts.length ? parts.join(' ') : '—';
 }
 
 export default function AdminPodcasts({ embedded = false }) {
@@ -138,7 +170,25 @@ export default function AdminPodcasts({ embedded = false }) {
       show_name: row.showName || '',
       description_short: row.descriptionShort || '',
       meta_line: row.metaLine || '',
-      topic: row.topic || 'psych',
+      tags: (() => {
+        if (row.tags && typeof row.tags === 'object') {
+          return {
+            theme: [...(row.tags.theme || [])],
+            situation: [...(row.tags.situation || [])],
+            format: [...(row.tags.format || [])],
+          };
+        }
+        const inferred = getEpisodeFilterTags({
+          topic: row.topic,
+          durationMin: row.durationMin,
+          tags: row.tags,
+        });
+        return {
+          theme: [...inferred.theme],
+          situation: [...inferred.situation],
+          format: [...inferred.format],
+        };
+      })(),
       episode_num: String(row.episodeNum || 1),
       duration_min: String(row.durationMin || 24),
       is_featured_pick: Boolean(row.isFeaturedPick),
@@ -147,6 +197,8 @@ export default function AdminPodcasts({ embedded = false }) {
       audio_external_url,
       coverFile: null,
       audioFile: null,
+      target_role: row.target_role || 'all',
+      target_gender: row.target_gender || 'all',
     });
     setError('');
     setModalOpen(true);
@@ -170,10 +222,12 @@ export default function AdminPodcasts({ embedded = false }) {
       fd.append('show_name', form.show_name.trim());
       fd.append('description_short', form.description_short.trim());
       fd.append('meta_line', form.meta_line.trim());
-      fd.append('topic', form.topic);
+      fd.append('tags', JSON.stringify(form.tags));
       fd.append('episode_num', form.episode_num.trim() || '1');
       fd.append('duration_min', form.duration_min.trim() || '24');
       fd.append('is_featured_pick', form.is_featured_pick ? '1' : '0');
+      fd.append('target_role', form.target_role || 'all');
+      fd.append('target_gender', form.target_gender || 'all');
       fd.append('audio_source', form.audio_source);
 
       if (form.audio_source === 'youtube') {
@@ -262,7 +316,7 @@ export default function AdminPodcasts({ embedded = false }) {
               <th>ID</th>
               <th>Название</th>
               <th>Подкаст</th>
-              <th>Тема</th>
+              <th>Фильтры</th>
               <th>Подборка</th>
               <th>Действия</th>
             </tr>
@@ -280,7 +334,7 @@ export default function AdminPodcasts({ embedded = false }) {
                   <td style={{ fontFamily: 'monospace', fontSize: 13 }}>{row.id}</td>
                   <td>{row.title}</td>
                   <td>{row.showName}</td>
-                  <td>{row.topic}</td>
+                  <td>{formatTagsSummary(row, t)}</td>
                   <td>{row.isFeaturedPick ? 'Да' : '—'}</td>
                   <td>
                     <button
@@ -302,8 +356,9 @@ export default function AdminPodcasts({ embedded = false }) {
       </div>
 
       {modalOpen ? (
+        <AdminModalPortal>
         <div
-          className="modal-overlay"
+          className="modal-overlay admin-modal-overlay"
           role="presentation"
           onMouseDown={(e) => e.target === e.currentTarget && closeModal()}>
           <div
@@ -340,11 +395,55 @@ export default function AdminPodcasts({ embedded = false }) {
                 <input value={form.show_name} onChange={(e) => setForm({ ...form, show_name: e.target.value })} />
               </label>
 
-              <TopicChipGroup
-                label="Тема (фильтр)"
-                options={PODCAST_TOPIC_OPTIONS}
-                value={form.topic}
-                onChange={(id) => setForm({ ...form, topic: id })}
+              <p className="admin-film-filters-intro">
+                Теги для фильтров на странице «Подкасты» (можно выбрать несколько в каждой группе).
+              </p>
+
+              <FilterChipGroup
+                label="Тема"
+                options={PODCAST_FILTER_THEME_OPTIONS}
+                selectedIds={form.tags.theme}
+                onToggle={(id) => {
+                  setForm((prev) => {
+                    const arr = [...(prev.tags.theme || [])];
+                    const i = arr.indexOf(id);
+                    if (i >= 0) arr.splice(i, 1);
+                    else arr.push(id);
+                    return { ...prev, tags: { ...prev.tags, theme: arr } };
+                  });
+                }}
+                t={t}
+              />
+
+              <FilterChipGroup
+                label={t('pages.podcastsFilterPillSituation')}
+                options={PODCAST_FILTER_SITUATION_OPTIONS}
+                selectedIds={form.tags.situation}
+                onToggle={(id) => {
+                  setForm((prev) => {
+                    const arr = [...(prev.tags.situation || [])];
+                    const i = arr.indexOf(id);
+                    if (i >= 0) arr.splice(i, 1);
+                    else arr.push(id);
+                    return { ...prev, tags: { ...prev.tags, situation: arr } };
+                  });
+                }}
+                t={t}
+              />
+
+              <FilterChipGroup
+                label="Формат"
+                options={PODCAST_FILTER_FORMAT_OPTIONS}
+                selectedIds={form.tags.format}
+                onToggle={(id) => {
+                  setForm((prev) => {
+                    const arr = [...(prev.tags.format || [])];
+                    const i = arr.indexOf(id);
+                    if (i >= 0) arr.splice(i, 1);
+                    else arr.push(id);
+                    return { ...prev, tags: { ...prev.tags, format: arr } };
+                  });
+                }}
                 t={t}
               />
 
@@ -459,6 +558,11 @@ export default function AdminPodcasts({ embedded = false }) {
                 </label>
               ) : null}
 
+              <AdminAudienceFields
+                value={{ target_role: form.target_role, target_gender: form.target_gender }}
+                onChange={(aud) => setForm((prev) => ({ ...prev, ...aud }))}
+              />
+
               <div className="modal-actions" style={{ marginTop: 24 }}>
                 <button type="button" className="btn btn-secondary" onClick={closeModal} disabled={saving}>
                   Отмена
@@ -470,6 +574,7 @@ export default function AdminPodcasts({ embedded = false }) {
             </form>
           </div>
         </div>
+        </AdminModalPortal>
       ) : null}
     </div>
   );

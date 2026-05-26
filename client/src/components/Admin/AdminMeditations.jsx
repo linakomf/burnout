@@ -9,6 +9,10 @@ import {
   MEDITATION_KIND_OPTIONS,
   MEDITATION_TOPIC_OPTIONS,
 } from '../Practices/meditationHubData';
+import { isVideoCoverAsset } from '../Practices/practiceMedia';
+import AdminAudienceFields from './AdminAudienceFields';
+import AdminModalPortal from './AdminModalPortal';
+import { emptyAudienceFields } from './audienceTargeting';
 import './Admin.css';
 
 function extractApiError(e) {
@@ -37,6 +41,7 @@ const initialForm = () => ({
   audio_external_url: '',
   coverFile: null,
   audioFile: null,
+  ...emptyAudienceFields(),
 });
 
 function TopicChipGroup({ label, options, selectedIds, onToggle, disabledIds, t }) {
@@ -116,6 +121,11 @@ export default function AdminMeditations({ embedded = false }) {
     return '';
   }, [coverBlobUrl, editingId, items]);
 
+  const coverPreviewIsVideo = useMemo(() => {
+    if (form.coverFile) return isVideoCoverAsset(form.coverFile);
+    return isVideoCoverAsset(coverPreview);
+  }, [form.coverFile, coverPreview]);
+
   const closeModal = () => {
     setModalOpen(false);
     setEditingId(null);
@@ -163,6 +173,8 @@ export default function AdminMeditations({ embedded = false }) {
       audio_external_url,
       coverFile: null,
       audioFile: null,
+      target_role: row.target_role || 'all',
+      target_gender: row.target_gender || 'all',
     });
     setError('');
     setModalOpen(true);
@@ -203,6 +215,8 @@ export default function AdminMeditations({ embedded = false }) {
       fd.append('practice_focus', form.practice_focus.trim());
       fd.append('difficulty_level', isSound ? 'beginner' : form.difficulty_level);
       fd.append('tip_before', form.tip_before.trim());
+      fd.append('target_role', form.target_role || 'all');
+      fd.append('target_gender', form.target_gender || 'all');
       fd.append('audio_source', form.audio_source);
       if (form.audio_source === 'youtube') {
         fd.append('youtube_url', form.youtube_url.trim());
@@ -336,7 +350,8 @@ export default function AdminMeditations({ embedded = false }) {
       </div>
 
       {modalOpen ? (
-        <div className="modal-overlay" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && closeModal()}>
+        <AdminModalPortal>
+        <div className="modal-overlay admin-modal-overlay" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && closeModal()}>
           <div
             className="modal-card admin-test-modal admin-film-modal fade-in"
             role="dialog"
@@ -408,11 +423,24 @@ export default function AdminMeditations({ embedded = false }) {
                 <input
                   key={`cover-${fileInputsKey.current}`}
                   type="file"
-                  accept="image/jpeg,image/png,image/webp,image/*"
+                  accept="image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,image/*"
                   required={!editingId}
                   onChange={(e) => setForm({ ...form, coverFile: e.target.files?.[0] || null })}
                 />
-                {coverPreview ? <img src={coverPreview} alt="" className="admin-film-poster-preview" /> : null}
+                {coverPreview ? (
+                  coverPreviewIsVideo ? (
+                    <video
+                      src={coverPreview}
+                      className="admin-film-poster-preview"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                    />
+                  ) : (
+                    <img src={coverPreview} alt="" className="admin-film-poster-preview" />
+                  )
+                ) : null}
               </label>
 
               <label className="admin-field">
@@ -531,6 +559,11 @@ export default function AdminMeditations({ embedded = false }) {
                 </label>
               ) : null}
 
+              <AdminAudienceFields
+                value={{ target_role: form.target_role, target_gender: form.target_gender }}
+                onChange={(aud) => setForm((prev) => ({ ...prev, ...aud }))}
+              />
+
               <div className="modal-actions" style={{ marginTop: 24 }}>
                 <button type="button" className="btn btn-secondary" onClick={closeModal} disabled={saving}>
                   Отмена
@@ -542,6 +575,7 @@ export default function AdminMeditations({ embedded = false }) {
             </form>
           </div>
         </div>
+        </AdminModalPortal>
       ) : null}
     </div>
   );

@@ -2,8 +2,10 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const pool = require('../db');
-const { authMiddleware, adminOnly } = require('../middleware/auth');
+const { authMiddleware, adminOnly, optionalAuthMiddleware } = require('../middleware/auth');
+const { pickTargetRole, pickTargetGender, appendAudienceFilter } = require('../utils/audienceTargeting');
 const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
+const { parseFilmPublicId, parsePublicFilmIds, slugifyTitle } = require('../utils/filmCollectionItems');
 const { normalizeFilmTags } = require('../utils/filmTagWhitelist');
 const { unlinkFilmAssets, safeUnlinkUploadPath } = require('../utils/filmUploadCleanup');
 
@@ -63,11 +65,6 @@ function withUpload(fields) {
   };
 }
 
-function parseFilmPublicId(param) {
-  const m = /^film-(\d+)$/.exec(String(param || '').trim());
-  return m ? parseInt(m[1], 10) : null;
-}
-
 function rowToPublicFilm(row) {
   const gallery =
     Array.isArray(row.gallery_urls) ? row.gallery_urls : [];
@@ -96,9 +93,60 @@ function rowToPublicFilm(row) {
     director: row.director || '',
     screenwriter: row.screenwriter || '',
     quote: row.quote || '',
+    target_role: row.target_role || 'all',
+    target_gender: row.target_gender || 'all',
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
+}
+
+function rowToCollection(row, filmIds = []) {
+  const ids = Array.isArray(filmIds) ? filmIds : [];
+  return {
+    id: row.slug,
+    slug: row.slug,
+    collectionId: row.collection_id,
+    title: row.title || '',
+    description: row.description || '',
+    image: row.cover_url || '',
+    filmIds: ids,
+    filmsCount: ids.length,
+    isActive: row.is_active !== false,
+    sort_order: row.sort_order || 0,
+  };
+}
+
+async function loadCollectionFilmMap() {
+  const r = await pool.query(
+    `SELECT fci.collection_id, fci.film_id, fci.sort_order
+     FROM film_collection_items fci
+     INNER JOIN films f ON f.film_id = fci.film_id
+     ORDER BY fci.collection_id ASC, fci.sort_order ASC, fci.film_id ASC`
+  );
+  const byCollection = new Map();
+  for (const row of r.rows) {
+    if (!byCollection.has(row.collection_id)) byCollection.set(row.collection_id, []);
+    byCollection.get(row.collection_id).push(`film-${row.film_id}`);
+  }
+  return byCollection;
+}
+
+async function syncCollectionFilms(collectionId, publicFilmIds) {
+  await pool.query(`DELETE FROM film_collection_items WHERE collection_id = $1`, [collectionId]);
+  const ids = parsePublicFilmIds(publicFilmIds);
+  if (!ids.length) return;
+  let order = 0;
+  for (const pubId of ids) {
+    const filmId = parseFilmPublicId(pubId);
+    if (filmId == null) continue;
+    await pool.query(
+      `INSERT INTO film_collection_items (collection_id, film_id, sort_order)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (collection_id, film_id) DO UPDATE SET sort_order = EXCLUDED.sort_order`,
+      [collectionId, filmId, order]
+    );
+    order += 1;
+  }
 }
 
 function parseTagsField(raw) {
@@ -151,13 +199,15 @@ function parseKeepGalleryUrls(raw, existingGallery) {
 }
 
 /** GET список для каталога */
-router.get('/', async (_req, res) => {
+router.get('/', optionalAuthMiddleware, async (req, res) => {
   try {
+    const aud = appendAudienceFilter(req.user, '', 1);
     const r = await pool.query(
       `SELECT film_id, title, description_short, description_full, watch_url, poster_url, gallery_urls, tags,
               source, duration, year, rating, category_id, psych_tag, genres_display, embed_url,
-              director, screenwriter, country, quote, created_at, updated_at
-       FROM films ORDER BY film_id ASC`
+              director, screenwriter, country, quote, target_role, target_gender, created_at, updated_at
+       FROM films WHERE 1=1${aud.sql} ORDER BY film_id ASC`,
+      aud.params
     );
     res.json({ films: r.rows.map(rowToPublicFilm) });
   } catch (e) {
@@ -165,20 +215,186 @@ router.get('/', async (_req, res) => {
   }
 });
 
+router.get('/collections', optionalAuthMiddleware, async (req, res) => {
+  try {
+    const collectionsR = await pool.query(
+      `SELECT collection_id, slug, title, description, cover_url, sort_order, is_active
+       FROM film_collections
+       WHERE is_active = true
+       ORDER BY sort_order ASC, collection_id ASC`
+    );
+    const filmMap = await loadCollectionFilmMap();
+    res.json({
+      collections: collectionsR.rows.map((row) => rowToCollection(row, filmMap.get(row.collection_id) || [])),
+    });
+  } catch (e) {
+    res.status(500).json({ message: filmApiErrorMessage(e) });
+  }
+});
+
+router.get('/collections/:slug', optionalAuthMiddleware, async (req, res) => {
+  try {
+    const slug = String(req.params.slug || '').trim();
+    if (!slug) return res.status(404).json({ message: 'Подборка не найдена' });
+    const r = await pool.query(
+      `SELECT collection_id, slug, title, description, cover_url, sort_order, is_active
+       FROM film_collections
+       WHERE slug = $1 AND is_active = true`,
+      [slug]
+    );
+    if (r.rows.length === 0) return res.status(404).json({ message: 'Подборка не найдена' });
+    const filmMap = await loadCollectionFilmMap();
+    res.json(rowToCollection(r.rows[0], filmMap.get(r.rows[0].collection_id) || []));
+  } catch (e) {
+    res.status(500).json({ message: filmApiErrorMessage(e) });
+  }
+});
+
 /** GET один фильм по film-{id} */
-router.get('/:filmKey', async (req, res) => {
+router.get('/:filmKey', optionalAuthMiddleware, async (req, res) => {
   try {
     const filmId = parseFilmPublicId(req.params.filmKey);
     if (!filmId) return res.status(404).json({ message: 'Фильм не найден' });
+    const aud = appendAudienceFilter(req.user, '', 2);
     const r = await pool.query(
       `SELECT film_id, title, description_short, description_full, watch_url, poster_url, gallery_urls, tags,
               source, duration, year, rating, category_id, psych_tag, genres_display, embed_url,
-              director, screenwriter, country, quote, created_at, updated_at
-       FROM films WHERE film_id=$1`,
-      [filmId]
+              director, screenwriter, country, quote, target_role, target_gender, created_at, updated_at
+       FROM films WHERE film_id=$1${aud.sql}`,
+      [filmId, ...aud.params]
     );
     if (r.rows.length === 0) return res.status(404).json({ message: 'Фильм не найден' });
     res.json(rowToPublicFilm(r.rows[0]));
+  } catch (e) {
+    res.status(500).json({ message: filmApiErrorMessage(e) });
+  }
+});
+
+router.post(
+  '/collections',
+  authMiddleware,
+  adminOnly,
+  withUpload([{ name: 'cover', maxCount: 1 }]),
+  async (req, res) => {
+    try {
+      const title = String(req.body.title || '').trim();
+      if (!title) return res.status(400).json({ message: 'Укажите название подборки' });
+      const description = String(req.body.description || '').trim();
+      const sort_order = parseInt(req.body.sort_order, 10) || 0;
+      const coverFile = req.files?.cover?.[0];
+      if (!coverFile) {
+        return res.status(400).json({ message: 'Загрузите изображение подборки' });
+      }
+
+      const ins = await pool.query(
+        `INSERT INTO film_collections (slug, title, description, cover_url, sort_order, is_active)
+         VALUES ($1, $2, $3, $4, $5, true)
+         RETURNING collection_id, slug, title, description, cover_url, sort_order, is_active`,
+        ['tmp', title.slice(0, 120), description, `/uploads/${coverFile.filename}`, sort_order]
+      );
+      const row = ins.rows[0];
+      const slug = slugifyTitle(title, row.collection_id);
+      await pool.query(`UPDATE film_collections SET slug = $1 WHERE collection_id = $2`, [
+        slug,
+        row.collection_id,
+      ]);
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'film_ids')) {
+        await syncCollectionFilms(row.collection_id, req.body.film_ids);
+      }
+
+      const filmMap = await loadCollectionFilmMap();
+      const full = await pool.query(
+        `SELECT collection_id, slug, title, description, cover_url, sort_order, is_active
+         FROM film_collections
+         WHERE collection_id = $1`,
+        [row.collection_id]
+      );
+      res.status(201).json(rowToCollection(full.rows[0], filmMap.get(row.collection_id) || []));
+    } catch (e) {
+      console.error('POST /films/collections', e);
+      res.status(500).json({ message: filmApiErrorMessage(e) });
+    }
+  }
+);
+
+router.patch(
+  '/collections/:slug',
+  authMiddleware,
+  adminOnly,
+  withUpload([{ name: 'cover', maxCount: 1 }]),
+  async (req, res) => {
+    try {
+      const slug = String(req.params.slug || '').trim();
+      if (!slug) return res.status(400).json({ message: 'Укажите подборку' });
+      const cur = await pool.query(`SELECT * FROM film_collections WHERE slug = $1`, [slug]);
+      if (cur.rows.length === 0) return res.status(404).json({ message: 'Подборка не найдена' });
+
+      const existing = cur.rows[0];
+      const patch = {};
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'title')) {
+        const title = String(req.body.title || '').trim();
+        if (!title) return res.status(400).json({ message: 'Название не может быть пустым' });
+        patch.title = title.slice(0, 120);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'description')) {
+        patch.description = String(req.body.description || '').trim();
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'sort_order')) {
+        patch.sort_order = parseInt(req.body.sort_order, 10) || 0;
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'is_active')) {
+        patch.is_active = String(req.body.is_active) !== 'false';
+      }
+
+      const coverFile = req.files?.cover?.[0];
+      if (coverFile) {
+        safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
+        patch.cover_url = `/uploads/${coverFile.filename}`;
+      }
+
+      if (Object.keys(patch).length > 0) {
+        const keys = Object.keys(patch);
+        const sets = keys.map((k, i) => `${k}=$${i + 1}`);
+        const vals = keys.map((k) => patch[k]);
+        vals.push(slug);
+        await pool.query(
+          `UPDATE film_collections SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP
+           WHERE slug = $${keys.length + 1}`,
+          vals
+        );
+      }
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'film_ids')) {
+        await syncCollectionFilms(existing.collection_id, req.body.film_ids);
+      }
+
+      const filmMap = await loadCollectionFilmMap();
+      const full = await pool.query(
+        `SELECT collection_id, slug, title, description, cover_url, sort_order, is_active
+         FROM film_collections
+         WHERE collection_id = $1`,
+        [existing.collection_id]
+      );
+      res.json(rowToCollection(full.rows[0], filmMap.get(existing.collection_id) || []));
+    } catch (e) {
+      console.error('PATCH /films/collections/:slug', e);
+      res.status(500).json({ message: filmApiErrorMessage(e) });
+    }
+  }
+);
+
+router.delete('/collections/:slug', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const slug = String(req.params.slug || '').trim();
+    const cur = await pool.query(
+      `DELETE FROM film_collections WHERE slug = $1 RETURNING cover_url`,
+      [slug]
+    );
+    if (cur.rows.length === 0) return res.status(404).json({ message: 'Подборка не найдена' });
+    safeUnlinkUploadPath(uploadsAbs, cur.rows[0].cover_url);
+    res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ message: filmApiErrorMessage(e) });
   }
@@ -231,19 +447,22 @@ router.post(
       const galleryFiles = req.files?.gallery || [];
       const gallery_urls = galleryFiles.slice(0, 6).map((f) => `/uploads/${f.filename}`);
 
+      const target_role = pickTargetRole(req.body.target_role);
+      const target_gender = pickTargetGender(req.body.target_gender);
+
       const ins = await pool.query(
         `INSERT INTO films (
           title, description_short, description_full, watch_url, poster_url, gallery_urls, tags,
           source, duration, year, rating, category_id, psych_tag, genres_display, embed_url,
-          director, screenwriter, country, quote
+          director, screenwriter, country, quote, target_role, target_gender
         ) VALUES (
           $1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,
           $8,$9,$10,$11,$12,$13,$14,$15,
-          $16,$17,$18,$19
+          $16,$17,$18,$19,$20,$21
         )
         RETURNING film_id, title, description_short, description_full, watch_url, poster_url, gallery_urls, tags,
                   source, duration, year, rating, category_id, psych_tag, genres_display, embed_url,
-                  director, screenwriter, country, quote, created_at, updated_at`,
+                  director, screenwriter, country, quote, target_role, target_gender, created_at, updated_at`,
         [
           title,
           description_short,
@@ -264,6 +483,8 @@ router.post(
           screenwriter,
           country,
           quote,
+          target_role,
+          target_gender,
         ]
       );
 
@@ -323,6 +544,12 @@ router.patch(
 
       if (Object.prototype.hasOwnProperty.call(req.body, 'tags')) {
         patch.tags = JSON.stringify(parseTagsField(req.body.tags));
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'target_role')) {
+        patch.target_role = pickTargetRole(req.body.target_role);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'target_gender')) {
+        patch.target_gender = pickTargetGender(req.body.target_gender);
       }
 
       if (Object.prototype.hasOwnProperty.call(req.body, 'category_id')) {

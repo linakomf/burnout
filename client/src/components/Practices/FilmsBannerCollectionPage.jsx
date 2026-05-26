@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
-import { getFilmById } from './filmsCatalogData';
+import api from '../../utils/api';
+import { backendPublicUrl } from '../../utils/assetUrl';
 import { spaceSectionHref } from './practiceSpaceConfig';
 import PracticeCoverFavorite from './PracticeCoverFavorite';
 import {
@@ -12,36 +13,58 @@ import {
   toggleInFavoriteSet,
 } from './sectionFavorites';
 
-const COLLECTIONS = {
-  'banner-1': {
-    kicker: 'Мягкий вечер',
-    title: 'Мягкий вечер',
-    lead:
-      'фильмы, которые помогают переключиться после насыщенного дня, немного выдохнуть и провести вечер в спокойной атмосфере.',
-    filmIds: ['f13', 'f14', 'f21', 'f11', 'f8', 'f5'],
-  },
-  'banner-2': {
-    kicker: 'Вернуть силы',
-    title: 'Вернуть силы',
-    lead: 'подборка для дней, когда чувствуешь усталость и выгорание.',
-    filmIds: ['f1', 'f7', 'f6', 'f15', 'f2', 'f9'],
-  },
-};
+function normalizeRemoteFilm(film) {
+  return {
+    ...film,
+    poster: backendPublicUrl(film.poster),
+    gallery: Array.isArray(film.gallery) ? film.gallery.map(backendPublicUrl) : [],
+  };
+}
 
 function FilmsBannerCollectionPage() {
   const navigate = useNavigate();
   const { bannerId } = useParams();
   const { t } = useLanguage();
-  const data = COLLECTIONS[bannerId] || COLLECTIONS['banner-1'];
   const [favorites, setFavorites] = useState(() => loadSectionFavorites(FAVORITES_KEYS.films));
+  const [remoteCollection, setRemoteCollection] = useState(null);
+  const [remoteFilms, setRemoteFilms] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     saveSectionFavorites(FAVORITES_KEYS.films, favorites);
   }, [favorites]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    Promise.all([
+      api.get('/films').catch(() => ({ data: { films: [] } })),
+      api.get(`/films/collections/${bannerId}`).catch(() => null),
+    ])
+      .then(([filmsRes, collectionRes]) => {
+        if (cancelled) return;
+        setRemoteFilms((filmsRes.data?.films || []).map(normalizeRemoteFilm));
+        setRemoteCollection(collectionRes?.data || null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [bannerId]);
+
   const toggleFilmFavorite = (filmId) => {
     setFavorites((prev) => toggleInFavoriteSet(prev, filmId));
   };
+
+  const data = remoteCollection || null;
+
+  const collectionFilms = useMemo(() => {
+    if (!remoteCollection) return [];
+    const byId = new Map(remoteFilms.map((film) => [film.id, film]));
+    return (remoteCollection.filmIds || []).map((id) => byId.get(id)).filter(Boolean);
+  }, [remoteCollection, remoteFilms]);
 
   return (
     <section className="films-collection-page fade-in">
@@ -96,47 +119,57 @@ function FilmsBannerCollectionPage() {
           </svg>
         </div>
 
-        <header className="films-collection-headline">
-          <h2 className="films-collection-headline-title">
-            {data.title}
-            <span className="films-collection-headline-cloud" aria-hidden>
-              ☁
-            </span>
-          </h2>
-          <p className="films-collection-headline-lead">{data.lead}</p>
-        </header>
+        {data ? (
+          <>
+            <header className="films-collection-headline">
+              <h2 className="films-collection-headline-title">
+                {data.title}
+                <span className="films-collection-headline-cloud" aria-hidden>
+                  ☁
+                </span>
+              </h2>
+              <p className="films-collection-headline-lead">{data.description}</p>
+            </header>
 
-        <div className="films-collection-film-grid">
-          {data.filmIds.map((id) => {
-            const film = getFilmById(id);
-            if (!film) return null;
-            return (
-              <button
-                key={id}
-                type="button"
-                className="films-collection-film-card"
-                onClick={() => navigate(`/practices/films/${film.id}`)}
-              >
-                <div className="films-collection-film-card__poster-wrap">
-                  <img src={film.poster} alt="" className="films-collection-film-card__poster" loading="lazy" />
-                  <PracticeCoverFavorite
-                    isFavorite={favorites.has(film.id)}
-                    onToggle={() => toggleFilmFavorite(film.id)}
-                    ariaLabel={t('pages.meditationModalFavorite')}
-                  />
-                </div>
-                <h3 className="films-collection-film-card__title">{film.title}</h3>
-                <div className="films-collection-film-card__meta">
-                  <span className="films-collection-film-card__star" aria-hidden>
-                    ★
-                  </span>
-                  {film.rating} · {film.year}
-                </div>
-                <span className="films-collection-film-card__tag">{t(`pages.filmPsych_${film.psychTag}`)}</span>
-              </button>
-            );
-          })}
-        </div>
+            <div className="films-collection-film-grid">
+              {collectionFilms.map((film) => (
+                <button
+                  key={film.id}
+                  type="button"
+                  className="films-collection-film-card"
+                  onClick={() => navigate(`/practices/films/${film.id}`)}
+                >
+                  <div className="films-collection-film-card__poster-wrap">
+                    <img src={film.poster} alt="" className="films-collection-film-card__poster" loading="lazy" />
+                    <PracticeCoverFavorite
+                      isFavorite={favorites.has(film.id)}
+                      onToggle={() => toggleFilmFavorite(film.id)}
+                      ariaLabel={t('pages.meditationModalFavorite')}
+                    />
+                    <span className="films-collection-film-card__tag">{t(`pages.filmPsych_${film.psychTag}`)}</span>
+                  </div>
+                  <h3 className="films-collection-film-card__title">{film.title}</h3>
+                  <div className="films-collection-film-card__meta">
+                    <span className="films-collection-film-card__star" aria-hidden>
+                      ★
+                    </span>
+                    {film.rating} · {film.year}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : loading ? null : (
+          <header className="films-collection-headline">
+            <h2 className="films-collection-headline-title">
+              {t('pages.filmsCatalogMindTitle')}
+              <span className="films-collection-headline-cloud" aria-hidden>
+                ☁
+              </span>
+            </h2>
+            <p className="films-collection-headline-lead">Подборка не найдена.</p>
+          </header>
+        )}
       </section>
     </section>
   );

@@ -2,7 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const pool = require('../db');
-const { authMiddleware, adminOnly } = require('../middleware/auth');
+const { authMiddleware, adminOnly, optionalAuthMiddleware } = require('../middleware/auth');
+const { pickTargetRole, pickTargetGender, appendAudienceFilter } = require('../utils/audienceTargeting');
 const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { parseYoutubeUrl } = require('../utils/youtubeUrl');
 const { safeUnlinkUploadPath } = require('../utils/meditationUploadCleanup');
@@ -12,6 +13,11 @@ const {
   parseDurationMin,
   parseBool,
 } = require('../utils/podcastTopics');
+const {
+  normalizePodcastTags,
+  parsePodcastTagsField,
+  legacyTopicFromTags,
+} = require('../utils/podcastTagWhitelist');
 
 const router = express.Router();
 const uploadsAbs = path.join(__dirname, '..', 'uploads');
@@ -82,6 +88,7 @@ function rowToPublicPodcast(row) {
 
   const durationMin = Math.max(1, parseInt(row.duration_min, 10) || 24);
   const durationDisplay = row.duration_display || formatDurationDisplay(durationMin);
+  const tags = normalizePodcastTags(row.tags);
 
   return {
     id: `podcast-${row.podcast_id}`,
@@ -90,7 +97,8 @@ function rowToPublicPodcast(row) {
     showName: row.show_name || '',
     descriptionShort: row.description_short || '',
     metaLine: row.meta_line || '',
-    topic: row.topic || 'psych',
+    topic: row.topic || legacyTopicFromTags(tags) || 'psych',
+    tags,
     episodeNum: Math.max(1, parseInt(row.episode_num, 10) || 1),
     durationMin,
     duration: durationDisplay,
@@ -110,6 +118,8 @@ function rowToPublicPodcast(row) {
         (audioSource === 'youtube' && row.youtube_embed_url)
     ),
     isRemotePodcast: true,
+    target_role: row.target_role || 'all',
+    target_gender: row.target_gender || 'all',
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -165,14 +175,16 @@ function parseAudioPayload(body, files, existingRow) {
   return out;
 }
 
-router.get('/', async (_req, res) => {
+router.get('/', optionalAuthMiddleware, async (req, res) => {
   try {
+    const aud = appendAudienceFilter(req.user, '', 1);
     const r = await pool.query(
-      `SELECT podcast_id, title, show_name, description_short, meta_line, topic, episode_num,
+      `SELECT podcast_id, title, show_name, description_short, meta_line, topic, tags, episode_num,
               duration_min, duration_display, is_featured_pick, cover_url, audio_source,
               audio_file_url, audio_external_url, youtube_embed_url, youtube_video_id,
-              created_at, updated_at
-       FROM podcast_episodes ORDER BY podcast_id ASC`
+              target_role, target_gender, created_at, updated_at
+       FROM podcast_episodes WHERE 1=1${aud.sql} ORDER BY podcast_id ASC`,
+      aud.params
     );
     res.json({ episodes: r.rows.map(rowToPublicPodcast) });
   } catch (e) {
@@ -180,17 +192,18 @@ router.get('/', async (_req, res) => {
   }
 });
 
-router.get('/:podcastKey', async (req, res) => {
+router.get('/:podcastKey', optionalAuthMiddleware, async (req, res) => {
   try {
     const id = parsePodcastPublicId(req.params.podcastKey);
     if (!id) return res.status(404).json({ message: 'Выпуск не найден' });
+    const aud = appendAudienceFilter(req.user, '', 2);
     const r = await pool.query(
-      `SELECT podcast_id, title, show_name, description_short, meta_line, topic, episode_num,
+      `SELECT podcast_id, title, show_name, description_short, meta_line, topic, tags, episode_num,
               duration_min, duration_display, is_featured_pick, cover_url, audio_source,
               audio_file_url, audio_external_url, youtube_embed_url, youtube_video_id,
-              created_at, updated_at
-       FROM podcast_episodes WHERE podcast_id=$1`,
-      [id]
+              target_role, target_gender, created_at, updated_at
+       FROM podcast_episodes WHERE podcast_id=$1${aud.sql}`,
+      [id, ...aud.params]
     );
     if (r.rows.length === 0) return res.status(404).json({ message: 'Выпуск не найден' });
     res.json(rowToPublicPodcast(r.rows[0]));
@@ -221,23 +234,28 @@ router.post(
       const duration_min = parseDurationMin(req.body.duration_min);
       const duration_display =
         String(req.body.duration_display || '').trim() || formatDurationDisplay(duration_min);
+      const tags = parsePodcastTagsField(req.body.tags);
+      const topic = legacyTopicFromTags(tags);
+      const target_role = pickTargetRole(req.body.target_role);
+      const target_gender = pickTargetGender(req.body.target_gender);
 
       const ins = await pool.query(
         `INSERT INTO podcast_episodes (
-          title, show_name, description_short, meta_line, topic, episode_num, duration_min,
+          title, show_name, description_short, meta_line, topic, tags, episode_num, duration_min,
           duration_display, is_featured_pick, cover_url, audio_source, audio_file_url,
-          audio_external_url, youtube_embed_url, youtube_video_id
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
-        RETURNING podcast_id, title, show_name, description_short, meta_line, topic, episode_num,
+          audio_external_url, youtube_embed_url, youtube_video_id, target_role, target_gender
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+        RETURNING podcast_id, title, show_name, description_short, meta_line, topic, tags, episode_num,
                   duration_min, duration_display, is_featured_pick, cover_url, audio_source,
                   audio_file_url, audio_external_url, youtube_embed_url, youtube_video_id,
-                  created_at, updated_at`,
+                  target_role, target_gender, created_at, updated_at`,
         [
           title,
           String(req.body.show_name || '').trim().slice(0, 180),
           String(req.body.description_short ?? '').trim(),
           String(req.body.meta_line ?? '').trim().slice(0, 255),
-          pickTopic(req.body.topic),
+          pickTopic(topic),
+          JSON.stringify(tags),
           Math.max(1, parseInt(req.body.episode_num, 10) || 1),
           duration_min,
           duration_display,
@@ -248,6 +266,8 @@ router.post(
           audio.audio_external_url || '',
           audio.youtube_embed_url || '',
           audio.youtube_video_id || '',
+          target_role,
+          target_gender,
         ]
       );
 
@@ -291,8 +311,18 @@ router.patch(
       if (Object.prototype.hasOwnProperty.call(req.body, 'meta_line')) {
         patch.meta_line = String(req.body.meta_line ?? '').trim().slice(0, 255);
       }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'topic')) {
+      if (Object.prototype.hasOwnProperty.call(req.body, 'tags')) {
+        const tags = parsePodcastTagsField(req.body.tags);
+        patch.tags = JSON.stringify(tags);
+        patch.topic = pickTopic(legacyTopicFromTags(tags), existing.topic);
+      } else if (Object.prototype.hasOwnProperty.call(req.body, 'topic')) {
         patch.topic = pickTopic(req.body.topic, existing.topic);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'target_role')) {
+        patch.target_role = pickTargetRole(req.body.target_role);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'target_gender')) {
+        patch.target_gender = pickTargetGender(req.body.target_gender);
       }
       if (Object.prototype.hasOwnProperty.call(req.body, 'episode_num')) {
         patch.episode_num = Math.max(1, parseInt(req.body.episode_num, 10) || 1);
@@ -345,7 +375,7 @@ router.patch(
       const upd = await pool.query(
         `UPDATE podcast_episodes SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP
          WHERE podcast_id=$${keys.length + 1}
-         RETURNING podcast_id, title, show_name, description_short, meta_line, topic, episode_num,
+         RETURNING podcast_id, title, show_name, description_short, meta_line, topic, tags, episode_num,
                    duration_min, duration_display, is_featured_pick, cover_url, audio_source,
                    audio_file_url, audio_external_url, youtube_embed_url, youtube_video_id,
                    created_at, updated_at`,

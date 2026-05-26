@@ -33,8 +33,10 @@
 
 /* Страница одного события: шире контейнер практик, отступы как у хаба событий */
 .practices-page--event-detail {
-  max-width: 1220px;
-  padding: 12px clamp(10px, 2.5vw, 20px) 48px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
 }
 
 .practices-page--film-detail {
@@ -241,12 +243,12 @@
 }
 
 .practice-card-fav:hover {
-  color: #e11d48;
-  background: rgba(244, 63, 94, 0.08);
+  color: #6a8ad6;
+  background: rgba(130, 165, 235, 0.12);
 }
 
 .practice-card-fav.is-on {
-  color: #e11d48;
+  color: #82a5eb;
 }
 
 /* Heart on media covers (films, books, music moods, podcasts) — как в медитации */
@@ -265,12 +267,13 @@
 }
 
 .hub-cover-fav.practice-card-fav--cover:hover {
-  color: #475569;
+  color: #6a8ad6;
   background: rgba(255, 255, 255, 0.98);
 }
 
 .hub-cover-fav.practice-card-fav--cover.is-on {
-  color: #e11d48;
+  color: #82a5eb;
+  box-shadow: 0 4px 16px rgba(130, 165, 235, 0.26);
 }
 
 [data-theme='dark'] .hub-cover-fav.practice-card-fav--cover {
@@ -284,7 +287,7 @@
 }
 
 [data-theme='dark'] .hub-cover-fav.practice-card-fav--cover.is-on {
-  color: #fb7185;
+  color: #9db4ed;
 }
 
 .practice-card-title {
@@ -519,9 +522,17 @@
   aspect-ratio: 1;
   max-height: 200px;
   border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.12);
+}
+
+.practices-modal-meditation-cover-media {
+  width: 100%;
+  height: 100%;
+  display: block;
   background-size: cover;
   background-position: center;
-  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.12);
+  object-fit: cover;
 }
 
 .practices-modal-meditation-title {
@@ -680,6 +691,51 @@
 
 .pr-meditation-time:last-child {
   text-align: right;
+}
+
+.pr-meditation-track-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.pr-meditation-track-wrap .pr-meditation-track {
+  width: 100%;
+  pointer-events: none;
+}
+
+.pr-meditation-seek {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+.pr-meditation-seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+}
+
+.pr-meditation-seek::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: transparent;
 }
 
 .pr-meditation-track {
@@ -4685,7 +4741,7 @@
   position: relative;
   z-index: 4;
   max-width: 1100px;
-  margin: -56px auto 0;
+  margin: -18px auto 0;
   padding: 0 20px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -5066,7 +5122,7 @@
   padding: 0;
 }
 
-.music-hub--embedded .music-hub-head,
+.music-hub--embedded .music-hub-catalog-header,
 .music-hub--embedded .music-hub-hero {
   display: none;
 }
@@ -5921,32 +5977,74 @@
   background: #fff;
 }
 
-.meditation-hub-banner {
-  padding-top: clamp(18px, 3.2vw, 32px);
-  margin-bottom: clamp(28px, 4vw, 44px);
+.meditation-hub-catalog-header {
+  position: relative;
+  max-width: none;
+  margin-bottom: clamp(22px, 3vw, 34px);
 }
 
-.meditation-hub-banner-head {
-  width: min(1200px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 0 clamp(12px, 2.8vw, 22px);
-  box-sizing: border-box;
+.meditation-hub-mock {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  overflow: hidden;
 }
 
-.meditation-hub .practices-landing-hero--airy {
-  margin-top: clamp(14px, 2.4vw, 22px);
-  min-height: max(0px, calc(min(72vh, 620px) - 2cm));
+.meditation-hub-hero-stage {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
 }
 
-.meditation-hub .practices-landing-hero-inner--airy {
-  min-height: max(0px, calc(min(72vh, 620px) - 2cm));
+.meditation-hub-hero-photo {
+  position: relative;
+  width: 100%;
+  min-height: max(140px, calc(clamp(220px, 16vw, 380px) - 3cm));
+  background-color: #c5e8f6;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+
+.meditation-hub-sheet {
+  position: relative;
+  margin-top: -52px;
+  background: #ffffff;
+  border-radius: 42px 42px 0 0;
+  box-shadow:
+    0 -8px 32px rgba(15, 23, 42, 0.06),
+    0 0 0 1px rgba(15, 23, 42, 0.04) inset;
+  padding: 28px clamp(16px, 3vw, 34px) 20px;
+  z-index: 2;
+  overflow: visible;
+}
+
+.meditation-hub-sheet--embedded {
+  margin-top: 0;
+  border-radius: 24px 24px 0 0;
+  box-shadow: none;
+}
+
+.meditation-hub-sheet-notch {
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #9db4ed 0%, #82a5eb 52%, #6a8ad6 100%);
+  box-shadow:
+    0 8px 22px rgba(130, 165, 235, 0.4),
+    0 0 0 4px rgba(255, 255, 255, 0.95);
+  z-index: 2;
 }
 
 .meditation-formats {
   position: relative;
-  max-width: 1220px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: clamp(28px, 4vw, 48px) 24px clamp(36px, 5vw, 56px);
+  padding: 8px 0 clamp(36px, 5vw, 56px);
   overflow: hidden;
 }
 
@@ -6082,8 +6180,36 @@
 }
 
 .meditation-hub-back {
+  position: absolute;
+  top: clamp(12px, 2.8vw, 22px);
+  left: clamp(12px, 2.8vw, 22px);
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   margin: 0;
-  padding: 0;
+  padding: 8px 16px 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 24px rgba(30, 60, 90, 0.14);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  color: #2b82b2;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.meditation-hub-back:hover {
+  color: #236d96;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.meditation-hub-back:focus-visible {
+  outline: 2px solid rgba(43, 130, 178, 0.45);
+  outline-offset: 2px;
 }
 
 .meditation-hub-hero {
@@ -6178,6 +6304,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .meditation-hub-sheet {
+    margin-top: -40px;
+    border-radius: 32px 32px 0 0;
+  }
+
   .meditation-hub-hero {
     grid-template-columns: 1fr;
   }
@@ -6203,9 +6334,22 @@
     padding-right: 12px;
   }
 
-  .meditation-formats {
+  .meditation-hub-sheet {
+    margin-top: -34px;
+    border-radius: 28px 28px 0 0;
     padding-left: 12px;
     padding-right: 12px;
+  }
+
+  .meditation-hub-sheet-notch {
+    top: -22px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .meditation-formats {
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .meditation-formats-head {
@@ -6284,6 +6428,11 @@
   border: none;
   color: #64748b;
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .hub-cover-cards .practice-card-fav--cover:hover {
@@ -6291,8 +6440,30 @@
   background: rgba(255, 255, 255, 0.98);
 }
 
+.hub-cover-cards .practice-card-fav--cover:active {
+  transform: scale(0.92);
+}
+
 .hub-cover-cards .practice-card-fav--cover.is-on {
   color: var(--med-dash-accent);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 4px 16px rgba(130, 165, 235, 0.28);
+}
+
+.hub-cover-cards .practice-card-fav--cover.is-on svg {
+  animation: practice-fav-heart-pop 0.35s ease;
+}
+
+@keyframes practice-fav-heart-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .hub-cover-cards .practice-card-duration--cover {
@@ -6497,6 +6668,13 @@
   background: transparent;
 }
 
+[data-theme='dark'] .meditation-hub-sheet {
+  background: var(--bg-card, #111827);
+  box-shadow:
+    0 -10px 32px rgba(2, 6, 23, 0.32),
+    0 0 0 1px rgba(148, 163, 184, 0.08) inset;
+}
+
 [data-theme='dark'] .meditation-formats-title {
   color: #f1f5f9;
 }
@@ -6578,6 +6756,12 @@
 [data-theme='dark'] .events-hub-back:not(.events-hub-back--ghost),
 [data-theme='dark'] .flix-back {
   color: #7dd3fc;
+}
+
+[data-theme='dark'] .meditation-hub-back {
+  background: rgba(28, 36, 48, 0.88);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
 }
 
 [data-theme='dark'] .practices-sub-back:hover,

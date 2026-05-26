@@ -8,6 +8,9 @@ import {
   BOOK_FILTER_OPTIONS,
   READING_KIND_OPTIONS,
 } from '../Practices/articlesHubData';
+import AdminAudienceFields from './AdminAudienceFields';
+import AdminModalPortal from './AdminModalPortal';
+import { emptyAudienceFields } from './audienceTargeting';
 import './Admin.css';
 
 function extractApiError(e) {
@@ -37,6 +40,7 @@ const initialForm = () => ({
   body_full: '',
   read_url: '',
   coverFile: null,
+  ...emptyAudienceFields(),
 });
 
 function CategoryChipGroup({ label, options, value, onChange, t }) {
@@ -141,6 +145,8 @@ export default function AdminReading({ embedded = false }) {
       body_full: row.bodyFull || '',
       read_url: row.kind === 'book' ? row.readUrl || '' : row.sourceUrl || '',
       coverFile: null,
+      target_role: row.target_role || 'all',
+      target_gender: row.target_gender || 'all',
     });
     setError('');
     setModalOpen(true);
@@ -194,6 +200,8 @@ export default function AdminReading({ embedded = false }) {
       } else {
         fd.append('read_url', normalizeUrl(form.read_url));
       }
+      fd.append('target_role', form.target_role || 'all');
+      fd.append('target_gender', form.target_gender || 'all');
 
       if (!editingId) {
         if (!form.coverFile) {
@@ -309,8 +317,9 @@ export default function AdminReading({ embedded = false }) {
       </div>
 
       {modalOpen ? (
+        <AdminModalPortal>
         <div
-          className="modal-overlay"
+          className="modal-overlay admin-modal-overlay"
           role="presentation"
           onMouseDown={(e) => e.target === e.currentTarget && closeModal()}>
           <div
@@ -422,6 +431,11 @@ export default function AdminReading({ embedded = false }) {
                 </label>
               )}
 
+              <AdminAudienceFields
+                value={{ target_role: form.target_role, target_gender: form.target_gender }}
+                onChange={(aud) => setForm((prev) => ({ ...prev, ...aud }))}
+              />
+
               <div className="modal-actions" style={{ marginTop: 24 }}>
                 <button type="button" className="btn btn-secondary" onClick={closeModal} disabled={saving}>
                   Отмена
@@ -433,6 +447,7 @@ export default function AdminReading({ embedded = false }) {
             </form>
           </div>
         </div>
+        </AdminModalPortal>
       ) : null}
     </div>
   );

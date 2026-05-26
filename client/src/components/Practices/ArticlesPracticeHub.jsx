@@ -27,8 +27,6 @@ import { backendPublicUrl } from '../../utils/assetUrl';
 import { useLanguage } from '../../context/LanguageContext';
 import filmsCatalogHeroPhoto from '../../assets/films-catalog-hero-clouds.png';
 import {
-  ARTICLES_LIBRARY,
-  BOOKS_LIBRARY,
   buildShelves,
   filterReadingList,
   mapRemoteArticlePayload,
@@ -126,16 +124,18 @@ function ArticlesPracticeHub({ embedded = false }) {
     };
   }, []);
 
-  const readingPool = useMemo(
-    () => [...ARTICLES_LIBRARY, ...remoteArticles, ...BOOKS_LIBRARY, ...remoteBooks],
-    [remoteArticles, remoteBooks]
-  );
+  const readingPool = useMemo(() => [...remoteArticles, ...remoteBooks], [remoteArticles, remoteBooks]);
 
   const filterItems = kind === 'article' ? ARTICLE_FILTER_ITEMS : BOOK_FILTER_ITEMS;
 
-  const shelves = useMemo(
-    () => buildShelves(filterReadingList(readingPool, kind, pill)),
+  const filteredReadingPool = useMemo(
+    () => filterReadingList(readingPool, kind, pill),
     [readingPool, kind, pill]
+  );
+
+  const shelves = useMemo(
+    () => buildShelves(filteredReadingPool),
+    [filteredReadingPool]
   );
 
   const shelfMeta = kind === 'article' ? SHELF_META_ARTICLES : SHELF_META_BOOKS;
@@ -194,7 +194,12 @@ function ArticlesPracticeHub({ embedded = false }) {
                       className={`articles-hub-type-tab ${kind === 'article' ? 'is-active' : ''}`}
                       onClick={() => setKindResetPill('article')}
                     >
-                      {t('pages.articlesHubTabArticles')}
+                      <span className="articles-hub-type-tab-icon" aria-hidden>
+                        <BookOpen size={20} strokeWidth={2.1} />
+                      </span>
+                      <span className="articles-hub-type-tab-copy">
+                        <strong>{t('pages.articlesHubTabArticles')}</strong>
+                      </span>
                     </button>
                     <button
                       type="button"
@@ -203,7 +208,12 @@ function ArticlesPracticeHub({ embedded = false }) {
                       className={`articles-hub-type-tab ${kind === 'book' ? 'is-active' : ''}`}
                       onClick={() => setKindResetPill('book')}
                     >
-                      {t('pages.articlesHubTabBooks')}
+                      <span className="articles-hub-type-tab-icon" aria-hidden>
+                        <BookMarked size={20} strokeWidth={2.1} />
+                      </span>
+                      <span className="articles-hub-type-tab-copy">
+                        <strong>{t('pages.articlesHubTabBooks')}</strong>
+                      </span>
                     </button>
                   </div>
 
@@ -241,49 +251,53 @@ function ArticlesPracticeHub({ embedded = false }) {
         </header>
 
         <div className="articles-hub-shelves">
-          {shelfMeta.map((shelf, shelfIdx) => (
-            <section key={shelf.id} id={`reading-shelf-${shelfIdx}`} className="articles-books-shelf-section">
-              <div className="articles-books-shelf-head">
-                <h2 className="articles-books-shelf-title">{t(`pages.${shelf.titleKey}`)}</h2>
-              </div>
-
-              <div className="articles-books-shelf-row-wrap">
-                <div className="articles-books-shelf-row">
-                  {shelves[shelfIdx].map((item, i) => (
-                    <button
-                      key={`${shelf.id}-${item.id}-${i}`}
-                      type="button"
-                      className="articles-books-card"
-                      onClick={() =>
-                        kind === 'article'
-                          ? navigate(`/practices/articles/read/${item.id}`)
-                          : navigate(`/practices/articles/book/${item.id}`)
-                      }
-                    >
-                      <div className="articles-books-card-stack">
-                        <div className="articles-books-card-page-shadow" aria-hidden />
-                        <div className="articles-books-card-poster-wrap">
-                          <div
-                            className="articles-books-card-poster"
-                            style={{ backgroundImage: `url(${item.image})` }}
-                            aria-hidden
-                          />
-                          <PracticeCoverFavorite
-                            isFavorite={favorites.has(item.id)}
-                            onToggle={() => toggleReadingFavorite(item.id)}
-                            ariaLabel={t('pages.meditationModalFavorite')}
-                          />
-                          <span className="articles-books-card-tag">{readingItemCategoryLabel(item, t)}</span>
-                        </div>
-                      </div>
-                      <h3 className="articles-books-card-title">{readingItemTitle(item, t)}</h3>
-                    </button>
-                  ))}
+          {filteredReadingPool.length === 0 ? (
+            <p className="flix-catalog-empty">{t('pages.readingNoMatches')}</p>
+          ) : (
+            shelfMeta.map((shelf, shelfIdx) => (
+              <section key={shelf.id} id={`reading-shelf-${shelfIdx}`} className="articles-books-shelf-section">
+                <div className="articles-books-shelf-head">
+                  <h2 className="articles-books-shelf-title">{t(`pages.${shelf.titleKey}`)}</h2>
                 </div>
-                <div className="articles-books-shelf-board" aria-hidden />
-              </div>
-            </section>
-          ))}
+
+                <div className="articles-books-shelf-row-wrap">
+                  <div className="articles-books-shelf-row">
+                    {shelves[shelfIdx].map((item, i) => (
+                      <button
+                        key={`${shelf.id}-${item.id}-${i}`}
+                        type="button"
+                        className="articles-books-card"
+                        onClick={() =>
+                          kind === 'article'
+                            ? navigate(`/practices/articles/read/${item.id}`)
+                            : navigate(`/practices/articles/book/${item.id}`)
+                        }
+                      >
+                        <div className="articles-books-card-stack">
+                          <div className="articles-books-card-page-shadow" aria-hidden />
+                          <div className="articles-books-card-poster-wrap">
+                            <div
+                              className="articles-books-card-poster"
+                              style={{ backgroundImage: `url(${item.image})` }}
+                              aria-hidden
+                            />
+                            <PracticeCoverFavorite
+                              isFavorite={favorites.has(item.id)}
+                              onToggle={() => toggleReadingFavorite(item.id)}
+                              ariaLabel={t('pages.meditationModalFavorite')}
+                            />
+                            <span className="articles-books-card-tag">{readingItemCategoryLabel(item, t)}</span>
+                          </div>
+                        </div>
+                        <h3 className="articles-books-card-title">{readingItemTitle(item, t)}</h3>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="articles-books-shelf-board" aria-hidden />
+                </div>
+              </section>
+            ))
+          )}
         </div>
       </div>
     </section>

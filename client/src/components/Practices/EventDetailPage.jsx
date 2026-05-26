@@ -21,6 +21,12 @@ import api from '../../utils/api';
 import { backendPublicUrl } from '../../utils/assetUrl';
 import { spaceSectionHref } from './practiceSpaceConfig';
 import {
+  FAVORITES_KEYS,
+  loadSectionFavorites,
+  saveSectionFavorites,
+  toggleInFavoriteSet,
+} from './sectionFavorites';
+import {
   EVENT_DETAILS,
   eventCardCategory,
   eventCardTitle,
@@ -37,7 +43,7 @@ function EventDetailPage() {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [fav, setFav] = useState(false);
+  const [favorites, setFavorites] = useState(() => loadSectionFavorites(FAVORITES_KEYS.events));
 
   const staticEvent = useMemo(() => findEventById(eventId), [eventId]);
   const fetchRemote = Boolean(eventId && !staticEvent && isRemoteEventId(eventId));
@@ -78,6 +84,11 @@ function EventDetailPage() {
 
   const dateLine = useMemo(() => (event ? eventDateLine(event, t) : ''), [event, t]);
   const isGroup = useMemo(() => eventIsGroup(event), [event]);
+  const isFavorite = Boolean(event && favorites.has(event.id));
+
+  useEffect(() => {
+    saveSectionFavorites(FAVORITES_KEYS.events, favorites);
+  }, [favorites]);
 
   const share = useCallback(async () => {
     const url = window.location.href;
@@ -131,15 +142,6 @@ function EventDetailPage() {
 
   return (
     <div className="event-detail">
-      <button
-        type="button"
-        className="event-detail-back-text"
-        onClick={() => navigate(spaceSectionHref('events'))}
-      >
-        <ArrowLeft size={18} strokeWidth={2.2} aria-hidden />
-        {t('pages.practicesBack')}
-      </button>
-
       <header className="event-detail-hero">
         <div
           className="event-detail-hero-bg"
@@ -150,21 +152,22 @@ function EventDetailPage() {
         <div className="event-detail-hero-toolbar">
           <button
             type="button"
-            className="event-detail-icon-btn event-detail-icon-btn--ghost-mobile"
+            className="event-detail-back-overlay"
             onClick={() => navigate(spaceSectionHref('events'))}
             aria-label={t('pages.practicesBack')}
           >
-            <ArrowLeft size={20} strokeWidth={2.2} />
+            <ArrowLeft size={18} strokeWidth={2.2} aria-hidden />
+            <span>{t('pages.practicesBack')}</span>
           </button>
           <div className="event-detail-hero-actions">
             <button
               type="button"
-              className="event-detail-icon-btn"
-              onClick={() => setFav((v) => !v)}
+              className={`event-detail-icon-btn ${isFavorite ? 'is-on' : ''}`}
+              onClick={() => setFavorites((prev) => toggleInFavoriteSet(prev, event.id))}
               aria-label={t('pages.eventsDetailFavoriteAria')}
-              aria-pressed={fav}
+              aria-pressed={isFavorite}
             >
-              <Heart size={20} strokeWidth={2.2} fill={fav ? 'currentColor' : 'none'} />
+              <Heart size={20} strokeWidth={2.2} fill={isFavorite ? 'currentColor' : 'none'} />
             </button>
             <button
               type="button"

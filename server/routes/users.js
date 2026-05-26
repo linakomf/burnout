@@ -8,6 +8,7 @@ const { computeTestResult } = require('../scoring');
 const { bucketFromPercent, normalizeRiskLevel } = require('../utils/burnoutRisk');
 const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { normalizeRegisterAvatar, normalizeGender } = require('../utils/registerProfile');
+const { mapUserNotificationRow } = require('../utils/userNotifications');
 const multer = require('multer');
 const path = require('path');
 
@@ -145,6 +146,56 @@ router.put('/me', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
+router.get('/notifications', authMiddleware, async (req, res) => {
+  const userId = parseInt(req.user.user_id, 10);
+  const rawLimit = parseInt(req.query?.limit, 10);
+  const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 100) : 50;
+
+  if (!Number.isFinite(userId)) {
+    return res.status(400).json({ message: 'Некорректная сессия - войдите снова' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT notification_id, user_id, type, title, body, payload, is_read, read_at, created_at
+       FROM user_notifications
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT $2`,
+      [userId, limit]
+    );
+    const rows = result.rows.map(mapUserNotificationRow);
+    res.json({
+      rows,
+      unread_count: rows.reduce((sum, row) => sum + (row.is_read ? 0 : 1), 0)
+    });
+  } catch (err) {
+    console.error('[notifications list]', err);
+    res.status(500).json({ message: 'Не удалось загрузить уведомления' });
+  }
+});
+
+router.patch('/notifications/read-all', authMiddleware, async (req, res) => {
+  const userId = parseInt(req.user.user_id, 10);
+  if (!Number.isFinite(userId)) {
+    return res.status(400).json({ message: 'Некорректная сессия - войдите снова' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE user_notifications
+       SET is_read = TRUE,
+           read_at = COALESCE(read_at, CURRENT_TIMESTAMP)
+       WHERE user_id = $1 AND is_read = FALSE`,
+      [userId]
+    );
+    res.json({ ok: true, updated: result.rowCount || 0 });
+  } catch (err) {
+    console.error('[notifications read-all]', err);
+    res.status(500).json({ message: 'Не удалось обновить уведомления' });
   }
 });
 

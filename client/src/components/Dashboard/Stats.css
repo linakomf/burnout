@@ -27,14 +27,7 @@
 }
 
 .analytics-page::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(180, 208, 248, 0.45) 0%, transparent 55%),
-    linear-gradient(180deg, #eef2f9 0%, #f5f7fb 45%, #eef1f6 100%);
+  display: none;
 }
 
 .analytics-page > * {
@@ -707,9 +700,7 @@
 }
 
 [data-theme='dark'] .analytics-page::before {
-  background:
-    radial-gradient(ellipse 120% 80% at 50% -15%, rgba(60, 100, 170, 0.25) 0%, transparent 55%),
-    linear-gradient(180deg, #11161d 0%, #151b24 55%, #10151c 100%);
+  display: none;
 }
 
 [data-theme='dark'] .analytics-segment {

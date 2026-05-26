@@ -1,12 +1,17 @@
 import { backendPublicUrl } from '../../utils/assetUrl';
+import {
+  MUSIC_FILTER_GENRE_OPTIONS,
+  MUSIC_FILTER_MOOD_OPTIONS,
+} from './musicHubFilters';
 import { natureAt, spaceNature } from './spaceNatureImagery';
 
-export const MUSIC_MOOD_OPTIONS = [
-  { id: 'calm', labelKey: 'musicMoodCalm' },
-  { id: 'focus', labelKey: 'musicMoodFocus' },
-  { id: 'sleep', labelKey: 'musicMoodSleep' },
-  { id: 'mood', labelKey: 'musicMoodMorning' },
-];
+export {
+  MUSIC_FILTER_MOOD_OPTIONS,
+  MUSIC_FILTER_GENRE_OPTIONS,
+} from './musicHubFilters';
+
+export const MUSIC_MOOD_OPTIONS = MUSIC_FILTER_MOOD_OPTIONS.filter((o) => o.id != null);
+export const MUSIC_GENRE_OPTIONS = MUSIC_FILTER_GENRE_OPTIONS.filter((o) => o.id != null);
 
 export const MUSIC_KIND_OPTIONS = [
   { id: 'track', label: 'Трек (рекомендации)' },
@@ -40,8 +45,9 @@ export function mapRemoteMusicTrack(row, toUrl) {
     kind: row.kind || 'track',
     title: row.title || '',
     artist: row.artist || '',
-    mood: row.mood || 'calm',
-    genreLabel: row.genreLabel || '',
+    mood: row.mood || 'calm_down',
+    genre: row.genre_label || row.genreLabel || '',
+    genreLabel: row.genre_label || row.genreLabel || '',
     titleKey: null,
     artistKey: null,
     genreKey: null,
@@ -55,6 +61,7 @@ export function mapRemoteMusicTrack(row, toUrl) {
     descriptionShort: row.descriptionShort || '',
     hasAudio: Boolean(row.hasAudio),
     isRemoteMusic: true,
+    isFeaturedPick: Boolean(row.isFeaturedPick),
   };
 }
 
@@ -84,6 +91,9 @@ export function musicArtist(item, t) {
 }
 
 export function musicGenre(item, t) {
+  const slug = item.genre || item.genreLabel;
+  const genreOpt = MUSIC_FILTER_GENRE_OPTIONS.find((o) => o.id === slug);
+  if (genreOpt) return t(`pages.${genreOpt.labelKey}`);
   if (item.genreLabel) return item.genreLabel;
   if (item.genreKey) return t(`pages.${item.genreKey}`);
   if (item.kind === 'quick') return t('pages.musicQuickSoundGenre');
@@ -128,7 +138,8 @@ export const MUSIC_TRACKS = [
     titleKey: 'musicTrack1Title',
     artistKey: 'musicTrack1Artist',
     genreKey: 'musicTrackGenreAmbient',
-    mood: 'focus',
+    mood: 'concentration',
+    genre: 'lofi',
     durationShort: '3:00',
     poster: natureAt(200),
     embedUrl: 'https://www.youtube-nocookie.com/embed/jfKfPfyJRdk',
@@ -139,7 +150,8 @@ export const MUSIC_TRACKS = [
     titleKey: 'musicTrack2Title',
     artistKey: 'musicTrack2Artist',
     genreKey: 'musicTrackGenreInstrumental',
-    mood: 'calm',
+    mood: 'calm_down',
+    genre: 'piano',
     durationShort: '3:45',
     poster: MUSIC_FEATURED_POSTER,
     embedUrl: 'https://www.youtube-nocookie.com/embed/lTRiuFIWV54',
@@ -150,7 +162,8 @@ export const MUSIC_TRACKS = [
     titleKey: 'musicTrack3Title',
     artistKey: 'musicTrack3Artist',
     genreKey: 'musicTrackGenreNature',
-    mood: 'sleep',
+    mood: 'rest',
+    genre: 'nature_sounds',
     durationShort: '4:12',
     poster: natureAt(202),
     embedUrl: 'https://www.youtube-nocookie.com/embed/nDq6TstdEi8',
@@ -161,7 +174,8 @@ export const MUSIC_TRACKS = [
     titleKey: 'musicTrack4Title',
     artistKey: 'musicTrack4Artist',
     genreKey: 'musicTrackGenreAcoustic',
-    mood: 'mood',
+    mood: 'motivation',
+    genre: 'acoustic',
     durationShort: '3:28',
     poster: natureAt(203),
     embedUrl: 'https://www.youtube-nocookie.com/embed/Dx5qFachd3A',
@@ -172,7 +186,8 @@ export const MUSIC_TRACKS = [
     titleKey: 'musicTrack5Title',
     artistKey: 'musicTrack5Artist',
     genreKey: 'musicTrackGenreAmbient',
-    mood: 'calm',
+    mood: 'recovery',
+    genre: 'ambient',
     durationShort: '2:55',
     poster: natureAt(204),
     embedUrl: 'https://www.youtube-nocookie.com/embed/1ZYbU82GVz4',
@@ -183,7 +198,8 @@ export const MUSIC_TRACKS = [
     titleKey: 'musicTrack6Title',
     artistKey: 'musicTrack6Artist',
     genreKey: 'musicTrackGenrePiano',
-    mood: 'focus',
+    mood: 'concentration',
+    genre: 'piano',
     durationShort: '4:01',
     poster: natureAt(205),
     embedUrl: 'https://www.youtube-nocookie.com/embed/LlvU9GiZlgM',
@@ -198,47 +214,56 @@ export const FEATURED_TRACK_ID = 'm2';
 export const MOOD_PLAYLISTS = [
   {
     id: 'mp-calm',
-    mood: 'calm',
+    mood: 'calm_down',
     labelKey: 'musicMoodCalm',
     tracksCount: 12,
     image: MUSIC_HERO_IMG,
   },
   {
     id: 'mp-focus',
-    mood: 'focus',
+    mood: 'concentration',
     labelKey: 'musicMoodFocus',
     tracksCount: 8,
     image: natureAt(206),
   },
   {
     id: 'mp-morning',
-    mood: 'mood',
+    mood: 'morning',
     labelKey: 'musicMoodMorning',
     tracksCount: 10,
     image: natureAt(207),
   },
   {
     id: 'mp-sleep',
-    mood: 'sleep',
+    mood: 'rest',
     labelKey: 'musicMoodSleep',
     tracksCount: 9,
     image: natureAt(208),
   },
   {
     id: 'mp-energy',
-    mood: 'mood',
+    mood: 'motivation',
     labelKey: 'musicMoodEnergy',
     tracksCount: 7,
     image: natureAt(209),
   },
-  {
-    id: 'mp-nature',
-    mood: 'calm',
-    labelKey: 'musicMoodNature',
-    tracksCount: 15,
-    image: natureAt(210),
-  },
 ];
+
+/** Подборки с API → карточки на странице */
+export function mapHubCollection(row) {
+  if (!row) return null;
+  const trackIds = Array.isArray(row.trackIds) ? row.trackIds : [];
+  return {
+    id: row.id || row.slug,
+    slug: row.slug || row.id,
+    title: row.title || '',
+    mood: row.mood,
+    labelKey: row.labelKey,
+    trackIds,
+    tracksCount: row.tracksCount ?? trackIds.length ?? 0,
+    image: row.image ? backendPublicUrl(row.image) : MUSIC_HERO_IMG,
+  };
+}
 
 /** Быстрые звуки: иконка lucide-имени + embed */
 export const QUICK_SOUNDS = [
@@ -305,52 +330,6 @@ export const QUICK_SOUNDS = [
     poster: natureAt(227),
     embedUrl: 'https://www.youtube-nocookie.com/embed/mFjUklCiogI',
     watchUrl: 'https://www.youtube.com/watch?v=mFjUklCiogI',
-  },
-];
-
-/** Выбор по состоянию → подсветка настроения в подборках */
-export const STATE_CARDS = [
-  {
-    id: 'st-anxiety',
-    mood: 'calm',
-    labelKey: 'musicStateAnxiety',
-    descKey: 'musicStateAnxietyDesc',
-    tint: 'linear-gradient(135deg, #ede9fe 0%, #faf5ff 100%)',
-  },
-  {
-    id: 'st-fatigue',
-    mood: 'sleep',
-    labelKey: 'musicStateFatigue',
-    descKey: 'musicStateFatigueDesc',
-    tint: 'linear-gradient(135deg, #d1fae5 0%, #ecfdf5 100%)',
-  },
-  {
-    id: 'st-focus',
-    mood: 'focus',
-    labelKey: 'musicStateFocus',
-    descKey: 'musicStateFocusDesc',
-    tint: 'linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%)',
-  },
-  {
-    id: 'st-burnout',
-    mood: 'calm',
-    labelKey: 'musicStateBurnout',
-    descKey: 'musicStateBurnoutDesc',
-    tint: 'linear-gradient(135deg, #fce7f3 0%, #fdf2f8 100%)',
-  },
-  {
-    id: 'st-mood',
-    mood: 'mood',
-    labelKey: 'musicStateMood',
-    descKey: 'musicStateMoodDesc',
-    tint: 'linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%)',
-  },
-  {
-    id: 'st-over',
-    mood: 'focus',
-    labelKey: 'musicStateOver',
-    descKey: 'musicStateOverDesc',
-    tint: 'linear-gradient(135deg, #cffafe 0%, #ecfeff 100%)',
   },
 ];
 

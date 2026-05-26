@@ -30,6 +30,11 @@ async function ensurePodcastsSchema() {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS podcast_episodes_pick_idx ON podcast_episodes (is_featured_pick);
   `);
+
+  await pool.query(`
+    ALTER TABLE podcast_episodes
+    ADD COLUMN IF NOT EXISTS tags JSONB NOT NULL DEFAULT '{}'::jsonb;
+  `);
 }
 
 module.exports = { ensurePodcastsSchema };

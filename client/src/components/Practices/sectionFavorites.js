@@ -5,6 +5,7 @@ export const FAVORITES_KEYS = {
   reading: 'burnout:reading-favorites',
   music: 'burnout:music-favorites',
   podcasts: 'burnout:podcast-favorites',
+  events: 'burnout:event-favorites',
 };
 
 export function loadSectionFavorites(storageKey) {
@@ -32,6 +33,7 @@ export function loadAllSectionFavoriteSets() {
     reading: loadSectionFavorites(FAVORITES_KEYS.reading),
     music: loadSectionFavorites(FAVORITES_KEYS.music),
     podcasts: loadSectionFavorites(FAVORITES_KEYS.podcasts),
+    events: loadSectionFavorites(FAVORITES_KEYS.events),
   };
 }
 

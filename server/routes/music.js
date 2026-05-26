@@ -2,7 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const pool = require('../db');
-const { authMiddleware, adminOnly } = require('../middleware/auth');
+const { authMiddleware, adminOnly, optionalAuthMiddleware } = require('../middleware/auth');
+const { pickTargetRole, pickTargetGender, appendAudienceFilter } = require('../utils/audienceTargeting');
 const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { parseYoutubeUrl } = require('../utils/youtubeUrl');
 const { safeUnlinkUploadPath } = require('../utils/meditationUploadCleanup');
@@ -12,11 +13,18 @@ const {
   pickIcon,
   formatDurationDisplay,
 } = require('../utils/musicMoods');
+const { moodsForPersonalizationLikes, trackMatchesPersonalMoods } = require('../utils/musicPersonalization');
+const {
+  parseMusicPublicId: parseTrackPublicId,
+  slugifyTitle,
+  parsePublicTrackIds,
+} = require('../utils/musicCollectionTracks');
 
 const router = express.Router();
 const uploadsAbs = path.join(__dirname, '..', 'uploads');
 
 const AUDIO_SOURCES = new Set(['file', 'youtube', 'url']);
+const MAX_TRACK_DURATION_MIN = 1440;
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsAbs),
@@ -49,6 +57,86 @@ const upload = multer({
 
 function apiErrorMessage(e) {
   return dbErrorToMessage(e) || e?.message || 'Ошибка сервера';
+}
+
+function parseBool(raw) {
+  if (raw === true || raw === 1) return true;
+  const s = String(raw ?? '').trim().toLowerCase();
+  return s === '1' || s === 'true' || s === 'yes' || s === 'on';
+}
+
+async function loadUserPersonalizationLikes(userId) {
+  if (!userId) return [];
+  try {
+    const r = await pool.query(
+      'SELECT daily_personalization_json FROM users WHERE user_id = $1',
+      [userId]
+    );
+    const raw = r.rows[0]?.daily_personalization_json;
+    if (!raw) return [];
+    const likes = typeof raw === 'object' && raw !== null ? raw.likes : null;
+    return Array.isArray(likes) ? likes : [];
+  } catch {
+    return [];
+  }
+}
+
+async function clearFeaturedPickExcept(musicDbId) {
+  await pool.query(
+    `UPDATE music_items SET is_featured_pick = false
+     WHERE is_featured_pick = true AND ($1::int IS NULL OR music_id <> $1)`,
+    [musicDbId ?? null]
+  );
+}
+
+function rowToCollection(row, trackIds = []) {
+  const ids = Array.isArray(trackIds) ? trackIds : [];
+  return {
+    id: row.slug,
+    slug: row.slug,
+    collectionId: row.collection_id,
+    title: row.title || row.label_key || '',
+    labelKey: row.label_key || '',
+    mood: row.mood || 'calm_down',
+    image: row.cover_url || '',
+    trackIds: ids,
+    tracksCount: ids.length,
+    isActive: row.is_active !== false,
+  };
+}
+
+async function loadCollectionTrackMap() {
+  const r = await pool.query(
+    `SELECT mct.collection_id, mct.music_id, mct.sort_order, mi.kind
+     FROM music_collection_tracks mct
+     INNER JOIN music_items mi ON mi.music_id = mct.music_id
+     WHERE mi.kind = 'track'
+     ORDER BY mct.collection_id ASC, mct.sort_order ASC, mct.music_id ASC`
+  );
+  const byCollection = new Map();
+  for (const row of r.rows) {
+    if (!byCollection.has(row.collection_id)) byCollection.set(row.collection_id, []);
+    byCollection.get(row.collection_id).push(`music-${row.music_id}`);
+  }
+  return byCollection;
+}
+
+async function syncCollectionTracks(collectionId, publicTrackIds) {
+  await pool.query(`DELETE FROM music_collection_tracks WHERE collection_id = $1`, [collectionId]);
+  const ids = parsePublicTrackIds(publicTrackIds);
+  if (!ids.length) return;
+  let order = 0;
+  for (const pubId of ids) {
+    const key = parseTrackPublicId(pubId);
+    if (!key) continue;
+    await pool.query(
+      `INSERT INTO music_collection_tracks (collection_id, music_id, sort_order)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (collection_id, music_id) DO UPDATE SET sort_order = EXCLUDED.sort_order`,
+      [collectionId, key.id, order]
+    );
+    order += 1;
+  }
 }
 
 function withUpload(fields) {
@@ -115,6 +203,9 @@ function rowToPublicMusic(row) {
         (audioSource === 'youtube' && row.youtube_embed_url)
     ),
     isRemoteMusic: true,
+    isFeaturedPick: Boolean(row.is_featured_pick),
+    target_role: row.target_role || 'all',
+    target_gender: row.target_gender || 'all',
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -122,7 +213,7 @@ function rowToPublicMusic(row) {
 
 function parseDurationMin(raw) {
   const n = parseInt(String(raw || '').trim(), 10);
-  if (Number.isFinite(n) && n >= 1 && n <= 180) return n;
+  if (Number.isFinite(n) && n >= 1 && n <= MAX_TRACK_DURATION_MIN) return n;
   return 3;
 }
 
@@ -176,13 +267,16 @@ function parseAudioPayload(body, files, existingRow) {
   return out;
 }
 
-router.get('/', async (_req, res) => {
+router.get('/', optionalAuthMiddleware, async (req, res) => {
   try {
+    const aud = appendAudienceFilter(req.user, '', 1);
     const r = await pool.query(
       `SELECT music_id, kind, title, artist, mood, genre_label, description_short, duration_min,
               duration_display, icon_name, cover_url, audio_source, audio_file_url, audio_external_url,
-              youtube_embed_url, youtube_video_id, created_at, updated_at
-       FROM music_items ORDER BY music_id ASC`
+              youtube_embed_url, youtube_video_id, is_featured_pick, target_role, target_gender,
+              created_at, updated_at
+       FROM music_items WHERE 1=1${aud.sql} ORDER BY music_id ASC`,
+      aud.params
     );
     const items = r.rows.map(rowToPublicMusic);
     res.json({
@@ -195,16 +289,193 @@ router.get('/', async (_req, res) => {
   }
 });
 
-router.get('/:musicKey', async (req, res) => {
+router.get('/hub', optionalAuthMiddleware, async (req, res) => {
+  try {
+    const aud = appendAudienceFilter(req.user, '', 1);
+    const itemsR = await pool.query(
+      `SELECT music_id, kind, title, artist, mood, genre_label, description_short, duration_min,
+              duration_display, icon_name, cover_url, audio_source, audio_file_url, audio_external_url,
+              youtube_embed_url, youtube_video_id, is_featured_pick, target_role, target_gender,
+              created_at, updated_at
+       FROM music_items WHERE 1=1${aud.sql} ORDER BY music_id ASC`,
+      aud.params
+    );
+    const collectionsR = await pool.query(
+      `SELECT collection_id, slug, title, label_key, mood, cover_url, sort_order, is_active
+       FROM music_collections WHERE is_active = true ORDER BY sort_order ASC, collection_id ASC`
+    );
+    const trackMap = await loadCollectionTrackMap();
+
+    const items = itemsR.rows.map(rowToPublicMusic);
+    const tracks = items.filter((i) => i.kind === 'track');
+
+    const collections = collectionsR.rows.map((row) =>
+      rowToCollection(row, trackMap.get(row.collection_id) || [])
+    );
+
+    const featured =
+      tracks.find((t) => t.isFeaturedPick) ||
+      tracks[0] ||
+      null;
+
+    const likes = await loadUserPersonalizationLikes(req.user?.user_id);
+    const personalMoods = moodsForPersonalizationLikes(likes);
+    const personalizedTracks =
+      personalMoods.length > 0
+        ? tracks.filter((tr) => trackMatchesPersonalMoods(tr, personalMoods)).slice(0, 8)
+        : [];
+
+    res.json({
+      items,
+      tracks,
+      quickSounds: items.filter((i) => i.kind === 'quick'),
+      collections,
+      featuredTrackId: featured?.id || null,
+      featuredTrack: featured,
+      personalizedTracks,
+      personalizationLikes: likes,
+    });
+  } catch (e) {
+    res.status(500).json({ message: apiErrorMessage(e) });
+  }
+});
+
+router.post(
+  '/collections',
+  authMiddleware,
+  adminOnly,
+  withUpload([{ name: 'cover', maxCount: 1 }]),
+  async (req, res) => {
+    try {
+      const title = String(req.body.title || '').trim();
+      if (!title) return res.status(400).json({ message: 'Укажите название подборки' });
+
+      const mood = pickMood(req.body.mood, 'calm_down');
+      const sort_order = parseInt(req.body.sort_order, 10) || 0;
+      const coverFile = req.files?.cover?.[0];
+      const cover_url = coverFile ? `/uploads/${coverFile.filename}` : '';
+
+      const ins = await pool.query(
+        `INSERT INTO music_collections (slug, title, label_key, mood, cover_url, sort_order, is_active)
+         VALUES ($1, $2, '', $3, $4, $5, true)
+         RETURNING collection_id, slug, title, label_key, mood, cover_url, sort_order, is_active`,
+        ['tmp', title, mood, cover_url, sort_order]
+      );
+      const row = ins.rows[0];
+      const slug = slugifyTitle(title, row.collection_id);
+      await pool.query(`UPDATE music_collections SET slug = $1 WHERE collection_id = $2`, [
+        slug,
+        row.collection_id,
+      ]);
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'track_ids')) {
+        await syncCollectionTracks(row.collection_id, req.body.track_ids);
+      }
+
+      const trackMap = await loadCollectionTrackMap();
+      const full = await pool.query(`SELECT * FROM music_collections WHERE collection_id = $1`, [
+        row.collection_id,
+      ]);
+      res.status(201).json(rowToCollection(full.rows[0], trackMap.get(row.collection_id) || []));
+    } catch (e) {
+      console.error('POST /music/collections', e);
+      res.status(500).json({ message: apiErrorMessage(e) });
+    }
+  }
+);
+
+router.patch(
+  '/collections/:slug',
+  authMiddleware,
+  adminOnly,
+  withUpload([{ name: 'cover', maxCount: 1 }]),
+  async (req, res) => {
+    try {
+      const slug = String(req.params.slug || '').trim();
+      if (!slug) return res.status(400).json({ message: 'Укажите подборку' });
+
+      const cur = await pool.query(`SELECT * FROM music_collections WHERE slug = $1`, [slug]);
+      if (cur.rows.length === 0) return res.status(404).json({ message: 'Подборка не найдена' });
+
+      const existing = cur.rows[0];
+      const patch = {};
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'title')) {
+        const title = String(req.body.title || '').trim();
+        if (!title) return res.status(400).json({ message: 'Название не может быть пустым' });
+        patch.title = title.slice(0, 120);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'mood')) {
+        patch.mood = pickMood(req.body.mood, existing.mood);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'sort_order')) {
+        patch.sort_order = parseInt(req.body.sort_order, 10) || 0;
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'is_active')) {
+        patch.is_active = parseBool(req.body.is_active);
+      }
+
+      const coverFile = req.files?.cover?.[0];
+      if (coverFile) {
+        safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
+        patch.cover_url = `/uploads/${coverFile.filename}`;
+      }
+
+      if (Object.keys(patch).length > 0) {
+        const keys = Object.keys(patch);
+        const sets = keys.map((k, i) => `${k}=$${i + 1}`);
+        const vals = keys.map((k) => patch[k]);
+        vals.push(slug);
+        await pool.query(
+          `UPDATE music_collections SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP
+           WHERE slug=$${keys.length + 1}`,
+          vals
+        );
+      }
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'track_ids')) {
+        await syncCollectionTracks(existing.collection_id, req.body.track_ids);
+      }
+
+      const trackMap = await loadCollectionTrackMap();
+      const full = await pool.query(`SELECT * FROM music_collections WHERE collection_id = $1`, [
+        existing.collection_id,
+      ]);
+      res.json(rowToCollection(full.rows[0], trackMap.get(existing.collection_id) || []));
+    } catch (e) {
+      console.error('PATCH /music/collections/:slug', e);
+      res.status(500).json({ message: apiErrorMessage(e) });
+    }
+  }
+);
+
+router.delete('/collections/:slug', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const slug = String(req.params.slug || '').trim();
+    const cur = await pool.query(
+      `DELETE FROM music_collections WHERE slug = $1 RETURNING cover_url`,
+      [slug]
+    );
+    if (cur.rows.length === 0) return res.status(404).json({ message: 'Подборка не найдена' });
+    safeUnlinkUploadPath(uploadsAbs, cur.rows[0].cover_url);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ message: apiErrorMessage(e) });
+  }
+});
+
+router.get('/:musicKey', optionalAuthMiddleware, async (req, res) => {
   try {
     const key = parseMusicPublicId(req.params.musicKey);
     if (!key) return res.status(404).json({ message: 'Трек не найден' });
+    const aud = appendAudienceFilter(req.user, '', 2);
     const r = await pool.query(
       `SELECT music_id, kind, title, artist, mood, genre_label, description_short, duration_min,
               duration_display, icon_name, cover_url, audio_source, audio_file_url, audio_external_url,
-              youtube_embed_url, youtube_video_id, created_at, updated_at
-       FROM music_items WHERE music_id=$1`,
-      [key.id]
+              youtube_embed_url, youtube_video_id, is_featured_pick, target_role, target_gender,
+              created_at, updated_at
+       FROM music_items WHERE music_id=$1${aud.sql}`,
+      [key.id, ...aud.params]
     );
     if (r.rows.length === 0 || r.rows[0].kind !== key.kind) {
       return res.status(404).json({ message: 'Трек не найден' });
@@ -240,15 +511,23 @@ router.post(
       const audio = parseAudioPayload(req.body, req.files, null);
       if (audio.error) return res.status(400).json({ message: audio.error });
 
+      const target_role = pickTargetRole(req.body.target_role);
+      const target_gender = pickTargetGender(req.body.target_gender);
+      const is_featured_pick =
+        kind === 'track' ? parseBool(req.body.is_featured_pick) : false;
+
+      if (is_featured_pick) await clearFeaturedPickExcept(null);
+
       const ins = await pool.query(
         `INSERT INTO music_items (
           kind, title, artist, mood, genre_label, description_short, duration_min, duration_display,
           icon_name, cover_url, audio_source, audio_file_url, audio_external_url,
-          youtube_embed_url, youtube_video_id
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+          youtube_embed_url, youtube_video_id, is_featured_pick, target_role, target_gender
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
         RETURNING music_id, kind, title, artist, mood, genre_label, description_short, duration_min,
                   duration_display, icon_name, cover_url, audio_source, audio_file_url, audio_external_url,
-                  youtube_embed_url, youtube_video_id, created_at, updated_at`,
+                  youtube_embed_url, youtube_video_id, is_featured_pick, target_role, target_gender,
+                  created_at, updated_at`,
         [
           kind,
           title,
@@ -265,6 +544,9 @@ router.post(
           audio.audio_external_url || '',
           audio.youtube_embed_url || '',
           audio.youtube_video_id || '',
+          is_featured_pick,
+          target_role,
+          target_gender,
         ]
       );
 
@@ -321,6 +603,19 @@ router.patch(
       if (Object.prototype.hasOwnProperty.call(req.body, 'icon_name') && existing.kind === 'quick') {
         patch.icon_name = pickIcon(req.body.icon_name);
       }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'target_role')) {
+        patch.target_role = pickTargetRole(req.body.target_role);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'target_gender')) {
+        patch.target_gender = pickTargetGender(req.body.target_gender);
+      }
+      if (
+        existing.kind === 'track' &&
+        Object.prototype.hasOwnProperty.call(req.body, 'is_featured_pick')
+      ) {
+        patch.is_featured_pick = parseBool(req.body.is_featured_pick);
+        if (patch.is_featured_pick) await clearFeaturedPickExcept(existing.music_id);
+      }
 
       const coverFile = req.files?.cover?.[0];
       if (coverFile) {
@@ -363,7 +658,8 @@ router.patch(
          WHERE music_id=$${keys.length + 1}
          RETURNING music_id, kind, title, artist, mood, genre_label, description_short, duration_min,
                    duration_display, icon_name, cover_url, audio_source, audio_file_url, audio_external_url,
-                   youtube_embed_url, youtube_video_id, created_at, updated_at`,
+                   youtube_embed_url, youtube_video_id, is_featured_pick, target_role, target_gender,
+                   created_at, updated_at`,
         vals
       );
 

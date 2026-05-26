@@ -9,11 +9,13 @@ function formatClock(totalSec) {
   return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
 }
 
-function buildYoutubeSrc(embedUrl, autoplay) {
+function buildYoutubeSrc(embedUrl, autoplay, startSec = 0) {
   const base = String(embedUrl || '').trim();
   if (!base) return '';
   const sep = base.includes('?') ? '&' : '?';
-  return `${base}${sep}autoplay=${autoplay ? 1 : 0}&rel=0&modestbranding=1`;
+  const start = Math.max(0, Math.floor(startSec));
+  const startParam = start > 0 ? `&start=${start}` : '';
+  return `${base}${sep}autoplay=${autoplay ? 1 : 0}&rel=0&modestbranding=1${startParam}`;
 }
 
 export default function MeditationAudioPlayer({
@@ -26,6 +28,8 @@ export default function MeditationAudioPlayer({
   const [playing, setPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [duration, setDuration] = useState(practice.durationMin * 60);
+  const [youtubeStart, setYoutubeStart] = useState(0);
+  const [scrubbing, setScrubbing] = useState(false);
 
   const isYoutube = practice.audioSource === 'youtube' && practice.embedUrl;
   const nativeSrc = useMemo(() => {
@@ -36,13 +40,15 @@ export default function MeditationAudioPlayer({
   }, [isYoutube, practice.audioUrl]);
 
   const youtubeSrc = useMemo(
-    () => (isYoutube ? buildYoutubeSrc(practice.embedUrl, playing) : ''),
-    [isYoutube, practice.embedUrl, playing]
+    () => (isYoutube ? buildYoutubeSrc(practice.embedUrl, playing, youtubeStart) : ''),
+    [isYoutube, practice.embedUrl, playing, youtubeStart]
   );
 
   useEffect(() => {
     setPlaying(false);
     setElapsed(0);
+    setYoutubeStart(0);
+    setScrubbing(false);
     setDuration(Math.max(60, (practice.durationMin || 10) * 60));
   }, [practice.id, practice.durationMin]);
 
@@ -68,10 +74,10 @@ export default function MeditationAudioPlayer({
   }, [isYoutube, nativeSrc, practice.id]);
 
   useEffect(() => {
-    if (!isYoutube || !playing) return undefined;
+    if (!isYoutube || !playing || scrubbing) return undefined;
     const id = setInterval(() => setElapsed((e) => Math.min(e + 1, duration)), 1000);
     return () => clearInterval(id);
-  }, [isYoutube, playing, duration]);
+  }, [isYoutube, playing, duration, scrubbing]);
 
   const togglePlay = useCallback(() => {
     if (isYoutube) {
@@ -88,8 +94,27 @@ export default function MeditationAudioPlayer({
     }
   }, [isYoutube]);
 
+  const seekTo = useCallback(
+    (sec, { commitYoutube = true } = {}) => {
+      const next = Math.max(0, Math.min(duration, sec));
+      setElapsed(next);
+      if (isYoutube) {
+        if (commitYoutube) {
+          setYoutubeStart(next);
+          if (!playing) setPlaying(true);
+        }
+        return;
+      }
+      const el = audioRef.current;
+      if (!el) return;
+      el.currentTime = next;
+    },
+    [duration, isYoutube, playing]
+  );
+
   const restart = useCallback(() => {
     if (isYoutube) {
+      setYoutubeStart(0);
       setPlaying(false);
       setElapsed(0);
       requestAnimationFrame(() => setPlaying(true));
@@ -103,6 +128,7 @@ export default function MeditationAudioPlayer({
   }, [isYoutube]);
 
   const progress = duration > 0 ? Math.min(100, (elapsed / duration) * 100) : 0;
+  const showFavorite = typeof onToggleFavorite === 'function';
 
   return (
     <div className="pr-meditation-timer pr-meditation-audio">
@@ -121,8 +147,37 @@ export default function MeditationAudioPlayer({
 
       <div className="pr-meditation-bar-row">
         <span className="pr-meditation-time">{formatClock(elapsed)}</span>
-        <div className="pr-meditation-track" style={{ '--pr-progress': `${progress}%` }}>
-          <div className="pr-meditation-fill" style={{ width: `${progress}%` }} />
+        <div className="pr-meditation-track-wrap">
+          <div
+            className="pr-meditation-track"
+            style={{ '--pr-progress': `${progress}%` }}
+            aria-hidden>
+            <div className="pr-meditation-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <input
+            type="range"
+            className="pr-meditation-seek"
+            min={0}
+            max={Math.max(1, Math.floor(duration))}
+            step={1}
+            value={Math.min(Math.floor(elapsed), Math.max(1, Math.floor(duration)))}
+            aria-label={t('pages.meditationModalSeek')}
+            onPointerDown={() => setScrubbing(true)}
+            onPointerUp={() => setScrubbing(false)}
+            onPointerCancel={() => setScrubbing(false)}
+            onInput={(e) => {
+              const v = Number(e.target.value);
+              if (isYoutube) {
+                setElapsed(v);
+              } else {
+                seekTo(v);
+              }
+            }}
+            onChange={(e) => {
+              seekTo(Number(e.target.value), { commitYoutube: true });
+              setScrubbing(false);
+            }}
+          />
         </div>
         <span className="pr-meditation-time">{formatClock(duration)}</span>
       </div>
@@ -142,13 +197,15 @@ export default function MeditationAudioPlayer({
             <Play size={26} fill="currentColor" strokeWidth={0} />
           )}
         </button>
-        <button
-          type="button"
-          className={`pr-meditation-ctrl pr-meditation-heart ${favorite ? 'is-on' : ''}`}
-          onClick={onToggleFavorite}
-          aria-label={t('pages.meditationModalFavorite')}>
-          <Heart size={20} strokeWidth={2} fill={favorite ? 'currentColor' : 'none'} />
-        </button>
+        {showFavorite ? (
+          <button
+            type="button"
+            className={`pr-meditation-ctrl pr-meditation-heart ${favorite ? 'is-on' : ''}`}
+            onClick={onToggleFavorite}
+            aria-label={t('pages.meditationModalFavorite')}>
+            <Heart size={20} strokeWidth={2} fill={favorite ? 'currentColor' : 'none'} />
+          </button>
+        ) : null}
       </div>
     </div>
   );

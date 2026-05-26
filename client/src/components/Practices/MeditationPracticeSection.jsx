@@ -1,23 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Flower2, Heart } from 'lucide-react';
+import { ArrowLeft, Flower2, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import PracticeCard from './PracticeCard';
 import PracticeModal from './PracticeModal';
 import api from '../../utils/api';
-import { PRACTICES } from './practicesData';
+import filmsCatalogHeroPhoto from '../../assets/films-catalog-hero-clouds.png';
 import { loadMeditationFavorites, saveMeditationFavorites } from './meditationFavorites';
 import { mapRemoteMeditationPayload } from './meditationHubData';
-import { MEDITATION_HERO_BANNER_VIDEO, SPACE_NATURE_HERO_REF } from './spaceNatureImagery';
 import { spaceHubHref } from './practiceSpaceConfig';
-
-function matchCategory(practice, categoryId) {
-  if (categoryId === 'meditation') {
-    return practice.category === 'focus' || practice.category === 'grounding';
-  }
-  return practice.category === categoryId;
-}
 
 const MEDITATION_FILTERS = [
   { id: 'all', labelKey: 'meditationFilterAll' },
@@ -37,8 +29,6 @@ export default function MeditationPracticeSection({ embedded = false }) {
   const [activeFilter, setActiveFilter] = useState('all');
   const [remoteMeditations, setRemoteMeditations] = useState([]);
 
-  const staticList = useMemo(() => PRACTICES.filter((p) => matchCategory(p, 'meditation')), []);
-
   useEffect(() => {
     let cancelled = false;
     api
@@ -55,7 +45,7 @@ export default function MeditationPracticeSection({ embedded = false }) {
     };
   }, []);
 
-  const list = useMemo(() => [...staticList, ...remoteMeditations], [staticList, remoteMeditations]);
+  const list = useMemo(() => remoteMeditations, [remoteMeditations]);
 
   const filteredList = useMemo(() => {
     const matchesFilter = (practice) => {
@@ -80,117 +70,88 @@ export default function MeditationPracticeSection({ embedded = false }) {
     });
   };
 
-  const scrollToPractices = () => {
-    bodyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
   return (
     <div className={`meditation-hub meditation-hub--fullbleed hub-cover-cards fade-in${embedded ? ' meditation-hub--embedded' : ''}`}>
-      <header className="meditation-hub-banner">
-        {!embedded ? (
-          <div className="meditation-hub-banner-head">
-            <button
-              type="button"
-              className="meditation-hub-back"
-              onClick={() => navigate(spaceHubHref())}>
-              <ArrowLeft size={18} strokeWidth={2} aria-hidden />
-              {t('pages.practicesBack')}
-            </button>
-          </div>
-        ) : null}
+      <header className="meditation-hub-catalog-header">
+        <div className="meditation-hub-mock">
+          {!embedded ? (
+            <div className="meditation-hub-hero-stage">
+              <button
+                type="button"
+                className="meditation-hub-back"
+                onClick={() => navigate(spaceHubHref())}>
+                <ArrowLeft size={18} strokeWidth={2} aria-hidden />
+                {t('pages.practicesBack')}
+              </button>
+              <div
+                className="meditation-hub-hero-photo"
+                style={{ backgroundImage: `url(${filmsCatalogHeroPhoto})` }}
+                role="img"
+                aria-label={t('pages.filmsCatalogHeroPhotoAlt')}
+              />
+            </div>
+          ) : null}
 
-        <div className="practices-landing-hero practices-landing-hero--airy">
-          <div className="practices-landing-hero-flowers" aria-hidden>
-            <span className="practices-flower practices-flower--1" />
-            <span className="practices-flower practices-flower--2" />
-            <span className="practices-flower practices-flower--3" />
-            <span className="practices-flower practices-flower--4" />
-          </div>
+          <div className={`meditation-hub-sheet${embedded ? ' meditation-hub-sheet--embedded' : ''}`}>
+            {!embedded ? <div className="meditation-hub-sheet-notch" aria-hidden /> : null}
 
-          <div className="practices-landing-hero-photo" aria-hidden>
-            <video
-              className="practices-landing-hero-photo-media"
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster={SPACE_NATURE_HERO_REF}
-            >
-              <source src={MEDITATION_HERO_BANNER_VIDEO} type="video/mp4" />
-            </video>
-          </div>
+            <section className="meditation-formats" aria-labelledby="meditation-formats-heading">
+              <div className="meditation-formats-deco" aria-hidden>
+                <svg className="practices-wave-doodle" viewBox="0 0 1200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M0 100 C 200 40 400 160 600 100 S 1000 40 1200 100"
+                    stroke="currentColor"
+                    strokeWidth="1.1"
+                    strokeDasharray="3 12"
+                    strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </svg>
+              </div>
 
-          <div className="practices-landing-hero-airwash" aria-hidden />
+              <div className="meditation-formats-inner">
+                <div className="meditation-formats-head">
+                  <p className="practices-section-eyebrow meditation-formats-eyebrow">
+                    <Heart className="practices-section-heart" size={16} strokeWidth={2} aria-hidden />
+                    {t('pages.meditationFormatsEyebrow')}
+                  </p>
+                  <h2 id="meditation-formats-heading" className="meditation-formats-title">
+                    <span>{t('pages.meditationFormatsTitleLead')}</span>
+                    <Flower2 className="meditation-formats-title-mark" size={22} strokeWidth={1.8} aria-hidden />
+                    <span>{t('pages.meditationFormatsTitleMid')}</span>
+                  </h2>
+                  <p className="meditation-formats-subtitle">{t('pages.meditationFormatsSubtitle')}</p>
+                </div>
 
-          <div className="practices-landing-hero-inner practices-landing-hero-inner--airy">
-            <h1 className="practices-hero-title practices-hero-title--airy">
-              {t('pages.meditationPageTitle')}
-            </h1>
-            <p className="practices-landing-lead practices-landing-lead--airy">{t('pages.meditationPageLead')}</p>
-            <button type="button" className="practices-space-cta" onClick={scrollToPractices}>
-              <span className="practices-space-cta-label">{t('pages.meditationBannerCta')}</span>
-              <span className="practices-space-cta-icon" aria-hidden>
-                <ArrowRight size={20} strokeWidth={2.5} />
-              </span>
-            </button>
+                <div className="meditation-formats-columns">
+                  <p className="meditation-formats-copy">{t('pages.meditationFormatsColLeft')}</p>
+                </div>
+
+                <div
+                  className="meditation-formats-filters"
+                  role="group"
+                  aria-label={t('pages.meditationFiltersAria')}
+                >
+                  {MEDITATION_FILTERS.map(({ id, labelKey }) => {
+                    const isActive = activeFilter === id;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        className={`meditation-formats-filter ${isActive ? 'is-active' : ''}`}
+                        aria-pressed={isActive}
+                        onClick={() => setActiveFilter(id)}
+                      >
+                        {t(`pages.${labelKey}`)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
           </div>
         </div>
       </header>
-
-      <section className="meditation-formats" aria-labelledby="meditation-formats-heading">
-        <div className="meditation-formats-deco" aria-hidden>
-          <svg className="practices-wave-doodle" viewBox="0 0 1200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M0 100 C 200 40 400 160 600 100 S 1000 40 1200 100"
-              stroke="currentColor"
-              strokeWidth="1.1"
-              strokeDasharray="3 12"
-              strokeLinecap="round"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-        </div>
-
-        <div className="meditation-formats-inner">
-          <div className="meditation-formats-head">
-            <p className="practices-section-eyebrow meditation-formats-eyebrow">
-              <Heart className="practices-section-heart" size={16} strokeWidth={2} aria-hidden />
-              {t('pages.meditationFormatsEyebrow')}
-            </p>
-            <h2 id="meditation-formats-heading" className="meditation-formats-title">
-              <span>{t('pages.meditationFormatsTitleLead')}</span>
-              <Flower2 className="meditation-formats-title-mark" size={22} strokeWidth={1.8} aria-hidden />
-              <span>{t('pages.meditationFormatsTitleMid')}</span>
-            </h2>
-            <p className="meditation-formats-subtitle">{t('pages.meditationFormatsSubtitle')}</p>
-          </div>
-
-          <div className="meditation-formats-columns">
-            <p className="meditation-formats-copy">{t('pages.meditationFormatsColLeft')}</p>
-          </div>
-
-          <div
-            className="meditation-formats-filters"
-            role="group"
-            aria-label={t('pages.meditationFiltersAria')}
-          >
-            {MEDITATION_FILTERS.map(({ id, labelKey }) => {
-              const isActive = activeFilter === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  className={`meditation-formats-filter ${isActive ? 'is-active' : ''}`}
-                  aria-pressed={isActive}
-                  onClick={() => setActiveFilter(id)}
-                >
-                  {t(`pages.${labelKey}`)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
       <section ref={bodyRef} className="meditation-hub-body" id="meditation-practices">
         <div className="meditation-hub-grid">

@@ -80,12 +80,14 @@ export default function ArticleReaderPage() {
         aria-hidden
       />
       <div className="article-reader-inner">
-        <button type="button" className="article-reader-back" onClick={() => navigate(spaceSectionHref('articles'))}>
-          <ArrowLeft size={18} strokeWidth={2} aria-hidden />
-          {t('pages.practicesBack')}
-        </button>
+        <div className="article-reader-topbar">
+          <button type="button" className="article-reader-back" onClick={() => navigate(spaceSectionHref('articles'))}>
+            <ArrowLeft size={18} strokeWidth={2} aria-hidden />
+            {t('pages.practicesBack')}
+          </button>
 
-        <span className="article-reader-chip">{categoryLabel}</span>
+          <span className="article-reader-chip">{categoryLabel}</span>
+        </div>
         <h1 className="article-reader-title">{title}</h1>
 
         {article.descriptionShort && article.bodyFull ? (

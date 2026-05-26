@@ -22,7 +22,6 @@ import {
 import {
   CHECKIN_MOOD_TWEMOJI_FILES,
   moodEmojiUrl,
-  twemojiFileForUnicode,
 } from '../../utils/moodEmojiAssets';
 import './Diary.css';
 
@@ -106,23 +105,12 @@ const Diary = () => {
     [t]
   );
 
-  const EMOTIONS = useMemo(
-    () => [
-    { key: 'joy', label: t('pages.diaryEjoy'), emoji: '😄' },
-    { key: 'anxiety', label: t('pages.diaryEanxiety'), emoji: '😰' },
-    { key: 'stress', label: t('pages.diaryEstress'), emoji: '😡' }],
-
-    [t]
-  );
-
   const {
     messages,
     input,
     setInput,
     sendMessage,
     loading: chatLoading,
-    emotions,
-    overallMood,
     messagesEndRef
   } = useChat({
     userFirstName: user?.name?.split(' ')[0] || t('dash.greeting.friend'),
@@ -141,6 +129,43 @@ const Diary = () => {
   });
 
   const dateLocale = lang === 'en' ? enUS : ru;
+
+  const aiDiaryGroups = useMemo(() => {
+    const groups = [];
+    const groupsMap = new Map();
+
+    diaryEntries.
+    filter((entry) => typeof entry?.note === 'string' && entry.note.trim()).
+    sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).
+    forEach((entry, index) => {
+      const createdAt = new Date(entry.created_at);
+      if (Number.isNaN(createdAt.getTime())) return;
+
+      const dateKey = format(createdAt, 'yyyy-MM-dd');
+      const dateLabel =
+        lang === 'kk' ?
+        `${createdAt.getDate()} ${t(`cal.months.${createdAt.getMonth()}`)}` :
+        format(createdAt, 'd MMMM', { locale: dateLocale });
+
+      if (!groupsMap.has(dateKey)) {
+        const nextGroup = {
+          dateKey,
+          dateLabel,
+          entries: []
+        };
+        groupsMap.set(dateKey, nextGroup);
+        groups.push(nextGroup);
+      }
+
+      groupsMap.get(dateKey).entries.push({
+        id: entry.entry_id || `${dateKey}-${index}`,
+        time: format(createdAt, 'HH:mm'),
+        text: entry.note.trim()
+      });
+    });
+
+    return groups;
+  }, [diaryEntries, lang, t, dateLocale]);
 
   const calTitleStr = useMemo(() => {
     if (lang === 'kk') {
@@ -344,38 +369,40 @@ const Diary = () => {
 
         <div className="diary-right">
 
-          <div className="diary-card emotion-block">
-            <div className="emotion-header">
-              <span className="emotion-header-title">{t('pages.diaryAnalysis')}</span>
+          <div className="diary-card ai-log-block">
+            <div className="ai-log-header">
+              <span className="ai-log-title">{t('pages.diaryAiLog')}</span>
+              <span className="ai-log-total">{t('pages.diaryEntriesBadge', { n: diaryEntries.length })}</span>
             </div>
 
-            {EMOTIONS.map((em) =>
-            <div key={em.key} className="emotion-row">
-                <div className="emotion-row-top">
-                  <DiaryTwemoji
-                    file={twemojiFileForUnicode(em.emoji)}
-                    variant="inline"
-                    title={em.label}
-                  />
-                  <span className="emotion-name">{em.label}</span>
-                  <span className="emotion-score">{emotions[em.key]}%</span>
+            {aiDiaryGroups.length === 0 ?
+            <div className="history-empty-state ai-log-empty-state">
+                <div className="history-empty-art" aria-hidden>
+                  <BookOpen className="history-empty-icon" size={52} strokeWidth={1.35} />
                 </div>
-                <div className="emotion-track">
-                  <div className="emotion-fill" style={{ width: `${emotions[em.key]}%` }} />
-                
-                </div>
+                <p className="history-empty-title">{t('pages.diaryAiEmpty')}</p>
+                <p className="history-empty-hint">{t('pages.diaryAiEmptyHint')}</p>
               </div>
-            )}
-
-            <div className="overall-state">
-              <span className="overall-label">{t('pages.diaryOverall')}</span>
-              <div className="overall-card">
-                <div className="overall-card-text">
-                  <div className="overall-mood-name">{overallMood.label}</div>
-                  <div className="overall-mood-sub">{overallMood.sub}</div>
+             :
+            <div className="ai-log-list">
+                {aiDiaryGroups.map((group) =>
+              <article key={group.dateKey} className="ai-log-card">
+                    <div className="ai-log-card-head">
+                      <span className="ai-log-date">{group.dateLabel}</span>
+                      <span className="ai-log-count">{t('pages.diaryAiMessagesBadge', { n: group.entries.length })}</span>
+                    </div>
+                    <div className="ai-log-messages">
+                      {group.entries.map((entry) =>
+                  <div key={entry.id} className="ai-log-message">
+                          <span className="ai-log-message-time">{entry.time}</span>
+                          <p className="ai-log-message-text">{entry.text}</p>
+                        </div>
+                  )}
+                    </div>
+                  </article>
+              )}
                 </div>
-              </div>
-            </div>
+            }
           </div>
 
         </div>

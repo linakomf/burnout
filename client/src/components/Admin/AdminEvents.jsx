@@ -12,6 +12,9 @@ import {
   EVENT_TF_MOOD_OPTIONS,
   EVENT_TF_TIME_OPTIONS,
 } from '../Practices/eventsHubData';
+import AdminAudienceFields from './AdminAudienceFields';
+import AdminModalPortal from './AdminModalPortal';
+import { emptyAudienceFields } from './audienceTargeting';
 import './Admin.css';
 
 function extractApiError(e) {
@@ -71,6 +74,7 @@ const initialForm = () => ({
   venueImageFile: null,
   galleryFiles: [],
   galleryKeepUrls: [],
+  ...emptyAudienceFields(),
 });
 
 function FilterChipGroup({ label, options, value, onChange, t }) {
@@ -192,6 +196,8 @@ export default function AdminEvents({ embedded = false }) {
       suit_tags_text: (d.suitTags || []).join('\n'),
       important_notes_text: (d.importantNotes || []).join('\n'),
       galleryKeepUrls: Array.isArray(d.gallery) ? [...d.gallery] : [],
+      target_role: row.target_role || 'all',
+      target_gender: row.target_gender || 'all',
     });
     setError('');
     setModalOpen(true);
@@ -242,6 +248,8 @@ export default function AdminEvents({ embedded = false }) {
       fd.append('organizer_desc', form.organizer_desc.trim());
       fd.append('suit_tags', JSON.stringify(linesToArray(form.suit_tags_text)));
       fd.append('important_notes', JSON.stringify(linesToArray(form.important_notes_text)));
+      fd.append('target_role', form.target_role || 'all');
+      fd.append('target_gender', form.target_gender || 'all');
 
       if (!editingId) {
         if (!form.coverFile) {
@@ -371,8 +379,9 @@ export default function AdminEvents({ embedded = false }) {
       </div>
 
       {modalOpen ? (
+        <AdminModalPortal>
         <div
-          className="modal-overlay"
+          className="modal-overlay admin-modal-overlay"
           role="presentation"
           onMouseDown={(e) => e.target === e.currentTarget && closeModal()}>
           <div
@@ -656,6 +665,11 @@ export default function AdminEvents({ embedded = false }) {
                 />
               </label>
 
+              <AdminAudienceFields
+                value={{ target_role: form.target_role, target_gender: form.target_gender }}
+                onChange={(aud) => setForm((prev) => ({ ...prev, ...aud }))}
+              />
+
               <div className="modal-actions" style={{ marginTop: 24 }}>
                 <button type="button" className="btn btn-secondary" onClick={closeModal} disabled={saving}>
                   Отмена
@@ -667,6 +681,7 @@ export default function AdminEvents({ embedded = false }) {
             </form>
           </div>
         </div>
+        </AdminModalPortal>
       ) : null}
     </div>
   );

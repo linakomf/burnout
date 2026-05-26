@@ -41,4 +41,22 @@ const adminOnly = async (req, res, next) => {
   }
 };
 
-module.exports = { authMiddleware, adminOnly };
+/** JWT необязателен — для публичных каталогов с фильтром аудитории. */
+const optionalAuthMiddleware = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) {
+    req.user = null;
+    return next();
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch {
+    req.user = null;
+    next();
+  }
+};
+
+module.exports = { authMiddleware, adminOnly, optionalAuthMiddleware };

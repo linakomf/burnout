@@ -2,7 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const pool = require('../db');
-const { authMiddleware, adminOnly } = require('../middleware/auth');
+const { authMiddleware, adminOnly, optionalAuthMiddleware } = require('../middleware/auth');
+const { pickTargetRole, pickTargetGender, appendAudienceFilter } = require('../utils/audienceTargeting');
 const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { sanitizeTopics, KINDS, DIFFICULTY, AUDIO_SOURCES } = require('../utils/meditationTopics');
 const { parseYoutubeUrl } = require('../utils/youtubeUrl');
@@ -14,7 +15,9 @@ const uploadsAbs = path.join(__dirname, '..', 'uploads');
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsAbs),
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || (file.fieldname === 'audio' ? '.mp3' : '.jpg');
+    const ext =
+      path.extname(file.originalname) ||
+      (file.fieldname === 'audio' ? '.mp3' : String(file.mimetype || '').toLowerCase().startsWith('video/') ? '.mp4' : '.jpg');
     cb(null, `meditation_${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`);
   },
 });
@@ -25,10 +28,11 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const name = String(file.originalname || '').toLowerCase();
     if (file.fieldname === 'cover') {
-      const byExt = /\.(jpe?g|png|gif|webp|avif|bmp|heic|heif)$/i.test(name);
-      const byMime = String(file.mimetype || '').toLowerCase().startsWith('image/');
+      const mime = String(file.mimetype || '').toLowerCase();
+      const byExt = /\.(jpe?g|png|gif|webp|avif|bmp|heic|heif|mp4)$/i.test(name);
+      const byMime = mime.startsWith('image/') || mime === 'video/mp4';
       if (byMime || byExt) return cb(null, true);
-      return cb(new Error('Обложка: только изображения'));
+      return cb(new Error('Обложка: изображения или MP4'));
     }
     if (file.fieldname === 'audio') {
       const byExt = /\.(mp3|m4a|wav|ogg|webm|aac|flac)$/i.test(name);
@@ -94,6 +98,8 @@ function rowToPublicMeditation(row) {
         (audioSource === 'youtube' && row.youtube_embed_url)
     ),
     isRemoteMeditation: true,
+    target_role: row.target_role || 'all',
+    target_gender: row.target_gender || 'all',
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -155,13 +161,16 @@ function parseAudioPayload(body, files, existingRow) {
   return out;
 }
 
-router.get('/', async (_req, res) => {
+router.get('/', optionalAuthMiddleware, async (req, res) => {
   try {
+    const aud = appendAudienceFilter(req.user, '', 1);
     const r = await pool.query(
       `SELECT meditation_id, title, kind, topics, cover_url, description_short, duration_min,
               practice_focus, difficulty_level, tip_before, audio_source, audio_file_url,
-              audio_external_url, youtube_embed_url, youtube_video_id, created_at, updated_at
-       FROM meditations ORDER BY meditation_id ASC`
+              audio_external_url, youtube_embed_url, youtube_video_id, target_role, target_gender,
+              created_at, updated_at
+       FROM meditations WHERE 1=1${aud.sql} ORDER BY meditation_id ASC`,
+      aud.params
     );
     res.json({ meditations: r.rows.map(rowToPublicMeditation) });
   } catch (e) {
@@ -169,16 +178,18 @@ router.get('/', async (_req, res) => {
   }
 });
 
-router.get('/:meditationKey', async (req, res) => {
+router.get('/:meditationKey', optionalAuthMiddleware, async (req, res) => {
   try {
     const id = parseMeditationPublicId(req.params.meditationKey);
     if (!id) return res.status(404).json({ message: 'Медитация не найдена' });
+    const aud = appendAudienceFilter(req.user, '', 2);
     const r = await pool.query(
       `SELECT meditation_id, title, kind, topics, cover_url, description_short, duration_min,
               practice_focus, difficulty_level, tip_before, audio_source, audio_file_url,
-              audio_external_url, youtube_embed_url, youtube_video_id, created_at, updated_at
-       FROM meditations WHERE meditation_id=$1`,
-      [id]
+              audio_external_url, youtube_embed_url, youtube_video_id, target_role, target_gender,
+              created_at, updated_at
+       FROM meditations WHERE meditation_id=$1${aud.sql}`,
+      [id, ...aud.params]
     );
     if (r.rows.length === 0) return res.status(404).json({ message: 'Медитация не найдена' });
     res.json(rowToPublicMeditation(r.rows[0]));
@@ -221,15 +232,19 @@ router.post(
       const audio = parseAudioPayload(req.body, req.files, null);
       if (audio.error) return res.status(400).json({ message: audio.error });
 
+      const target_role = pickTargetRole(req.body.target_role);
+      const target_gender = pickTargetGender(req.body.target_gender);
+
       const ins = await pool.query(
         `INSERT INTO meditations (
           title, kind, topics, cover_url, description_short, duration_min, practice_focus,
           difficulty_level, tip_before, audio_source, audio_file_url, audio_external_url,
-          youtube_embed_url, youtube_video_id
-        ) VALUES ($1,$2,$3::jsonb,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+          youtube_embed_url, youtube_video_id, target_role, target_gender
+        ) VALUES ($1,$2,$3::jsonb,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
         RETURNING meditation_id, title, kind, topics, cover_url, description_short, duration_min,
                   practice_focus, difficulty_level, tip_before, audio_source, audio_file_url,
-                  audio_external_url, youtube_embed_url, youtube_video_id, created_at, updated_at`,
+                  audio_external_url, youtube_embed_url, youtube_video_id, target_role, target_gender,
+                  created_at, updated_at`,
         [
           title,
           kind,
@@ -245,6 +260,8 @@ router.post(
           audio.audio_external_url || '',
           audio.youtube_embed_url || '',
           audio.youtube_video_id || '',
+          target_role,
+          target_gender,
         ]
       );
 
@@ -312,6 +329,12 @@ router.patch(
       }
       if (Object.prototype.hasOwnProperty.call(req.body, 'tip_before')) {
         patch.tip_before = String(req.body.tip_before ?? '').trim().slice(0, 2000);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'target_role')) {
+        patch.target_role = pickTargetRole(req.body.target_role);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'target_gender')) {
+        patch.target_gender = pickTargetGender(req.body.target_gender);
       }
 
       const coverFile = req.files?.cover?.[0];
