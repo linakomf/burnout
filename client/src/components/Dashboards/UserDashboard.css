@@ -38,12 +38,8 @@
 .ud-brand-mark {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #1a1d24;
+  border-radius: 0;
+  background: transparent;
 }
 
 .ud-actions {

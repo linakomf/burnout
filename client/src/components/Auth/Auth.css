@@ -79,12 +79,8 @@
 .auth-logo-icon {
   width: 44px;
   height: 44px;
-  border-radius: 14px;
-  background: var(--primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #1a1a1a;
+  border-radius: 0;
+  background: transparent;
 }
 
 .auth-logo span {

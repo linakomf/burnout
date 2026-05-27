@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
-import { Brain, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import AppLogo from '../Brand/AppLogo';
 import { formatAuthAxiosError, mergeField, readFormField } from '../../utils/authFormRead';
 import './Auth.css';
 
@@ -67,7 +68,9 @@ const Register = () => {
           <LanguageSwitcher className="lang-switch--on-light-bg" />
         </div>
         <div className="auth-logo">
-          <div className="auth-logo-icon"><Brain size={26} /></div>
+          <div className="auth-logo-icon app-logo-wrap">
+            <AppLogo size={44} />
+          </div>
           <span>Burnout</span>
         </div>
 

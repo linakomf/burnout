@@ -2,7 +2,8 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { Brain, Heart, ArrowRight, ChevronLeft } from 'lucide-react';
+import { Heart, ArrowRight, ChevronLeft } from 'lucide-react';
+import AppLogo from '../Brand/AppLogo';
 import api from '../../utils/api';
 import { savePendingOnboarding, clearPendingOnboarding } from '../../utils/onboardingLocalStorage';
 import { getAvatarForRoleGender } from '../../config/registerAvatars';
@@ -66,8 +67,8 @@ function OnboardingProfileStep({ user, updateUser, t }) {
     <div className="onb-shell onb-profile-shell fade-in">
       <header className="onb-header">
         <div className="onb-brand">
-          <div className="onb-brand-mark">
-            <Brain size={22} />
+          <div className="onb-brand-mark app-logo-wrap">
+            <AppLogo size={48} />
           </div>
           <div>
             <h1 className="onb-title">{t('burnoutOnb.profileTitle')}</h1>
@@ -265,8 +266,8 @@ const OnboardingBurnout = () => {
       <div className="onb-page">
         <div className="onb-result-inner fade-in">
           <header className="onb-result-head">
-            <div className="onb-brand-mark">
-              <Brain size={22} />
+            <div className="onb-brand-mark app-logo-wrap">
+              <AppLogo size={48} />
             </div>
             <h1 className="onb-result-title">Ваш результат</h1>
             <p className="onb-result-sub">Оценка текущего уровня выгорания по ответам</p>
@@ -314,8 +315,8 @@ const OnboardingBurnout = () => {
       <div className="onb-shell fade-in">
         <header className="onb-header">
           <div className="onb-brand">
-            <div className="onb-brand-mark">
-              <Brain size={22} />
+            <div className="onb-brand-mark app-logo-wrap">
+              <AppLogo size={48} />
             </div>
             <div>
               <h1 className="onb-title">Оценка уровня выгорания</h1>

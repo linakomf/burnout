@@ -38,6 +38,8 @@ router.get('/me', authMiddleware, async (req, res) => {
         COALESCE(u.onboarding_burnout_completed, false) AS onboarding_burnout_completed,
         u.onboarding_burnout_percent,
         u.onboarding_burnout_completed_at,
+        u.space_preferences,
+        COALESCE(u.has_completed_space_onboarding, false) AS has_completed_space_onboarding,
         pp.account_status AS psychologist_account_status,
         pp.organization AS psychologist_organization,
         pp.specialist_level AS psychologist_specialist_level
@@ -50,6 +52,13 @@ router.get('/me', authMiddleware, async (req, res) => {
     const row = result.rows[0];
     if (row.role === 'psychologist') {
       row.onboarding_burnout_completed = true;
+    }
+    if (row.space_preferences && typeof row.space_preferences === 'string') {
+      try {
+        row.space_preferences = JSON.parse(row.space_preferences);
+      } catch {
+        row.space_preferences = null;
+      }
     }
     res.json(row);
   } catch (err) {
@@ -146,6 +155,52 @@ router.put('/me', authMiddleware, async (req, res) => {
     res.json(payload);
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
+/** Подбор пространства (не психодиагностика) — предпочтения для рекомендаций на главной. */
+router.put('/me/space-preferences', authMiddleware, async (req, res) => {
+  const userId = req.user.user_id;
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const prefs = body.spacePreferences != null ? body.spacePreferences : body.space_preferences;
+  const completedRaw = body.hasCompletedSpaceOnboarding ?? body.has_completed_space_onboarding;
+
+  if (!prefs || typeof prefs !== 'object' || Array.isArray(prefs)) {
+    return res.status(400).json({ message: 'Укажите объект spacePreferences' });
+  }
+
+  const completed =
+    completedRaw === true || completedRaw === 'true' || completedRaw === 1 || completedRaw === '1';
+
+  try {
+    const result = await pool.query(
+      `UPDATE users
+       SET space_preferences = $1::jsonb,
+           has_completed_space_onboarding = has_completed_space_onboarding OR $2::boolean
+       WHERE user_id = $3
+       RETURNING user_id, name, email, role, avatar, age, gender,
+         COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
+         onboarding_burnout_percent,
+         onboarding_burnout_completed_at,
+         space_preferences,
+         COALESCE(has_completed_space_onboarding, false) AS has_completed_space_onboarding`,
+      [JSON.stringify(prefs), completed, userId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ message: 'Пользователь не найден' });
+    const row = result.rows[0];
+    if (row.space_preferences && typeof row.space_preferences === 'string') {
+      try {
+        row.space_preferences = JSON.parse(row.space_preferences);
+      } catch {
+        row.space_preferences = null;
+      }
+    }
+    res.json(row);
+  } catch (err) {
+    console.error('[PUT /me/space-preferences]', err);
+    const hint = dbErrorToMessage(err);
+    if (hint) return res.status(503).json({ message: hint });
     res.status(500).json({ message: 'Ошибка сервера' });
   }
 });

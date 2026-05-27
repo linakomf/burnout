@@ -104,14 +104,10 @@
 .land-logo-icon {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #dbeafe 0%, var(--land-lilac) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--land-blue-deep);
+  border-radius: 0;
+  background: transparent;
   flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(79, 127, 212, 0.2);
+  box-shadow: none;
 }
 
 .land-logo-icon--sm {
@@ -1290,9 +1286,8 @@
 }
 
 [data-theme='dark'] .landing .land-logo-icon {
-  background: linear-gradient(145deg, #334155 0%, #4c1d95 100%);
-  color: #c4b5fd;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  background: transparent;
+  box-shadow: none;
 }
 
 [data-theme='dark'] .landing .land-btn-reg,

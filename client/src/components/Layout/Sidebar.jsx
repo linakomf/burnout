@@ -20,6 +20,7 @@ import {
 import { useSidebarCollapse } from '../../context/SidebarCollapseContext';
 import './Sidebar.css';
 import { backendPublicUrl } from '../../utils/assetUrl';
+import AppLogo from '../Brand/AppLogo';
 
 const publicPrefix = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
 const DEFAULT_AVATAR = encodeURI(`${publicPrefix}/photos/character.png`);
@@ -119,8 +120,8 @@ const Sidebar = () => {
         title={t('nav.landingHome')}
         aria-label={t('nav.landingHome')}
       >
-        <div className="logo-icon" aria-hidden>
-          <Brain size={22} strokeWidth={2.25} />
+        <div className="logo-icon app-logo-wrap" aria-hidden>
+          <AppLogo size={40} decorative />
         </div>
         {!collapsed && <span className="logo-text">Burnout</span>}
       </button>

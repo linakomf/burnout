@@ -11,7 +11,7 @@ import {
   Sparkles,
   X,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { spaceHubHref } from './practiceSpaceConfig';
 import api from '../../utils/api';
 import { backendPublicUrl } from '../../utils/assetUrl';
@@ -86,6 +86,7 @@ function PodcastFilterDropdown({ isOpen, options, selectedIds, t, onToggleOption
 
 function PodcastsPracticeHub({ embedded = false }) {
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const { t } = useLanguage();
   const filtersBlockRef = useRef(null);
   const [filtersToolbarVisible, setFiltersToolbarVisible] = useState(false);
@@ -127,6 +128,13 @@ function PodcastsPracticeHub({ embedded = false }) {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    const episodeId = new URLSearchParams(routerLocation.search).get('episode');
+    if (!episodeId || remoteEpisodes.length === 0) return;
+    const found = remoteEpisodes.find((e) => String(e.id) === String(episodeId));
+    if (found) setActiveId(found.id);
+  }, [routerLocation.search, remoteEpisodes]);
 
   useEffect(() => {
     if (!openFilterKey || !filtersToolbarVisible) return undefined;

@@ -13,6 +13,12 @@ async function runOnboardingMigration() {
   await pool.query(`
     ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_burnout_completed_at TIMESTAMP;
   `);
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS space_preferences JSONB;
+  `);
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS has_completed_space_onboarding BOOLEAN DEFAULT FALSE;
+  `);
 }
 
 async function ensureOnboardingSchema() {

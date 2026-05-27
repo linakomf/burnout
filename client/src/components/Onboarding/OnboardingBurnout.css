@@ -70,14 +70,10 @@
 .onb-brand-mark {
   width: 48px;
   height: 48px;
-  border-radius: 14px;
-  background: var(--primary);
-  color: #1a1a1a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 0;
+  background: transparent;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(155, 189, 144, 0.45);
+  box-shadow: none;
 }
 
 .onb-title {

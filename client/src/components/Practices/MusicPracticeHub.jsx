@@ -9,7 +9,7 @@ import {
   Sparkles,
   X,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { spaceHubHref } from './practiceSpaceConfig';
 import api from '../../utils/api';
 import { backendPublicUrl } from '../../utils/assetUrl';
@@ -78,6 +78,7 @@ function MusicFilterDropdown({ isOpen, options, selectedIds, t, onToggleOption, 
 
 function MusicPracticeHub({ embedded = false }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
   const { user } = useAuth();
   const filtersBlockRef = useRef(null);
@@ -129,6 +130,18 @@ function MusicPracticeHub({ embedded = false }) {
 
   const allTracks = useMemo(() => remoteTracks, [remoteTracks]);
   const allQuick = useMemo(() => remoteQuick, [remoteQuick]);
+
+  useEffect(() => {
+    const playId = new URLSearchParams(location.search).get('play');
+    if (!playId) return;
+    const playable =
+      findPlayableById(playId, allTracks, allQuick) ||
+      findPlayableById(String(playId), allTracks, allQuick);
+    if (playable) {
+      setActivePlaylistId(null);
+      setActiveId(playable.id);
+    }
+  }, [location.search, allTracks, allQuick]);
 
   const recommended = useMemo(() => allTracks, [allTracks]);
 

@@ -356,7 +356,7 @@ export const TestsList = () => {
                     type="button"
                     className="tests-mock-featured-btn tests-mock-featured-btn--interests"
                     disabled={ctaQc === 0}
-                    onClick={() => ctaQc !== 0 && navigate(`/tests/${ctaTest.test_id}`)}>
+                    onClick={() => ctaQc !== 0 && navigate('/dashboard?spaceOnboarding=1')}>
                     {ctaQc === 0 ? t('testsUi.unavailable') : t('testsUi.findDirection')}
                     {ctaQc !== 0 && <ChevronRight className="tests-mock-featured-btn-ico" size={18} strokeWidth={2.25} aria-hidden />}
                   </button>

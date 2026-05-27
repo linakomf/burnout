@@ -28,6 +28,7 @@ import imgEvents from '../../assets/advice-activity.png';
 import supportScene from '../../assets/dashboard-bg-hills.png';
 import howAsideImg from '../../assets/landing-blossoms-bg.png';
 import { spaceSectionHref } from '../Practices/practiceSpaceConfig';
+import AppLogo from '../Brand/AppLogo';
 import './Landing.css';
 
 const scrollToId = (id) => {
@@ -127,8 +128,8 @@ const Landing = () => {
 
       <nav className="land-nav" aria-label="Main">
         <button type="button" className="land-nav-brand" onClick={() => scrollToId('hero')}>
-          <div className="land-logo-icon" aria-hidden>
-            <Flower2 size={22} strokeWidth={2} />
+          <div className="land-logo-icon app-logo-wrap" aria-hidden>
+            <AppLogo size={44} decorative />
           </div>
           <div className="land-brand-text">
             <span className="land-logo-name">{t('landing.brandName')}</span>
@@ -366,8 +367,8 @@ const Landing = () => {
         <div className="land-footer-grid">
           <div className="land-footer-brand">
             <div className="land-footer-logo">
-              <div className="land-logo-icon land-logo-icon--sm" aria-hidden>
-                <Flower2 size={20} strokeWidth={2} />
+              <div className="land-logo-icon land-logo-icon--sm app-logo-wrap" aria-hidden>
+                <AppLogo size={36} decorative />
               </div>
               <span className="land-logo-name">{t('landing.brandName')}</span>
             </div>

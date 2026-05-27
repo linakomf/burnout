@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Flower2, Heart } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import PracticeCard from './PracticeCard';
 import PracticeModal from './PracticeModal';
@@ -26,6 +26,7 @@ const MEDITATION_FILTERS = [
 export default function MeditationPracticeSection({ embedded = false }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const bodyRef = useRef(null);
   const [favorites, setFavorites] = useState(loadMeditationFavorites);
   const [selectedPractice, setSelectedPractice] = useState(null);
@@ -49,6 +50,13 @@ export default function MeditationPracticeSection({ embedded = false }) {
   }, []);
 
   const list = useMemo(() => remoteMeditations, [remoteMeditations]);
+
+  useEffect(() => {
+    const openId = new URLSearchParams(location.search).get('open');
+    if (!openId || !remoteMeditations.length) return;
+    const found = remoteMeditations.find((p) => String(p.id) === String(openId));
+    if (found) setSelectedPractice(found);
+  }, [location.search, remoteMeditations]);
 
   const filteredList = useMemo(() => {
     const matchesFilter = (practice) => {

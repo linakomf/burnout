@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, Brain, LogOut, Sparkles } from 'lucide-react';
+import { Activity, LogOut, Sparkles } from 'lucide-react';
+import AppLogo from '../Brand/AppLogo';
 import testsNavIcon from '../../assets/tests-nav-icon.png';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
@@ -56,8 +57,8 @@ const UserDashboard = () => {
       <header className="ud-bar">
         <div className="ud-bar-inner">
           <div className="ud-brand">
-            <div className="ud-brand-mark">
-              <Brain size={18} />
+            <div className="ud-brand-mark app-logo-wrap">
+              <AppLogo size={36} />
             </div>
             <span>MindTrack</span>
           </div>

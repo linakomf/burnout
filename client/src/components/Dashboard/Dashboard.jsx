@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { format, addDays, startOfWeek } from 'date-fns';
@@ -7,17 +7,12 @@ import { enUS, ru } from 'date-fns/locale';
 import {
   ArrowRight,
   Bell,
-  BookOpen,
   Calendar,
-  Clapperboard,
   CloudLightning,
   Flower2,
-  Moon,
   Mountain,
-  Music,
   Save,
   Sun,
-  Trees,
   X,
   Zap } from
 'lucide-react';
@@ -36,35 +31,15 @@ import {
 import { pickRecommendedTestId } from '../../utils/recommendedTestId';
 import { weekPillLines } from '../../utils/weekPillLines';
 import { natureAt } from '../Practices/spaceNatureImagery';
-import { spaceSectionHref } from '../Practices/practiceSpaceConfig';
+import { isVideoCoverAsset } from '../Practices/practiceMedia';
+import { loadAllSectionFavoriteSets, FAVORITES_CHANGED_EVENT } from '../Practices/sectionFavorites';
+import { buildHomeRecommendationCards } from '../../utils/homeSpaceRecommendations';
 import supportNearbyArt from '../../assets/dash-support-nearby.png';
-import adviceFilmsCover from '../../assets/advice-films.png';
-import adviceReadingCover from '../../assets/advice-reading.png';
-import adviceMeditationCover from '../../assets/advice-meditation.png';
-import adviceMusicCover from '../../assets/advice-music.png';
-import adviceActivityCover from '../../assets/advice-activity.png';
 import testsNavIcon from '../../assets/tests-nav-icon.png';
 import { resolveHomeBannerVideoSrc } from '../../config/homeBannerVideo';
 import { moodEmojiUrl } from '../../utils/moodEmojiAssets';
+import SpaceOnboardingModal from './SpaceOnboardingModal';
 import './Dashboard.css';
-
-const ONBOARD_KEY = 'burnout_onboarding_v1';
-
-const ADVICE_COVER_BY_KEY = {
-  films: adviceFilmsCover,
-  read: adviceReadingCover,
-  meditate: adviceMeditationCover,
-  music: adviceMusicCover,
-  walk: adviceActivityCover
-};
-
-const ADVICE_CARD_DEFS = [
-  { key: 'music', path: spaceSectionHref('music'), natureIdx: 4, theme: 'purple', Icon: Music },
-  { key: 'films', path: spaceSectionHref('films'), natureIdx: 11, theme: 'orange', Icon: Clapperboard },
-  { key: 'walk', path: spaceSectionHref('events'), natureIdx: 6, theme: 'green', Icon: Trees },
-  { key: 'read', path: spaceSectionHref('articles'), natureIdx: 14, theme: 'blue', Icon: BookOpen },
-  { key: 'meditate', path: spaceSectionHref('meditation'), natureIdx: 9, theme: 'violet', Icon: Moon }
-];
 
 /** Иконки строк в модалке «Подробнее» (настроение / стресс / энергия) */
 const DETAILS_ROW_TWEMOJI = {
@@ -139,9 +114,10 @@ function moodIndexToPercent(idx) {
 }
 
 const Dashboard = () => {
-  const { user } = useAuth();
-  const { lang, t, tRaw } = useLanguage();
+  const { user, updateUser } = useAuth();
+  const { lang, t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const today = new Date();
 
   const [activeTab, setActiveTab] = useState('today');
@@ -150,7 +126,8 @@ const Dashboard = () => {
   const [testCatalog, setTestCatalog] = useState([]);
   const [loading, setLoading] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [spaceOnboardingOpen, setSpaceOnboardingOpen] = useState(false);
+  const [spaceOnboardingSaving, setSpaceOnboardingSaving] = useState(false);
   const [checkinModalOpen, setCheckinModalOpen] = useState(false);
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [supportSent, setSupportSent] = useState(false);
@@ -168,6 +145,16 @@ const Dashboard = () => {
   const [notifOpen, setNotifOpen] = useState(false);
   const [confirmingId, setConfirmingId] = useState(null);
   const [checkinVersion, setCheckinVersion] = useState(0);
+  const [favoritesTick, setFavoritesTick] = useState(0);
+  const [spaceCatalog, setSpaceCatalog] = useState({
+    films: [],
+    musicItems: [],
+    podcastEpisodes: [],
+    meditations: [],
+    readingItems: [],
+    events: []
+  });
+  const [spaceCatalogLoading, setSpaceCatalogLoading] = useState(true);
   const heroBgVideoRef = useRef(null);
   const notifWrapRef = useRef(null);
   const [checkinForm, setCheckinForm] = useState({
@@ -247,12 +234,34 @@ const Dashboard = () => {
   }, [user?.user_id, loadNotifications]);
 
   useEffect(() => {
-    if (loading) return;
-    try {
-      if (!localStorage.getItem(ONBOARD_KEY)) setShowOnboarding(true);
-    } catch {
-    }
-  }, [loading]);
+    let cancelled = false;
+    setSpaceCatalogLoading(true);
+    Promise.all([
+      api.get('/films').catch(() => ({ data: { films: [] } })),
+      api.get('/music').catch(() => ({ data: { items: [] } })),
+      api.get('/podcasts').catch(() => ({ data: { episodes: [] } })),
+      api.get('/meditations').catch(() => ({ data: { meditations: [] } })),
+      api.get('/reading').catch(() => ({ data: { items: [] } })),
+      api.get('/events').catch(() => ({ data: { events: [] } }))
+    ])
+      .then(([filmsRes, musicRes, podRes, medRes, readingRes, eventsRes]) => {
+        if (cancelled) return;
+        setSpaceCatalog({
+          films: filmsRes.data?.films || [],
+          musicItems: musicRes.data?.items || [],
+          podcastEpisodes: podRes.data?.episodes || [],
+          meditations: medRes.data?.meditations || [],
+          readingItems: readingRes.data?.items || [],
+          events: eventsRes.data?.events || [],
+        });
+      })
+      .finally(() => {
+        if (!cancelled) setSpaceCatalogLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!notifOpen) return undefined;
@@ -277,13 +286,33 @@ const Dashboard = () => {
     };
   }, [notifOpen]);
 
-  const dismissOnboarding = (goTests) => {
-    try {
-      localStorage.setItem(ONBOARD_KEY, '1');
-    } catch {
+  useEffect(() => {
+    const handler = () => setFavoritesTick((v) => v + 1);
+    window.addEventListener(FAVORITES_CHANGED_EVENT, handler);
+    return () => window.removeEventListener(FAVORITES_CHANGED_EVENT, handler);
+  }, []);
+
+  useEffect(() => {
+    if (location.search.includes('spaceOnboarding=1')) {
+      setSpaceOnboardingOpen(true);
     }
-    setShowOnboarding(false);
-    if (goTests) navigate('/tests');
+  }, [location.search]);
+
+  const saveSpacePreferences = async (spacePreferences) => {
+    if (!spacePreferences || typeof spacePreferences !== 'object') return;
+    setSpaceOnboardingSaving(true);
+    try {
+      const { data } = await api.put('/users/me/space-preferences', {
+        spacePreferences,
+        hasCompletedSpaceOnboarding: true
+      });
+      updateUser({
+        space_preferences: data.space_preferences ?? spacePreferences,
+        has_completed_space_onboarding: data.has_completed_space_onboarding ?? true
+      });
+    } finally {
+      setSpaceOnboardingSaving(false);
+    }
   };
 
   const lastResult = testResults[0];
@@ -402,19 +431,43 @@ const Dashboard = () => {
     }
   };
 
-  const adviceCards = useMemo(
+  const favoriteHints = useMemo(() => {
+    const bySection = loadAllSectionFavoriteSets();
+    const hints = new Set();
+    if ((bySection.films?.size || 0) > 0) hints.add('films');
+    if ((bySection.music?.size || 0) > 0) hints.add('music');
+    if ((bySection.podcasts?.size || 0) > 0) hints.add('podcasts');
+    if ((bySection.reading?.size || 0) > 0) hints.add('reading');
+    if ((bySection.events?.size || 0) > 0) hints.add('events');
+    return hints;
+  }, [favoritesTick]);
+
+  const recommendationCards = useMemo(
     () =>
-      ADVICE_CARD_DEFS.map((def) => {
-        const copy = tRaw(`dash.advice.cards.${def.key}`) || {};
-        return {
-          ...def,
-          category: copy.category || '',
-          title: copy.title || '',
-          desc: copy.desc || '',
-          duration: copy.duration || ''
-        };
+      buildHomeRecommendationCards({
+        moodVal,
+        stressVal,
+        energyVal,
+        testResults,
+        spacePreferences: user?.space_preferences || null,
+        user,
+        films: spaceCatalog.films,
+        musicItems: spaceCatalog.musicItems,
+        podcastEpisodes: spaceCatalog.podcastEpisodes,
+        meditations: spaceCatalog.meditations,
+        readingItems: spaceCatalog.readingItems,
+        events: spaceCatalog.events,
+        favoriteHints
       }),
-    [tRaw]
+    [
+      moodVal,
+      stressVal,
+      energyVal,
+      testResults,
+      user,
+      spaceCatalog,
+      favoriteHints
+    ]
   );
 
   const moodOptions = useMemo(
@@ -538,6 +591,10 @@ const Dashboard = () => {
 
 
   const firstName = user?.name?.split(' ')[0] || t('dash.greeting.friend');
+  const hasSpaceOnboarding = Boolean(
+    user?.has_completed_space_onboarding ||
+      (user?.space_preferences && typeof user.space_preferences === 'object' && user.space_preferences.completedAt)
+  );
 
   return (
     <div className="dashboard-new fade-in-page">
@@ -857,38 +914,99 @@ const Dashboard = () => {
 
       <section className="dash-advice-panel" aria-label={t('dash.recsTitle')}>
         <header className="dash-advice__head">
-          <div className="dash-advice__badge">💙 {t('dash.advice.dayLabel')}</div>
+          <div className="dash-advice__badge">💙 {hasSpaceOnboarding ? 'Ваше пространство подобрано' : t('dash.advice.dayLabel')}</div>
           <h2 className="dash-advice__title">
-            <span className="dash-advice__title-main">{t('dash.advice.titleMain')}</span>{' '}
-            <span className="dash-advice__title-accent">{t('dash.advice.titleAccent')}</span>
+            {hasSpaceOnboarding ? (
+              <>
+                <span className="dash-advice__title-main">Подбор рекомендаций</span>{' '}
+                <span className="dash-advice__title-accent">под ваше состояние</span>
+              </>
+            ) : (
+              <>
+                <span className="dash-advice__title-main">Не знаете, с чего начать?</span>{' '}
+                <span className="dash-advice__title-accent">мы поможем выбрать</span>
+              </>
+            )}
           </h2>
-          <p className="dash-advice__lead">{t('dash.advice.subLine1')}</p>
-          <p className="dash-advice__lead dash-advice__lead--second">{t('dash.advice.subLine2')}</p>
+          {!hasSpaceOnboarding ? (
+            <>
+              <p className="dash-advice__lead">Пройдите короткий подбор, чтобы мы показывали более бережный и подходящий контент.</p>
+              <p className="dash-advice__lead dash-advice__lead--second">Это не диагностика — только настройка форматов рекомендаций.</p>
+            </>
+          ) : (
+            <>
+              <p className="dash-advice__lead">Рекомендации собираются из карточек, добавленных администратором, с учётом вашего состояния и предпочтений.</p>
+              <p className="dash-advice__lead dash-advice__lead--second">Вы можете пройти подбор заново в любой момент.</p>
+            </>
+          )}
+          <div style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => setSpaceOnboardingOpen(true)}
+            >
+              {hasSpaceOnboarding ? 'Изменить предпочтения' : 'Найти своё направление'}
+            </button>
+          </div>
         </header>
         <div className="dash-advice__strip">
-          {adviceCards.map((card) => {
-            const Icon = card.Icon;
-            const cover = ADVICE_COVER_BY_KEY[card.key] || natureAt(card.natureIdx);
+          {spaceCatalogLoading ? (
+            <p className="dash-advice__lead">Подбираем рекомендации…</p>
+          ) : recommendationCards.length === 0 ? (
+            <p className="dash-advice__lead">Пока не хватает данных для персонального подбора — начните с любого раздела пространства.</p>
+          ) : recommendationCards.map((card, idx) => {
+            const cover = card.image || natureAt(6 + idx);
+            const coverIsVideo = Boolean(cover) && isVideoCoverAsset(cover);
+            const descText =
+              (card.description && String(card.description).trim()) ||
+              `Подойдёт для мягкого шага в раздел «${card.subtitle.toLowerCase()}».`;
+            const openRec = () => navigate(card.path);
             return (
-              <article key={card.key} className={`dash-advice-card dash-advice-card--${card.theme}`}>
+              <article
+                key={`${card.type}-${idx}-${card.title}`}
+                className="dash-advice-card dash-advice-card--violet"
+                role="button"
+                tabIndex={0}
+                onClick={openRec}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openRec();
+                  }
+                }}
+              >
                 <div className="dash-advice-card__top">
-                  <Icon className="dash-advice-card__cat-icon" size={16} strokeWidth={2.2} aria-hidden />
-                  <span className="dash-advice-card__cat">{card.category}</span>
+                  <span className="dash-advice-card__cat">{card.subtitle}</span>
                 </div>
                 <div
-                  className={`dash-advice-card__media${card.key === 'meditate' ? ' dash-advice-card__media--meditate' : ''}${card.key === 'walk' ? ' dash-advice-card__media--walk' : ''}${card.key === 'films' ? ' dash-advice-card__media--films' : ''}${card.key === 'read' ? ' dash-advice-card__media--read' : ''}`}
-                  style={{ backgroundImage: `url(${cover})` }}
-                  role="img"
-                  aria-hidden
-                />
+                  className={`dash-advice-card__media${coverIsVideo ? ' dash-advice-card__media--video' : ''}`}
+                  style={coverIsVideo ? undefined : { backgroundImage: `url(${cover})` }}
+                  role={coverIsVideo ? undefined : 'img'}
+                  aria-hidden={coverIsVideo ? undefined : true}
+                >
+                  {coverIsVideo ? (
+                    <video
+                      src={cover}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload="metadata"
+                      aria-label={card.title}
+                    />
+                  ) : null}
+                </div>
                 <h3 className="dash-advice-card__name">{card.title}</h3>
-                <p className="dash-advice-card__desc">{card.desc}</p>
+                <p className="dash-advice-card__desc">{descText}</p>
                 <div className="dash-advice-card__foot">
-                  <span className="dash-advice-card__dur">{card.duration}</span>
+                  <span className="dash-advice-card__dur">Рекомендация</span>
                   <button
                     type="button"
                     className="dash-advice-card__go"
-                    onClick={() => navigate(card.path)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openRec();
+                    }}
                     aria-label={card.title}
                   >
                     <ArrowRight size={18} strokeWidth={2.4} aria-hidden />
@@ -1248,24 +1366,17 @@ const Dashboard = () => {
         </div>
       }
 
-      {showOnboarding &&
-      <div className="modal-overlay" role="dialog" aria-labelledby="onboard-title">
-          <div className="modal-card fade-in">
-            <h2 id="onboard-title" style={{ margin: '0 0 12px', fontSize: 22, fontWeight: 700 }}>{t('dash.onboard.title')}</h2>
-            <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--text-mid)', marginBottom: 20 }}>
-              {t('dash.onboard.body')}
-            </p>
-            <div className="modal-actions" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-              <button type="button" className="btn btn-ghost" onClick={() => dismissOnboarding(false)}>
-                {t('dash.onboard.later')}
-              </button>
-              <button type="button" className="btn btn-primary" onClick={() => dismissOnboarding(true)}>
-                {t('dash.onboard.toTests')}
-              </button>
-            </div>
-          </div>
-        </div>
-      }
+      {spaceOnboardingOpen ? (
+        <SpaceOnboardingModal
+          saving={spaceOnboardingSaving}
+          onClose={() => setSpaceOnboardingOpen(false)}
+          onGoSpace={() => {
+            setSpaceOnboardingOpen(false);
+            navigate('/practices');
+          }}
+          onComplete={saveSpacePreferences}
+        />
+      ) : null}
 
     </div>);
 

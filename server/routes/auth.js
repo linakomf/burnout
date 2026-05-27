@@ -44,7 +44,9 @@ router.post('/register', async (req, res) => {
        RETURNING user_id, name, email, role, avatar, age, gender,
          COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
          onboarding_burnout_percent,
-         onboarding_burnout_completed_at`,
+         onboarding_burnout_completed_at,
+         space_preferences,
+         COALESCE(has_completed_space_onboarding, false) AS has_completed_space_onboarding`,
       [name, email, password, insertRole, ageVal]
     );
 
@@ -67,7 +69,9 @@ router.post('/register', async (req, res) => {
         gender: user.gender ?? null,
         onboarding_burnout_completed: Boolean(user.onboarding_burnout_completed),
         onboarding_burnout_percent: user.onboarding_burnout_percent ?? null,
-        onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null
+        onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
+        space_preferences: user.space_preferences ?? null,
+        has_completed_space_onboarding: Boolean(user.has_completed_space_onboarding)
       }
     });
   } catch (err) {
@@ -136,6 +140,8 @@ router.post('/login', async (req, res) => {
           Boolean(user.onboarding_burnout_completed),
         onboarding_burnout_percent: user.onboarding_burnout_percent ?? null,
         onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
+        space_preferences: user.space_preferences ?? null,
+        has_completed_space_onboarding: Boolean(user.has_completed_space_onboarding),
         psychologist_account_status: user.psychologist_account_status ?? null
       }
     });
