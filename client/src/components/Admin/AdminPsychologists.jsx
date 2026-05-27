@@ -8,6 +8,7 @@ import {
   contactHref
 } from '../Psychologist/psychConstants';
 import AdminModalPortal from './AdminModalPortal';
+import { SupportVerificationBadges } from '../Support/SupportVerificationBadges';
 import './Admin.css';
 import '../Psychologist/Psychologist.css';
 
@@ -245,6 +246,12 @@ export default function AdminPsychologists() {
                   </p>
                 ) : null}
               </div>
+              {r.confirmations?.length > 0 ? (
+                <div style={{ marginTop: 10 }}>
+                  <div className="admin-support-overview-k">Ответ пользователя</div>
+                  <SupportVerificationBadges confirmations={r.confirmations} compact />
+                </div>
+              ) : null}
             </li>
           ))}
           {requests.length === 0 ? <p className="admin-support-overview-muted">Нет обращений</p> : null}

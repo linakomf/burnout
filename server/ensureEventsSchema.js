@@ -42,6 +42,11 @@ async function ensureEventsSchema() {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS events_created_at_idx ON events (created_at DESC);
   `);
+
+  await pool.query(`
+    ALTER TABLE events
+      ALTER COLUMN price_key TYPE VARCHAR(80);
+  `);
 }
 
 module.exports = { ensureEventsSchema };

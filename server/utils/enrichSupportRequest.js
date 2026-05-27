@@ -1,6 +1,7 @@
 const pool = require('../db');
 const { computeTestResult } = require('../scoring');
 const { bucketFromPercent, normalizeRiskLevel } = require('./burnoutRisk');
+const { fetchConfirmationsByRequestIds } = require('./supportConfirmations');
 
 const questionsCache = new Map();
 
@@ -63,6 +64,7 @@ function mapSupportRowBase(row, catalogBurnout) {
     user_id: row.user_id,
     display_name: row.display_name,
     contact: row.contact,
+    whatsapp: row.whatsapp ?? null,
     message: row.message,
     created_at: row.created_at,
     status: row.status || 'new',
@@ -73,7 +75,8 @@ function mapSupportRowBase(row, catalogBurnout) {
     account_name: row.account_name,
     account_role: row.account_role,
     onboarding: mapOnboarding(row),
-    catalog_burnout_test: catalogBurnout
+    catalog_burnout_test: catalogBurnout,
+    confirmations: row.confirmations || []
   };
 }
 
@@ -82,6 +85,7 @@ const SUPPORT_SELECT_CORE = `
   sr.user_id,
   sr.display_name,
   sr.contact,
+  sr.whatsapp,
   sr.message,
   sr.created_at,
   sr.status,
@@ -123,10 +127,16 @@ const SUPPORT_FROM_JOIN = `
 `;
 
 async function enrichSupportRows(dbRows) {
+  const requestIds = dbRows.map((r) => r.request_id).filter(Boolean);
+  const confirmationsMap = await fetchConfirmationsByRequestIds(requestIds);
   const rows = [];
   for (const row of dbRows) {
     const catalogBurnout = await buildCatalogBurnout(row);
-    rows.push(mapSupportRowBase(row, catalogBurnout));
+    const withConfirmations = {
+      ...row,
+      confirmations: confirmationsMap.get(row.request_id) || []
+    };
+    rows.push(mapSupportRowBase(withConfirmations, catalogBurnout));
   }
   return rows;
 }

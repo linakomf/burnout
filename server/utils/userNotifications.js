@@ -2,6 +2,8 @@ const pool = require('../db');
 
 function mapUserNotificationRow(row) {
   if (!row) return null;
+  const userConfirmed =
+    row.user_confirmed === true ? true : row.user_confirmed === false ? false : null;
   return {
     notification_id: row.notification_id,
     user_id: row.user_id,
@@ -11,7 +13,10 @@ function mapUserNotificationRow(row) {
     payload: row.payload || null,
     is_read: Boolean(row.is_read),
     read_at: row.read_at || null,
-    created_at: row.created_at || null
+    created_at: row.created_at || null,
+    confirmation_id: row.confirmation_id ?? row.payload?.confirmation_id ?? null,
+    user_confirmed: userConfirmed,
+    responded_at: row.responded_at || null
   };
 }
 

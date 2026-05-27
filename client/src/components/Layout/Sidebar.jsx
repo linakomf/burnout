@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -8,15 +8,16 @@ import {
   BarChart2,
   BarChart3,
   ClipboardList,
-  ChevronLeft,
-  ChevronRight,
   Users,
   Tag,
   Brain,
   SlidersHorizontal,
   Heart,
   HeartHandshake,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
+import { useSidebarCollapse } from '../../context/SidebarCollapseContext';
 import './Sidebar.css';
 import { backendPublicUrl } from '../../utils/assetUrl';
 
@@ -51,7 +52,7 @@ function navLinkIsActive(path, pathname) {
 }
 
 const Sidebar = () => {
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, toggle } = useSidebarCollapse();
   const { user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -107,6 +108,8 @@ const Sidebar = () => {
   const profileActive =
     location.pathname === '/profile' || location.pathname === '/psychologist/profile';
 
+  const anyNavActive = links.some((link) => navLinkIsActive(link.path, location.pathname));
+
   return (
     <aside className={`sidebar sidebar--modern ${collapsed ? 'collapsed' : ''}`}>
       <button
@@ -122,53 +125,108 @@ const Sidebar = () => {
         {!collapsed && <span className="logo-text">Burnout</span>}
       </button>
 
+      {collapsed ? (
+        <button
+          type="button"
+          className="sidebar-expand-rail"
+          onClick={toggle}
+          aria-label={t('nav.expand')}
+          title={t('nav.expand')}
+        >
+          <ChevronRight size={18} strokeWidth={2.5} aria-hidden />
+        </button>
+      ) : null}
+
       <nav className="sidebar-nav" aria-label={t('nav.mainMenu')}>
         {links.map((link) => {
           const isActive = navLinkIsActive(link.path, location.pathname);
           return (
-            <button
+            <div
               key={link.path}
-              type="button"
-              className={`nav-item ${isActive ? 'active' : ''}`}
-              onClick={() => navigate(link.path)}
-              title={collapsed ? link.label : ''}>
-            
-              <span className="nav-icon">{link.icon}</span>
-              {!collapsed && <span className="nav-label">{link.label}</span>}
-            </button>);
-
+              className={`nav-item-row${isActive ? ' nav-item-row--active' : ''}${collapsed ? ' nav-item-row--collapsed' : ''}`}
+            >
+              <button
+                type="button"
+                className="nav-item-main"
+                onClick={() => navigate(link.path)}
+                title={collapsed ? link.label : undefined}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <span className="nav-icon">{link.icon}</span>
+                {!collapsed && <span className="nav-label">{link.label}</span>}
+              </button>
+              {!collapsed && isActive ? (
+                <button
+                  type="button"
+                  className="nav-item-rail-toggle"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggle();
+                  }}
+                  aria-label={t('nav.collapse')}
+                  title={t('nav.collapse')}
+                >
+                  <ChevronLeft size={16} strokeWidth={2.5} aria-hidden />
+                </button>
+              ) : null}
+            </div>
+          );
         })}
       </nav>
 
-      <div className="sidebar-bottom">
-        <button
-          type="button"
-          className={`sidebar-profile ${profileActive ? 'active' : ''}`}
-          onClick={() => navigate(profilePath)}
-          title={collapsed ? t('nav.profile') : ''}>
-          
-          <div className="user-avatar user-avatar--sticker">
-            <img
-              src={avatarUrl}
-              alt=""
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = DEFAULT_AVATAR;
-              }} />
-            
-          </div>
-          {!collapsed && <span className="sidebar-profile-label">{t('nav.profile')}</span>}
-        </button>
-      </div>
+      {!collapsed && !anyNavActive && !profileActive ? (
+        <div className="sidebar-collapse-fallback">
+          <button
+            type="button"
+            className="nav-item-rail-toggle nav-item-rail-toggle--solo"
+            onClick={toggle}
+            aria-label={t('nav.collapse')}
+            title={t('nav.collapse')}
+          >
+            <ChevronLeft size={16} strokeWidth={2.5} aria-hidden />
+          </button>
+        </div>
+      ) : null}
 
-      <button
-        type="button"
-        className="collapse-btn"
-        onClick={() => setCollapsed(!collapsed)}
-        aria-label={collapsed ? t('nav.expand') : t('nav.collapse')}>
-        
-        {collapsed ? <ChevronRight size={16} strokeWidth={2.5} /> : <ChevronLeft size={16} strokeWidth={2.5} />}
-      </button>
+      <div className="sidebar-bottom">
+        <div
+          className={`sidebar-profile-row${profileActive ? ' sidebar-profile-row--active' : ''}${collapsed ? ' sidebar-profile-row--collapsed' : ''}`}
+        >
+          <button
+            type="button"
+            className={`sidebar-profile ${profileActive ? 'active' : ''}`}
+            onClick={() => navigate(profilePath)}
+            title={collapsed ? t('nav.profile') : undefined}
+            aria-current={profileActive ? 'page' : undefined}
+          >
+            <div className="user-avatar user-avatar--sticker">
+              <img
+                src={avatarUrl}
+                alt=""
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = DEFAULT_AVATAR;
+                }}
+              />
+            </div>
+            {!collapsed && <span className="sidebar-profile-label">{t('nav.profile')}</span>}
+          </button>
+          {!collapsed && profileActive ? (
+            <button
+              type="button"
+              className="nav-item-rail-toggle"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggle();
+              }}
+              aria-label={t('nav.collapse')}
+              title={t('nav.collapse')}
+            >
+              <ChevronLeft size={16} strokeWidth={2.5} aria-hidden />
+            </button>
+          ) : null}
+        </div>
+      </div>
     </aside>);
 
 };

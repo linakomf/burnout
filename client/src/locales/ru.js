@@ -43,7 +43,22 @@ export default {
       desc: 'Если сейчас тяжело - не оставайтесь наедине с этим. Наша команда поддержки готова выслушать вас.',
       cta: 'Написать специалисту',
       ctaAria: 'Написать специалисту службы поддержки',
-      mailSubject: 'Обращение из приложения'
+      mailSubject: 'Обращение из приложения',
+      formTitle: 'Написать специалисту',
+      formLead: 'Оставьте заявку, и мы свяжемся с вами. Ответим с заботой и без осуждения.',
+      nameLabel: 'Ваше имя',
+      namePh: 'Например, Алия',
+      contactLabel: 'Email',
+      contactPh: 'name@email.com',
+      whatsappLabel: 'Номер WhatsApp',
+      whatsappPh: '+7 700 123 45 67',
+      messageLabel: 'Сообщение',
+      messagePh: 'Коротко опишите, что вас беспокоит.',
+      cancel: 'Отмена',
+      submit: 'Отправить заявку',
+      submitting: 'Отправка…',
+      success: 'Заявка отправлена. Мы скоро свяжемся с вами.',
+      errorDefault: 'Не удалось отправить заявку. Попробуйте позже.'
     },
     advice: {
       dayLabel: 'Совет дня',
@@ -153,7 +168,13 @@ export default {
       loading: 'Загрузка уведомлений...',
       loadError: 'Не удалось загрузить уведомления',
       empty: 'Пока уведомлений нет',
-      new: 'Новое'
+      new: 'Новое',
+      confirmYes: 'Да, связались',
+      confirmNo: 'Нет, не было',
+      confirmConsultYes: 'Да, была консультация',
+      confirmConsultNo: 'Нет, не было',
+      confirmThanks: 'Спасибо, ответ сохранён',
+      confirmError: 'Не удалось сохранить ответ'
     },
     onboard: {
       title: 'Добро пожаловать',
@@ -702,7 +723,7 @@ export default {
     articlesCtaButton: 'Предложить тему',
     articlesSuggestMailSubject: 'Тема для раздела «Статьи»',
     articleReaderBack: 'Назад',
-    articleReaderSourceCta: 'Открыть полный текст на источнике',
+    articleReaderSourceCta: 'Перейти к оригиналу',
     articleReaderSourceHint: 'Здесь краткий пересказ для чтения на сайте; оригинал — по ссылке выше.',
     bookDetailBack: 'Назад',
     bookDetailReadCta: 'Читать по ссылке',

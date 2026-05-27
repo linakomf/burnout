@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { formatArticleBodyToHtml } from '../../utils/articleBody';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
@@ -65,11 +66,12 @@ export default function ArticleReaderPage() {
   const categoryLabel = readingItemCategoryLabel(article, t);
   const title = readingItemTitle(article, t);
   const fromFile = staticArticle ? articleBodyFor(lang, staticArticle.id) : '';
-  const body =
+  const bodyRaw =
     article.bodyFull ||
     fromFile ||
     article.descriptionShort ||
     (summaryKey ? t(`pages.${summaryKey}`) : '');
+  const bodyHtml = formatArticleBodyToHtml(bodyRaw);
   const sourceUrl = article.url || '';
 
   return (
@@ -95,7 +97,10 @@ export default function ArticleReaderPage() {
         ) : null}
 
         <div className="article-reader-body-wrap">
-          <div className="article-reader-body">{body}</div>
+          <div
+            className="article-reader-body"
+            dangerouslySetInnerHTML={{ __html: bodyHtml }}
+          />
         </div>
 
         {sourceUrl ? (

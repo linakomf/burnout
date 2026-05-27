@@ -34,6 +34,11 @@ function pickTf(raw, allowed, fallback) {
   return allowed.has(v) ? v : fallback;
 }
 
+function normalizePriceKey(raw, existing) {
+  const value = String(raw ?? existing ?? '').trim().slice(0, 80);
+  return value || 'от 2000 ₸';
+}
+
 function buildCardTags(body, kind) {
   const tags = [];
   const loc = String(body.location_text || '').trim();
@@ -94,6 +99,7 @@ module.exports = {
   KINDS,
   FILTER_CATS,
   PRICE_KEYS,
+  normalizePriceKey,
   buildCardTags,
   parseTagsField,
   parseJsonArray,

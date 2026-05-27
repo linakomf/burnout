@@ -147,6 +147,24 @@ async function ensurePsychologistSchema() {
       ON support_request_notes (request_id, created_at DESC);
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS support_request_confirmations (
+      confirmation_id SERIAL PRIMARY KEY,
+      request_id INT NOT NULL REFERENCES support_requests(request_id) ON DELETE CASCADE,
+      milestone VARCHAR(40) NOT NULL,
+      psychologist_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+      user_confirmed BOOLEAN,
+      notification_id INT REFERENCES user_notifications(notification_id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      responded_at TIMESTAMP,
+      UNIQUE (request_id, milestone)
+    );
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_support_confirmations_request
+      ON support_request_confirmations (request_id, created_at DESC);
+  `);
+
   console.log('✅ Схема психологов и расширенные обращения готовы');
 }
 

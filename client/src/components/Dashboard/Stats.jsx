@@ -26,10 +26,6 @@ import {
   PolarRadiusAxis } from
 'recharts';
 import {
-  Heart,
-  Activity,
-  Clock,
-  Battery,
   TrendingUp,
   TrendingDown,
   Check,
@@ -49,9 +45,50 @@ import {
   compositeAnxietyPct,
   moodPercentFromOnboardingBurnout } from
 '../../utils/wellnessComposite';
+import energyState1 from '../../assets/stats-states/energy-state-1.png';
+import energyState2 from '../../assets/stats-states/energy-state-2.png';
+import energyState3 from '../../assets/stats-states/energy-state-3.png';
+import energyState4 from '../../assets/stats-states/energy-state-4.png';
+import moodState1 from '../../assets/stats-states/mood-state-1.png';
+import moodState2 from '../../assets/stats-states/mood-state-2.png';
+import moodState3 from '../../assets/stats-states/mood-state-3.png';
+import moodState4 from '../../assets/stats-states/mood-state-4.png';
+import stressState1 from '../../assets/stats-states/stress-state-1.png';
+import stressState2 from '../../assets/stats-states/stress-state-2.png';
+import stressState3 from '../../assets/stats-states/stress-state-3.png';
+import stressState4 from '../../assets/stats-states/stress-state-4.png';
+import anxietyState1 from '../../assets/stats-states/anxiety-state-1.png';
+import anxietyState2 from '../../assets/stats-states/anxiety-state-2.png';
+import anxietyState3 from '../../assets/stats-states/anxiety-state-3.png';
+import anxietyState4 from '../../assets/stats-states/anxiety-state-4.png';
 import './Stats.css';
 
 const DAYS_PERIOD = { week: 7, month: 30, year: 365 };
+const KPI_STATE_IMAGES = {
+  mood: [moodState1, moodState2, moodState3, moodState4],
+  stress: [stressState1, stressState2, stressState3, stressState4],
+  anxiety: [anxietyState1, anxietyState2, anxietyState3, anxietyState4],
+  energy: [energyState1, energyState2, energyState3, energyState4]
+};
+
+function clampPercent(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0;
+  return Math.min(100, Math.max(0, Math.round(n)));
+}
+
+function percentBucket(value) {
+  const pct = clampPercent(value);
+  if (pct <= 25) return 1;
+  if (pct <= 50) return 2;
+  if (pct <= 75) return 3;
+  return 4;
+}
+
+function metricStateLevel(value, reverseScale = false) {
+  const bucket = percentBucket(value);
+  return reverseScale ? 5 - bucket : bucket;
+}
 
 function moodScoreToPercent(avg) {
   if (avg == null || Number.isNaN(avg)) return 0;
@@ -136,6 +173,31 @@ function deltaToneClass(trend, goodWhenUp) {
   if (trend.up == null || trend.text === '-') return '';
   const feelsGood = goodWhenUp ? trend.up : !trend.up;
   return feelsGood ? 'pos' : 'neg';
+}
+
+function MetricStateImage({ metric, percent, reverseScale = false, label }) {
+  const level = metricStateLevel(percent, reverseScale);
+  const list = KPI_STATE_IMAGES[metric] || [];
+  const nextSrc = list[level - 1] || list[0] || '';
+  const [activeSrc, setActiveSrc] = useState(nextSrc);
+  const [prevSrc, setPrevSrc] = useState('');
+
+  useEffect(() => {
+    if (!nextSrc || nextSrc === activeSrc) return undefined;
+    setPrevSrc(activeSrc);
+    setActiveSrc(nextSrc);
+    const timer = setTimeout(() => setPrevSrc(''), 300);
+    return () => clearTimeout(timer);
+  }, [nextSrc, activeSrc]);
+
+  const pct = clampPercent(percent);
+  const alt = `${label}: ${pct}%`;
+
+  return (
+    <div className="analytics-kpi-state">
+      {prevSrc ? <img src={prevSrc} alt="" className="analytics-kpi-state-img analytics-kpi-state-img--prev" aria-hidden /> : null}
+      {activeSrc ? <img src={activeSrc} alt={alt} className="analytics-kpi-state-img analytics-kpi-state-img--active" /> : null}
+    </div>);
 }
 
 const Stats = () => {
@@ -621,75 +683,79 @@ const Stats = () => {
       <section className="analytics-kpi-grid">
         <article className="analytics-kpi-card analytics-kpi-card--mood">
           <div className="analytics-kpi-inner">
-            <div className="analytics-kpi-top">
-              <span className="analytics-kpi-icon analytics-kpi-icon--mood">
-                <Heart size={20} strokeWidth={2.2} />
-              </span>
-              {moodTrend.text !== '-' && moodTrend.up != null && (
-                <span className={`analytics-kpi-delta ${deltaToneClass(moodTrend, true)}`}>
-                  {moodTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                  {moodTrend.text}
-                </span>
-              )}
+            <div className="analytics-kpi-head">
+              <p className="analytics-kpi-label">Среднее настроение</p>
+              <div className="analytics-kpi-delta-slot">
+                {moodTrend.text !== '-' && moodTrend.up != null ? (
+                  <span className={`analytics-kpi-delta ${deltaToneClass(moodTrend, true)}`}>
+                    {moodTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                    {moodTrend.text}
+                  </span>
+                ) : null}
+              </div>
             </div>
-            <p className="analytics-kpi-label">Среднее настроение</p>
             <p className="analytics-kpi-value">{avgMoodPct}%</p>
           </div>
-          <div className="analytics-kpi-deco" aria-hidden />
+          <div className="analytics-kpi-deco">
+            <MetricStateImage metric="mood" percent={avgMoodPct} label="Настроение" />
+          </div>
         </article>
         <article className="analytics-kpi-card analytics-kpi-card--stress">
           <div className="analytics-kpi-inner">
-            <div className="analytics-kpi-top">
-              <span className="analytics-kpi-icon analytics-kpi-icon--stress">
-                <Activity size={20} strokeWidth={2.2} />
-              </span>
-              {stressTrend.text !== '-' && stressTrend.up != null && (
-                <span className={`analytics-kpi-delta ${deltaToneClass(stressTrend, false)}`}>
-                  {stressTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                  {stressTrend.text}
-                </span>
-              )}
+            <div className="analytics-kpi-head">
+              <p className="analytics-kpi-label">Уровень стресса</p>
+              <div className="analytics-kpi-delta-slot">
+                {stressTrend.text !== '-' && stressTrend.up != null ? (
+                  <span className={`analytics-kpi-delta ${deltaToneClass(stressTrend, false)}`}>
+                    {stressTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                    {stressTrend.text}
+                  </span>
+                ) : null}
+              </div>
             </div>
-            <p className="analytics-kpi-label">Уровень стресса</p>
             <p className="analytics-kpi-value">{stressPct}%</p>
           </div>
-          <div className="analytics-kpi-deco" aria-hidden />
+          <div className="analytics-kpi-deco">
+            <MetricStateImage metric="stress" percent={stressPct} reverseScale label="Стресс" />
+          </div>
         </article>
         <article className="analytics-kpi-card analytics-kpi-card--anxiety">
           <div className="analytics-kpi-inner">
-            <div className="analytics-kpi-top">
-              <span className="analytics-kpi-icon analytics-kpi-icon--anxiety">
-                <Clock size={20} strokeWidth={2.2} />
-              </span>
-              {anxietyTrend.text !== '-' && anxietyTrend.up != null && (
-                <span className={`analytics-kpi-delta ${deltaToneClass(anxietyTrend, false)}`}>
-                  {anxietyTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                  {anxietyTrend.text}
-                </span>
-              )}
+            <div className="analytics-kpi-head">
+              <p className="analytics-kpi-label">Тревожность</p>
+              <div className="analytics-kpi-delta-slot">
+                {anxietyTrend.text !== '-' && anxietyTrend.up != null ? (
+                  <span className={`analytics-kpi-delta ${deltaToneClass(anxietyTrend, false)}`}>
+                    {anxietyTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                    {anxietyTrend.text}
+                  </span>
+                ) : null}
+              </div>
             </div>
-            <p className="analytics-kpi-label">Тревожность</p>
             <p className="analytics-kpi-value">{anxietyPct}%</p>
           </div>
-          <div className="analytics-kpi-deco" aria-hidden />
+          <div className="analytics-kpi-deco">
+            <MetricStateImage metric="anxiety" percent={anxietyPct} reverseScale label="Тревожность" />
+          </div>
         </article>
         <article className="analytics-kpi-card analytics-kpi-card--energy">
           <div className="analytics-kpi-inner">
-            <div className="analytics-kpi-top">
-              <span className="analytics-kpi-icon analytics-kpi-icon--energy">
-                <Battery size={20} strokeWidth={2.2} />
-              </span>
-              {energyTrend.text !== '-' && energyTrend.up != null && (
-                <span className={`analytics-kpi-delta ${deltaToneClass(energyTrend, true)}`}>
-                  {energyTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                  {energyTrend.text}
-                </span>
-              )}
+            <div className="analytics-kpi-head">
+              <p className="analytics-kpi-label">Энергия</p>
+              <div className="analytics-kpi-delta-slot">
+                {energyTrend.text !== '-' && energyTrend.up != null ? (
+                  <span className={`analytics-kpi-delta ${deltaToneClass(energyTrend, true)}`}>
+                    {energyTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                    {energyTrend.text}
+                  </span>
+                ) : null}
+              </div>
             </div>
-            <p className="analytics-kpi-label">Энергия</p>
             <p className="analytics-kpi-value">{energyPct}%</p>
           </div>
-          <div className="analytics-kpi-deco" aria-hidden />
+          <div className="analytics-kpi-deco">
+            <MetricStateImage metric="energy" percent={energyPct} label="Энергия" />
+          </div>
         </article>
       </section>
 

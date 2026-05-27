@@ -10,6 +10,9 @@ import filmsCatalogHeroPhoto from '../../assets/films-catalog-hero-clouds.png';
 import { loadMeditationFavorites, saveMeditationFavorites } from './meditationFavorites';
 import { mapRemoteMeditationPayload } from './meditationHubData';
 import { spaceHubHref } from './practiceSpaceConfig';
+import SidebarCollapseButton from '../Layout/SidebarCollapseButton';
+
+void SidebarCollapseButton;
 
 const MEDITATION_FILTERS = [
   { id: 'all', labelKey: 'meditationFilterAll' },

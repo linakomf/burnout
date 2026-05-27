@@ -1,7 +1,7 @@
 import React from 'react';
 import { Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { eventCardCategory, eventCardTitle, eventTagLabel } from './eventsHubData';
+import { eventCardCategory, eventCardTitle, eventPriceDisplayLabel, eventTagLabel } from './eventsHubData';
 import PracticeCoverFavorite from './PracticeCoverFavorite';
 
 export function ToolbarDropdown({ isOpen, options, value, t, onPick, alignEnd, tall }) {
@@ -31,7 +31,7 @@ export function ToolbarDropdown({ isOpen, options, value, t, onPick, alignEnd, t
 export function EventGridCard({ item, t, isFavorite = false, onToggleFavorite = () => {} }) {
   const kindKey = item.kind === 'group' ? 'eventsModeGroup' : 'eventsModeSolo';
   const categoryLabel = eventCardCategory(item, t);
-  const priceLabel = t(`pages.${item.priceKey}`);
+  const priceLabel = eventPriceDisplayLabel(item.priceKey, t);
   const clockTag = item.tags.find((tag) => tag.kind === 'clock') || null;
   const summary = item.tags
     .filter((tag) => tag.kind !== 'clock')

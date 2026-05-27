@@ -4,6 +4,7 @@ import { Users, Tag, BookOpen, Plus, Trash2, Edit2, X, Save, HeartHandshake, Cla
 import api from '../../utils/api';
 import AdminAudienceFields from './AdminAudienceFields';
 import AdminModalPortal from './AdminModalPortal';
+import { SupportVerificationBadges } from '../Support/SupportVerificationBadges';
 import { emptyAudienceFields, formatAudienceSummary } from './audienceTargeting';
 import './Admin.css';
 
@@ -710,15 +711,34 @@ export const AdminOverview = () => {
                     <span className="admin-support-overview-k">Имя в форме:</span> {r.display_name}
                   </div>
                   <div className="admin-support-overview-row">
-                    <span className="admin-support-overview-k">Контакт:</span>{' '}
+                    <span className="admin-support-overview-k">Email:</span>{' '}
                     <a className="admin-support-overview-a" href={supportContactHref(r.contact)}>
                       {r.contact}
                     </a>
                   </div>
+                  {r.whatsapp ? (
+                    <div className="admin-support-overview-row">
+                      <span className="admin-support-overview-k">WhatsApp:</span>{' '}
+                      <a
+                        className="admin-support-overview-a"
+                        href={supportContactHref(r.whatsapp)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {r.whatsapp}
+                      </a>
+                    </div>
+                  ) : null}
                   <div className="admin-support-overview-msg-wrap">
                     <div className="admin-support-overview-k">Сообщение</div>
                     <p className="admin-support-overview-msg">{r.message}</p>
                   </div>
+                  {r.confirmations?.length > 0 ? (
+                    <div className="admin-support-overview-row">
+                      <div className="admin-support-overview-k">Подтверждение пользователя</div>
+                      <SupportVerificationBadges confirmations={r.confirmations} compact />
+                    </div>
+                  ) : null}
                   <div className="admin-support-overview-burnout">
                     <div className="admin-support-overview-burn-card">
                       <div className="admin-support-overview-burn-h">Онбординг (выгорание)</div>

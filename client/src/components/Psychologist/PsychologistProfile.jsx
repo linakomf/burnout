@@ -16,7 +16,10 @@ import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
 import api from '../../utils/api';
 import { backendPublicUrl } from '../../utils/assetUrl';
 import { ACCOUNT_STATUS_LABELS } from './psychConstants';
+import SidebarCollapseButton from '../Layout/SidebarCollapseButton';
 import '../Profile/Profile.css';
+
+void SidebarCollapseButton;
 
 const NOTIF_KEY = 'burnout_notifications';
 

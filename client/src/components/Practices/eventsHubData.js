@@ -155,6 +155,17 @@ export const EVENT_FILTER_CAT_OPTIONS = [
   { id: 'other', labelKey: 'eventsCatOther' },
 ];
 
+export const KNOWN_EVENT_PRICE_KEYS = new Set([
+  'eventsEvPriceFree',
+  'eventsEvPriceFrom1000',
+  'eventsEvPriceFrom1500',
+  'eventsEvPriceFrom2000',
+  'eventsEvPriceFrom3000',
+  'eventsEvPriceFrom4000',
+  'eventsEvPriceFrom5000',
+]);
+
+/** @deprecated Используйте текстовое поле цены в админке; оставлено для совместимости. */
 export const EVENT_PRICE_OPTIONS = [
   { id: 'eventsEvPriceFree', labelKey: 'eventsEvPriceFree' },
   { id: 'eventsEvPriceFrom1000', labelKey: 'eventsEvPriceFrom1000' },
@@ -164,6 +175,23 @@ export const EVENT_PRICE_OPTIONS = [
   { id: 'eventsEvPriceFrom4000', labelKey: 'eventsEvPriceFrom4000' },
   { id: 'eventsEvPriceFrom5000', labelKey: 'eventsEvPriceFrom5000' },
 ];
+
+/** Подпись цены на карточке: произвольный текст или старый ключ локализации. */
+export function eventPriceDisplayLabel(priceKey, t) {
+  const key = String(priceKey || '').trim();
+  if (!key) return '';
+  if (KNOWN_EVENT_PRICE_KEYS.has(key)) {
+    const translated = t(`pages.${key}`);
+    if (translated && translated !== `pages.${key}`) return translated;
+  }
+  return key;
+}
+
+export function isEventPriceFree(priceKey) {
+  const key = String(priceKey || '').trim();
+  if (key === 'eventsEvPriceFree') return true;
+  return /бесплат/i.test(key);
+}
 
 export const EVENT_TF_LOC_OPTIONS = [{ id: 'almaty', labelKey: 'eventsEvTagAlmaty' }];
 export const EVENT_TF_DATE_OPTIONS = [

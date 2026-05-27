@@ -27,7 +27,7 @@ import { backendPublicUrl } from '../../utils/assetUrl';
 import { useLanguage } from '../../context/LanguageContext';
 import filmsCatalogHeroPhoto from '../../assets/films-catalog-hero-clouds.png';
 import {
-  buildShelves,
+  buildReadingShelfRows,
   filterReadingList,
   mapRemoteArticlePayload,
   mapRemoteBookPayload,
@@ -67,18 +67,6 @@ const BOOK_FILTER_ITEMS = [
   { id: 'fiction', labelKey: 'booksFilterFiction', Icon: BookMarked },
   { id: 'biography', labelKey: 'booksFilterBiography', Icon: UserCircle },
   { id: 'inspire', labelKey: 'booksFilterInspire', Icon: Sparkles },
-];
-
-const SHELF_META_ARTICLES = [
-  { id: 'popular', titleKey: 'articlesShelfPopular' },
-  { id: 'recent', titleKey: 'articlesShelfRecent' },
-  { id: 'recommended', titleKey: 'articlesShelfRecommended' },
-];
-
-const SHELF_META_BOOKS = [
-  { id: 'b-popular', titleKey: 'booksShelfPopular' },
-  { id: 'b-new', titleKey: 'booksShelfNew' },
-  { id: 'b-picks', titleKey: 'booksShelfPicks' },
 ];
 
 function ArticlesPracticeHub({ embedded = false }) {
@@ -133,12 +121,10 @@ function ArticlesPracticeHub({ embedded = false }) {
     [readingPool, kind, pill]
   );
 
-  const shelves = useMemo(
-    () => buildShelves(filteredReadingPool),
+  const shelfRows = useMemo(
+    () => buildReadingShelfRows(filteredReadingPool),
     [filteredReadingPool]
   );
-
-  const shelfMeta = kind === 'article' ? SHELF_META_ARTICLES : SHELF_META_BOOKS;
 
   const setKindResetPill = (next) => {
     setKind(next);
@@ -254,17 +240,17 @@ function ArticlesPracticeHub({ embedded = false }) {
           {filteredReadingPool.length === 0 ? (
             <p className="flix-catalog-empty">{t('pages.readingNoMatches')}</p>
           ) : (
-            shelfMeta.map((shelf, shelfIdx) => (
-              <section key={shelf.id} id={`reading-shelf-${shelfIdx}`} className="articles-books-shelf-section">
-                <div className="articles-books-shelf-head">
-                  <h2 className="articles-books-shelf-title">{t(`pages.${shelf.titleKey}`)}</h2>
-                </div>
-
+            shelfRows.map((row, rowIdx) => (
+              <section
+                key={`reading-shelf-row-${rowIdx}`}
+                id={`reading-shelf-${rowIdx}`}
+                className="articles-books-shelf-section"
+              >
                 <div className="articles-books-shelf-row-wrap">
                   <div className="articles-books-shelf-row">
-                    {shelves[shelfIdx].map((item, i) => (
+                    {row.map((item) => (
                       <button
-                        key={`${shelf.id}-${item.id}-${i}`}
+                        key={item.id}
                         type="button"
                         className="articles-books-card"
                         onClick={() =>

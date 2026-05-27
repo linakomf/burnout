@@ -43,7 +43,22 @@ export default {
       desc: "If it's hard right now - you don't have to go through it alone. Our support team is ready to listen.",
       cta: 'Message a specialist',
       ctaAria: 'Contact the support team',
-      mailSubject: 'Message from the app'
+      mailSubject: 'Message from the app',
+      formTitle: 'Message a specialist',
+      formLead: "Leave a request and we'll get back to you. We'll respond with care and without judgment.",
+      nameLabel: 'Your name',
+      namePh: 'For example, Aliya',
+      contactLabel: 'Email',
+      contactPh: 'name@email.com',
+      whatsappLabel: 'WhatsApp number',
+      whatsappPh: '+1 555 123 4567',
+      messageLabel: 'Message',
+      messagePh: 'Briefly describe what is bothering you.',
+      cancel: 'Cancel',
+      submit: 'Send request',
+      submitting: 'Sending…',
+      success: "Request sent. We'll contact you soon.",
+      errorDefault: 'Could not send the request. Please try again later.'
     },
     advice: {
       dayLabel: 'Advice of the day',
@@ -152,7 +167,13 @@ export default {
       loading: 'Loading notifications...',
       loadError: 'Could not load notifications',
       empty: 'No notifications yet',
-      new: 'New'
+      new: 'New',
+      confirmYes: 'Yes, they contacted me',
+      confirmNo: 'No, they did not',
+      confirmConsultYes: 'Yes, we had a session',
+      confirmConsultNo: 'No, we did not',
+      confirmThanks: 'Thanks, your answer was saved',
+      confirmError: 'Could not save your answer'
     },
     onboard: {
       title: 'Welcome',
@@ -695,7 +716,7 @@ export default {
     articlesCtaButton: 'Suggest a topic',
     articlesSuggestMailSubject: 'Article topic suggestion',
     articleReaderBack: 'Back',
-    articleReaderSourceCta: 'Open full article at the source',
+    articleReaderSourceCta: 'Go to original',
     articleReaderSourceHint: 'This is a short on-site read; the original opens via the link above.',
     bookDetailBack: 'Back',
     bookDetailReadCta: 'Read via link',

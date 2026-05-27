@@ -159,12 +159,14 @@ const Dashboard = () => {
   const [supportForm, setSupportForm] = useState({
     name: '',
     contact: '',
+    whatsapp: '',
     message: ''
   });
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [notificationsError, setNotificationsError] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [confirmingId, setConfirmingId] = useState(null);
   const [checkinVersion, setCheckinVersion] = useState(0);
   const heroBgVideoRef = useRef(null);
   const notifWrapRef = useRef(null);
@@ -224,31 +226,25 @@ const Dashboard = () => {
     };
   }, [heroBannerVideoSrc]);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadNotifications = React.useCallback(async () => {
     setNotificationsLoading(true);
     setNotificationsError(false);
+    try {
+      const { data } = await api.get('/users/notifications', { params: { limit: 20 } });
+      setNotifications(Array.isArray(data?.rows) ? data.rows : []);
+    } catch {
+      setNotifications([]);
+      setNotificationsError(true);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, []);
 
-    api
-      .get('/users/notifications', { params: { limit: 20 } })
-      .then(({ data }) => {
-        if (cancelled) return;
-        setNotifications(Array.isArray(data?.rows) ? data.rows : []);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setNotifications([]);
-          setNotificationsError(true);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setNotificationsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.user_id]);
+  useEffect(() => {
+    if (!user?.user_id) return undefined;
+    loadNotifications();
+    return undefined;
+  }, [user?.user_id, loadNotifications]);
 
   useEffect(() => {
     if (loading) return;
@@ -360,9 +356,31 @@ const Dashboard = () => {
     return format(value, 'd MMMM, HH:mm', { locale: ru });
   };
 
+  const isVerifyNotification = (item) =>
+    item?.type === 'support_verify_contacted' || item?.type === 'support_verify_online_consultation';
+
+  const needsVerificationResponse = (item) =>
+    isVerifyNotification(item) && item.user_confirmed == null && item.confirmation_id;
+
+  const respondToConfirmation = async (item, confirmed) => {
+    const confirmationId = item.confirmation_id || item.payload?.confirmation_id;
+    if (!confirmationId || confirmingId) return;
+
+    setConfirmingId(confirmationId);
+    try {
+      await api.post(`/users/support-confirmations/${confirmationId}/respond`, { confirmed });
+      await loadNotifications();
+    } catch {
+      window.alert(t('dash.notifications.confirmError'));
+    } finally {
+      setConfirmingId(null);
+    }
+  };
+
   const toggleNotifications = async () => {
     const nextOpen = !notifOpen;
     setNotifOpen(nextOpen);
+    if (nextOpen) await loadNotifications();
     if (!nextOpen || unreadNotificationsCount === 0) return;
 
     setNotifications((current) =>
@@ -417,6 +435,7 @@ const Dashboard = () => {
       ...f,
       name: user?.name || '',
       contact: user?.email || '',
+      whatsapp: '',
       message: ''
     }));
     setSupportModalOpen(true);
@@ -425,6 +444,7 @@ const Dashboard = () => {
   const submitSupportRequest = async () => {
     const name = supportForm.name.trim();
     const contact = supportForm.contact.trim();
+    const whatsapp = supportForm.whatsapp.trim();
     const message = supportForm.message.trim();
     if (!name || !contact || !message || supportSubmitting) return;
 
@@ -434,16 +454,20 @@ const Dashboard = () => {
       await api.post('/users/support-request', {
         name,
         contact,
+        whatsapp: whatsapp || undefined,
         message
       });
       const subject = t('dash.supportNearby.mailSubject');
       const body = [
         `Имя: ${name}`,
-        `Контакт: ${contact}`,
+        `Email: ${contact}`,
+        whatsapp ? `WhatsApp: ${whatsapp}` : null,
         '',
         'Запрос:',
         message
-      ].join('\n');
+      ]
+        .filter(Boolean)
+        .join('\n');
       if (supportEmail) {
         window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       }
@@ -452,7 +476,7 @@ const Dashboard = () => {
       const msg =
         e?.response?.data?.message ||
         e?.message ||
-        'Не удалось отправить заявку. Попробуйте позже.';
+        t('dash.supportNearby.errorDefault');
       setSupportSubmitError(String(msg));
     } finally {
       setSupportSubmitting(false);
@@ -578,6 +602,32 @@ const Dashboard = () => {
                         {!item.is_read ? <span className="dash-notif-card__badge">{t('dash.notifications.new')}</span> : null}
                       </div>
                       <p className="dash-notif-card__text">{item.body}</p>
+                      {needsVerificationResponse(item) ? (
+                        <div className="dash-notif-confirm-actions">
+                          <button
+                            type="button"
+                            className="dash-notif-confirm-btn dash-notif-confirm-btn--yes"
+                            disabled={confirmingId === item.confirmation_id}
+                            onClick={() => respondToConfirmation(item, true)}
+                          >
+                            {item.type === 'support_verify_online_consultation'
+                              ? t('dash.notifications.confirmConsultYes')
+                              : t('dash.notifications.confirmYes')}
+                          </button>
+                          <button
+                            type="button"
+                            className="dash-notif-confirm-btn dash-notif-confirm-btn--no"
+                            disabled={confirmingId === item.confirmation_id}
+                            onClick={() => respondToConfirmation(item, false)}
+                          >
+                            {item.type === 'support_verify_online_consultation'
+                              ? t('dash.notifications.confirmConsultNo')
+                              : t('dash.notifications.confirmNo')}
+                          </button>
+                        </div>
+                      ) : isVerifyNotification(item) && item.user_confirmed != null ? (
+                        <p className="dash-notif-confirm-done">{t('dash.notifications.confirmThanks')}</p>
+                      ) : null}
                       <span className="dash-notif-card__time">{formatNotificationDate(item.created_at)}</span>
                     </article>
                   ))}
@@ -998,40 +1048,51 @@ const Dashboard = () => {
               <X size={20} />
             </button>
             <h2 id="support-form-title" className="checkin-form-h1">
-              Написать специалисту
+              {t('dash.supportNearby.formTitle')}
             </h2>
-            <p className="checkin-form-lead">
-              Оставьте заявку, и мы свяжемся с вами. Ответим с заботой и без осуждения.
-            </p>
+            <p className="checkin-form-lead">{t('dash.supportNearby.formLead')}</p>
 
             <section className="checkin-field">
-              <div className="checkin-field-title">Ваше имя</div>
+              <div className="checkin-field-title">{t('dash.supportNearby.nameLabel')}</div>
               <input
                 className="checkin-notes-input support-input"
                 type="text"
-                placeholder="Например, Алия"
+                placeholder={t('dash.supportNearby.namePh')}
                 value={supportForm.name}
                 onChange={(e) => setSupportForm((f) => ({ ...f, name: e.target.value }))}
               />
             </section>
 
             <section className="checkin-field">
-              <div className="checkin-field-title">Контакт (email или телефон)</div>
+              <div className="checkin-field-title">{t('dash.supportNearby.contactLabel')}</div>
               <input
                 className="checkin-notes-input support-input"
-                type="text"
-                placeholder="name@email.com или +7..."
+                type="email"
+                autoComplete="email"
+                placeholder={t('dash.supportNearby.contactPh')}
                 value={supportForm.contact}
                 onChange={(e) => setSupportForm((f) => ({ ...f, contact: e.target.value }))}
               />
             </section>
 
+            <section className="checkin-field">
+              <div className="checkin-field-title">{t('dash.supportNearby.whatsappLabel')}</div>
+              <input
+                className="checkin-notes-input support-input"
+                type="tel"
+                autoComplete="tel"
+                placeholder={t('dash.supportNearby.whatsappPh')}
+                value={supportForm.whatsapp}
+                onChange={(e) => setSupportForm((f) => ({ ...f, whatsapp: e.target.value }))}
+              />
+            </section>
+
             <section className="checkin-field checkin-field--notes">
-              <div className="checkin-field-title">Сообщение</div>
+              <div className="checkin-field-title">{t('dash.supportNearby.messageLabel')}</div>
               <textarea
                 className="checkin-notes-input"
                 rows={5}
-                placeholder="Коротко опишите, что вас беспокоит."
+                placeholder={t('dash.supportNearby.messagePh')}
                 value={supportForm.message}
                 onChange={(e) => setSupportForm((f) => ({ ...f, message: e.target.value }))}
               />
@@ -1042,9 +1103,7 @@ const Dashboard = () => {
                 {supportSubmitError}
               </p>
             ) : supportSent ? (
-              <p className="support-form-success">
-                Заявка отправлена. Мы скоро свяжемся с вами.
-              </p>
+              <p className="support-form-success">{t('dash.supportNearby.success')}</p>
             ) : null}
 
             <div className="checkin-form-actions">
@@ -1053,7 +1112,7 @@ const Dashboard = () => {
                 className="checkin-btn-cancel"
                 onClick={() => setSupportModalOpen(false)}
               >
-                Отмена
+                {t('dash.supportNearby.cancel')}
               </button>
               <button
                 type="button"
@@ -1066,7 +1125,9 @@ const Dashboard = () => {
                   !supportForm.message.trim()
                 }
               >
-                {supportSubmitting ? 'Отправка…' : 'Отправить заявку'}
+                {supportSubmitting
+                  ? t('dash.supportNearby.submitting')
+                  : t('dash.supportNearby.submit')}
               </button>
             </div>
           </div>

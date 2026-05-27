@@ -2,6 +2,13 @@
 
 /* layout: StaffConsole.css (.psych-section) */
 
+.psych-section-header-tools {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .psych-pending-card {
   max-width: 520px;
   margin: 48px auto;

@@ -381,13 +381,37 @@ export const HERO_BG = spaceNature.articlesHero;
 
 export const BOOKS_PER_SHELF = 5;
 
-export function buildShelves(list) {
-  if (!list.length) return [[], [], []];
-  const per = BOOKS_PER_SHELF;
-  const need = per * 3;
-  const extended = [];
-  for (let i = 0; i < need; i += 1) {
-    extended.push(list[i % list.length]);
+/** Убрать дубликаты по id (на случай дублей в API). */
+export function dedupeReadingItemsById(list) {
+  if (!Array.isArray(list) || !list.length) return [];
+  const seen = new Set();
+  const out = [];
+  for (const item of list) {
+    const id = item?.id != null ? String(item.id) : '';
+    const key = id || `__idx_${out.length}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
   }
-  return [extended.slice(0, per), extended.slice(per, per * 2), extended.slice(per * 2, per * 3)];
+  return out;
+}
+
+/**
+ * Строки полок: до BOOKS_PER_SHELF карточек в строке, под каждой строкой — «полка» в разметке.
+ * Без циклического повторения одной книги.
+ */
+export function buildReadingShelfRows(list) {
+  const unique = dedupeReadingItemsById(list);
+  if (!unique.length) return [];
+  const per = BOOKS_PER_SHELF;
+  const rows = [];
+  for (let i = 0; i < unique.length; i += per) {
+    rows.push(unique.slice(i, i + per));
+  }
+  return rows;
+}
+
+/** @deprecated Используйте buildReadingShelfRows — старая логика дублировала элементы для 3×5 слотов. */
+export function buildShelves(list) {
+  return buildReadingShelfRows(list);
 }

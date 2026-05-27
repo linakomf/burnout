@@ -31,6 +31,26 @@ const upload = multer({
   },
 });
 
+const bodyImageStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsAbs),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '.jpg';
+    cb(null, `reading_body_${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`);
+  },
+});
+
+const bodyImageUpload = multer({
+  storage: bodyImageStorage,
+  limits: { fileSize: 12 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const name = String(file.originalname || '').toLowerCase();
+    const byExt = /\.(jpe?g|png|gif|webp|avif|bmp|heic|heif)$/i.test(name);
+    const byMime = String(file.mimetype || '').toLowerCase().startsWith('image/');
+    if (byMime || byExt) cb(null, true);
+    else cb(new Error('Только изображения (JPG, PNG, WebP и т.д.)'));
+  },
+});
+
 function apiErrorMessage(e) {
   return dbErrorToMessage(e) || e?.message || 'Ошибка сервера';
 }
@@ -151,6 +171,21 @@ router.get('/', optionalAuthMiddleware, async (req, res) => {
   } catch (e) {
     res.status(500).json({ message: apiErrorMessage(e) });
   }
+});
+
+router.post('/body-image', authMiddleware, adminOnly, (req, res) => {
+  bodyImageUpload.single('image')(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ message: 'Файл слишком большой (макс. 12 МБ)' });
+      }
+      return res.status(400).json({ message: err.message || 'Ошибка загрузки файла' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: 'Выберите изображение' });
+    }
+    return res.status(201).json({ url: `/uploads/${req.file.filename}` });
+  });
 });
 
 router.get('/:readingKey', optionalAuthMiddleware, async (req, res) => {

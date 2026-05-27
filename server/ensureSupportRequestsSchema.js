@@ -19,6 +19,10 @@ async function ensureSupportRequestsSchema() {
     CREATE INDEX IF NOT EXISTS idx_support_requests_user_id
       ON support_requests (user_id);
   `);
+  await pool.query(`
+    ALTER TABLE support_requests
+      ADD COLUMN IF NOT EXISTS whatsapp VARCHAR(40);
+  `);
   console.log('✅ Таблица support_requests готова');
 }
 

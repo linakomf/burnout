@@ -8,7 +8,7 @@ const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const {
   KINDS,
   FILTER_CATS,
-  PRICE_KEYS,
+  normalizePriceKey,
   buildCardTags,
   parseTagsField,
   parseJsonArray,
@@ -132,8 +132,7 @@ function readEventBody(body, files, existing) {
 
   const category_label = String(body.category_label ?? existing?.category_label ?? '').trim().slice(0, 120);
 
-  let price_key = String(body.price_key || existing?.price_key || 'eventsEvPriceFrom2000').trim();
-  if (!PRICE_KEYS.has(price_key)) price_key = 'eventsEvPriceFrom2000';
+  const price_key = normalizePriceKey(body.price_key, existing?.price_key);
 
   let card_tags;
   if (Object.prototype.hasOwnProperty.call(body, 'card_tags')) {

@@ -16,7 +16,6 @@ import {
 import { BarChart3, LogOut, Users, LayoutList, HeartHandshake } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
-import './AdminDashboard.css';
 
 const LEVEL_LABEL = {
   low: 'Низкий',

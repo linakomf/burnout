@@ -39,6 +39,7 @@ import {
   mapRemotePodcastPayload,
 } from './podcastHubData';
 import { spaceSectionHref } from './practiceSpaceConfig';
+import SidebarCollapseButton from '../Layout/SidebarCollapseButton';
 import './FilmsPracticeHub.css';
 import './EventsPracticeHub.css';
 import './ArticlesPracticeHub.css';
@@ -51,6 +52,8 @@ import {
   saveSectionFavorites,
   toggleInFavoriteSet,
 } from './sectionFavorites';
+
+void SidebarCollapseButton;
 
 const FAVORITE_CATEGORIES = [
   { id: 'films', labelKey: 'practicesPocketFilmsTitle' },

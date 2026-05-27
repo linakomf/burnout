@@ -11,6 +11,7 @@ import {
 } from './psychConstants';
 import './Psychologist.css';
 import '../Admin/Admin.css';
+import { SupportVerificationBadges } from '../Support/SupportVerificationBadges';
 
 const STATUS_OPTIONS = Object.keys(REQUEST_STATUS_LABELS);
 
@@ -166,16 +167,24 @@ export default function PsychologistDashboard() {
                 </div>
 
                 <div className="psych-detail-section">
-                  <div className="psych-detail-k">Контакт для связи</div>
+                  <div className="psych-detail-k">Email</div>
                   <a href={contactHref(detail.contact)}>{detail.contact}</a>
+                  {detail.whatsapp ? (
+                    <>
+                      <div className="psych-detail-k" style={{ marginTop: 12 }}>
+                        WhatsApp
+                      </div>
+                      <a href={whatsappHref(detail.whatsapp)}>{detail.whatsapp}</a>
+                    </>
+                  ) : null}
                   <div className="psych-contact-actions">
                     <a className="btn btn-secondary btn-sm" href={contactHref(detail.contact)}>
-                      Email / телефон
+                      Email
                     </a>
-                    {whatsappHref(detail.contact) ? (
+                    {whatsappHref(detail.whatsapp || detail.contact) ? (
                       <a
                         className="btn btn-primary btn-sm"
-                        href={whatsappHref(detail.contact)}
+                        href={whatsappHref(detail.whatsapp || detail.contact)}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -251,6 +260,16 @@ export default function PsychologistDashboard() {
                       </option>
                     ))}
                   </select>
+                  <p className="admin-support-overview-muted sm" style={{ marginTop: 8 }}>
+                    При статусах «Связался» и «Онлайн-консультация» пользователю придёт запрос подтвердить
+                    факт связи.
+                  </p>
+                  {detail.confirmations?.length > 0 ? (
+                    <div style={{ marginTop: 10 }}>
+                      <div className="psych-detail-k">Ответ пользователя</div>
+                      <SupportVerificationBadges confirmations={detail.confirmations} compact />
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="psych-detail-section">

@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Clock, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ACCOUNT_STATUS_LABELS } from './psychConstants';
+import SidebarCollapseButton from '../Layout/SidebarCollapseButton';
 import './Psychologist.css';
+
+void SidebarCollapseButton;
 
 export default function PsychologistPending() {
   const { user, logout } = useAuth();

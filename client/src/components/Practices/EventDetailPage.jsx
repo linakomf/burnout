@@ -32,6 +32,8 @@ import {
   eventCardTitle,
   eventDateLine,
   eventIsGroup,
+  eventPriceDisplayLabel,
+  isEventPriceFree,
   findEventById,
   isRemoteEventId,
   mapRemoteEventPayload,
@@ -120,11 +122,9 @@ function EventDetailPage() {
   const ctaInner = (
     <>
       <span
-        className={`event-detail-price ${
-          event.priceKey === 'eventsEvPriceFree' ? 'event-detail-price--free' : ''
-        }`}
+        className={`event-detail-price ${isEventPriceFree(event.priceKey) ? 'event-detail-price--free' : ''}`}
       >
-        {t(`pages.${event.priceKey}`)}
+        {eventPriceDisplayLabel(event.priceKey, t)}
       </span>
       <a
         href={detail.ticketUrl}

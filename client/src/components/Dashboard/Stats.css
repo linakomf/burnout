@@ -151,71 +151,69 @@
   border-radius: 16px 0 0 16px;
   margin: -18px -8px -18px 0;
   align-self: stretch;
-  background: var(--analytics-blue-soft);
+  background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
-.analytics-kpi-card--mood .analytics-kpi-deco {
-  background:
-    radial-gradient(circle at 70% 85%, rgba(106, 159, 232, 0.55) 0%, transparent 45%),
-    radial-gradient(circle at 30% 35%, rgba(200, 226, 252, 0.9) 0%, rgba(232, 241, 252, 0.4) 60%, transparent 72%),
-    linear-gradient(160deg, #e8f2ff 0%, #dbe9fc 100%);
+.analytics-kpi-state {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
-.analytics-kpi-card--stress .analytics-kpi-deco {
-  background:
-    radial-gradient(ellipse at 60% 75%, rgba(91, 143, 216, 0.4) 0%, transparent 55%),
-    radial-gradient(circle at 20% 40%, rgba(255, 255, 255, 0.95) 0%, transparent 42%),
-    linear-gradient(155deg, #e4edfb 0%, #d0dff8 100%);
+.analytics-kpi-state-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  will-change: opacity, transform;
 }
 
-.analytics-kpi-card--anxiety .analytics-kpi-deco {
-  background:
-    radial-gradient(circle at 75% 40%, rgba(180, 206, 246, 0.75) 0%, transparent 48%),
-    radial-gradient(circle at 40% 80%, rgba(74, 130, 212, 0.2) 0%, transparent 50%),
-    linear-gradient(165deg, #edf3fc 0%, #d8e6f9 100%);
+.analytics-kpi-state-img--prev {
+  opacity: 0;
+  transform: translateY(6px);
 }
 
-.analytics-kpi-card--energy .analytics-kpi-deco {
-  background:
-    radial-gradient(circle at 50% 65%, rgba(255, 218, 170, 0.35) 0%, transparent 40%),
-    radial-gradient(circle at 25% 35%, rgba(180, 212, 252, 0.75) 0%, transparent 52%),
-    linear-gradient(145deg, #f0f6fe 0%, #dce9fa 100%);
+.analytics-kpi-state-img--active {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.analytics-kpi-top {
+.analytics-kpi-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   padding-right: 6px;
+  min-height: 30px;
 }
 
-.analytics-kpi-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 13px;
+.analytics-kpi-delta-slot {
+  flex-shrink: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--analytics-blue-soft);
-  color: var(--analytics-blue-deep);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-.analytics-kpi-icon--mood,
-.analytics-kpi-icon--stress,
-.analytics-kpi-icon--anxiety,
-.analytics-kpi-icon--energy {
-  background: linear-gradient(145deg, #f4f8fe 0%, var(--analytics-blue-mist) 100%);
-  color: var(--analytics-blue-deep);
+  align-items: flex-start;
+  justify-content: flex-end;
+  min-width: 52px;
+  min-height: 28px;
 }
 
 .analytics-kpi-label {
-  margin: 0 0 6px;
-  font-size: 13px;
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--a-text-soft);
+  line-height: 1.35;
 }
 
 .analytics-kpi-value {
@@ -724,11 +722,6 @@
   border-color: rgba(255, 255, 255, 0.06);
 }
 
-[data-theme='dark'] .analytics-kpi-icon {
-  background: rgba(106, 159, 232, 0.15);
-  color: var(--analytics-blue-deep);
-}
-
 [data-theme='dark'] .analytics-kpi-value {
   color: #dbe8ff;
 }
@@ -744,8 +737,10 @@
 }
 
 [data-theme='dark'] .analytics-kpi-deco {
-  opacity: 0.85;
-  filter: saturate(0.75);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: none;
+  opacity: 1;
+  filter: none;
 }
 
 [data-theme='dark'] .analytics-mood-tooltip {

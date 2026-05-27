@@ -10,6 +10,7 @@ import {
 } from '../Practices/articlesHubData';
 import AdminAudienceFields from './AdminAudienceFields';
 import AdminModalPortal from './AdminModalPortal';
+import ArticleBodyEditor from './ArticleBodyEditor';
 import { emptyAudienceFields } from './audienceTargeting';
 import './Admin.css';
 
@@ -404,11 +405,10 @@ export default function AdminReading({ embedded = false }) {
                 <>
                   <label className="admin-field">
                     <span>Полный текст статьи{editingId ? '' : ' *'}</span>
-                    <textarea
-                      rows={12}
+                    <ArticleBodyEditor
                       value={form.body_full}
-                      onChange={(e) => setForm({ ...form, body_full: e.target.value })}
-                      placeholder="Текст отображается на сайте в читалке"
+                      onChange={(body_full) => setForm((prev) => ({ ...prev, body_full }))}
+                      placeholder="Текст отображается на сайте в читалке. Можно вставлять фото в середину текста."
                     />
                   </label>
                   <label className="admin-field">

@@ -16,6 +16,7 @@ const {
   fetchRecentCheckins
 } = require('../utils/enrichSupportRequest');
 const { createUserNotification } = require('../utils/userNotifications');
+const { maybeNotifyStatusVerification } = require('../utils/supportConfirmations');
 
 const router = express.Router();
 const uploadsAbs = path.join(__dirname, '..', 'uploads');
@@ -630,35 +631,56 @@ router.patch('/me/requests/:requestId', authMiddleware, approvedPsychologistOnly
   const status = req.body?.status != null ? String(req.body.status).trim() : null;
   const noteBody = req.body?.note != null ? String(req.body.note).trim() : null;
 
+  if (status && !REQUEST_STATUSES.includes(status)) {
+    return res.status(400).json({ message: 'Некорректный статус' });
+  }
+
+  const client = await pool.connect();
   try {
-    const own = await pool.query(
-      `SELECT request_id FROM support_requests
+    await client.query('BEGIN');
+    const own = await client.query(
+      `SELECT request_id, user_id, status AS previous_status
+       FROM support_requests
        WHERE request_id = $1 AND assigned_psychologist_id = $2`,
       [requestId, psychId]
     );
-    if (!own.rows.length) return res.status(404).json({ message: 'Обращение не найдено' });
+    if (!own.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Обращение не найдено' });
+    }
 
+    const row = own.rows[0];
     if (status) {
-      if (!REQUEST_STATUSES.includes(status)) {
-        return res.status(400).json({ message: 'Некорректный статус' });
-      }
-      await pool.query(`UPDATE support_requests SET status = $1 WHERE request_id = $2`, [
+      await client.query(`UPDATE support_requests SET status = $1 WHERE request_id = $2`, [
         status,
         requestId
       ]);
+      await maybeNotifyStatusVerification(client, {
+        requestId,
+        userId: row.user_id,
+        psychologistId: psychId,
+        psychologistName: req.user.name,
+        previousStatus: row.previous_status,
+        newStatus: status
+      });
     }
 
     if (noteBody) {
-      await pool.query(
+      await client.query(
         `INSERT INTO support_request_notes (request_id, psychologist_id, body)
          VALUES ($1, $2, $3)`,
         [requestId, psychId, noteBody.slice(0, 8000)]
       );
     }
 
+    await client.query('COMMIT');
     res.json({ ok: true });
   } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[psych update request]', err);
     res.status(500).json({ message: 'Не удалось сохранить' });
+  } finally {
+    client.release();
   }
 });
 

@@ -43,7 +43,22 @@ export default {
       desc: 'Қазір қиын болса - осыны жеке көтермеңіз. Қолдау командамыз сізді тыңдауға дайын.',
       cta: 'Маманға жазу',
       ctaAria: 'Қолдау қызметіне жазу',
-      mailSubject: 'Қолданбадан хабарлама'
+      mailSubject: 'Қолданбадан хабарлама',
+      formTitle: 'Маманға жазу',
+      formLead: 'Өтінім қалдырыңыз, біз сізбен хабарласамыз. Қамқорлықпен және сынбай жауап береміз.',
+      nameLabel: 'Атыңыз',
+      namePh: 'Мысалы, Әлия',
+      contactLabel: 'Email',
+      contactPh: 'name@email.com',
+      whatsappLabel: 'WhatsApp нөмірі',
+      whatsappPh: '+7 700 123 45 67',
+      messageLabel: 'Хабарлама',
+      messagePh: 'Сізді мазалайтынды қысқаша сипаттаңыз.',
+      cancel: 'Болдырмау',
+      submit: 'Өтінімді жіберу',
+      submitting: 'Жіберілуде…',
+      success: 'Өтінім жіберілді. Жақын арада хабарласамыз.',
+      errorDefault: 'Өтінімді жіберу мүмкін болмады. Кейінірек қайталаңыз.'
     },
     advice: {
       dayLabel: 'Күн кеңесі',
@@ -152,7 +167,13 @@ export default {
       loading: 'Хабарландырулар жүктелуде...',
       loadError: 'Хабарландыруларды жүктеу мүмкін болмады',
       empty: 'Хабарландырулар әлі жоқ',
-      new: 'Жаңа'
+      new: 'Жаңа',
+      confirmYes: 'Иә, хабарласты',
+      confirmNo: 'Жоқ, болмады',
+      confirmConsultYes: 'Иә, консультация болды',
+      confirmConsultNo: 'Жоқ, болмады',
+      confirmThanks: 'Рахмет, жауабыңыз сақталды',
+      confirmError: 'Жауапты сақтау мүмкін болмады'
     },
     onboard: {
       title: 'Қош келдіңіз',
@@ -698,7 +719,7 @@ export default {
     articlesCtaButton: 'Тақырып ұсыну',
     articlesSuggestMailSubject: '«Мақалалар» бөлімі үшін тақырып',
     articleReaderBack: 'Артқа',
-    articleReaderSourceCta: 'Толық мәтінді көзде ашу',
+    articleReaderSourceCta: 'Бастапқыға өту',
     articleReaderSourceHint: 'Бұл сайттағы қысқаша нұсқа; түпнұсқа жоғарыдағы сілтемеде.',
     bookDetailBack: 'Артқа',
     bookDetailReadCta: 'Сілтеме арқылы оқу',

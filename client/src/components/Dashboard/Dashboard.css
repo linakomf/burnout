@@ -331,6 +331,48 @@
   color: #475569;
 }
 
+.dash-notif-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.dash-notif-confirm-btn {
+  flex: 1 1 120px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.dash-notif-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.dash-notif-confirm-btn--yes {
+  background: var(--primary, #5b9fd4);
+  color: #fff;
+}
+
+.dash-notif-confirm-btn--no {
+  background: #fff;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+.dash-notif-confirm-done {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #166534;
+  font-weight: 500;
+}
+
 .dash-notif-card__time {
   display: inline-block;
   margin-top: 10px;

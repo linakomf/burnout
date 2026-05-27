@@ -9,6 +9,7 @@ const { bucketFromPercent, normalizeRiskLevel } = require('../utils/burnoutRisk'
 const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { normalizeRegisterAvatar, normalizeGender } = require('../utils/registerProfile');
 const { mapUserNotificationRow } = require('../utils/userNotifications');
+const { fetchConfirmationsByRequestIds } = require('../utils/supportConfirmations');
 const multer = require('multer');
 const path = require('path');
 
@@ -160,10 +161,13 @@ router.get('/notifications', authMiddleware, async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT notification_id, user_id, type, title, body, payload, is_read, read_at, created_at
-       FROM user_notifications
-       WHERE user_id = $1
-       ORDER BY created_at DESC
+      `SELECT n.notification_id, n.user_id, n.type, n.title, n.body, n.payload,
+              n.is_read, n.read_at, n.created_at,
+              c.confirmation_id, c.user_confirmed, c.responded_at
+       FROM user_notifications n
+       LEFT JOIN support_request_confirmations c ON c.notification_id = n.notification_id
+       WHERE n.user_id = $1
+       ORDER BY n.created_at DESC
        LIMIT $2`,
       [userId, limit]
     );
@@ -175,6 +179,74 @@ router.get('/notifications', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('[notifications list]', err);
     res.status(500).json({ message: 'Не удалось загрузить уведомления' });
+  }
+});
+
+router.post('/support-confirmations/:confirmationId/respond', authMiddleware, async (req, res) => {
+  const userId = parseInt(req.user.user_id, 10);
+  const confirmationId = parseInt(req.params.confirmationId, 10);
+  const confirmed = req.body?.confirmed;
+
+  if (!Number.isFinite(userId)) {
+    return res.status(400).json({ message: 'Некорректная сессия - войдите снова' });
+  }
+  if (!Number.isFinite(confirmationId)) {
+    return res.status(400).json({ message: 'Некорректный id подтверждения' });
+  }
+  if (confirmed !== true && confirmed !== false) {
+    return res.status(400).json({ message: 'Укажите confirmed: true или false' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const found = await client.query(
+      `SELECT c.confirmation_id, c.user_confirmed, sr.user_id
+       FROM support_request_confirmations c
+       INNER JOIN support_requests sr ON sr.request_id = c.request_id
+       WHERE c.confirmation_id = $1`,
+      [confirmationId]
+    );
+    if (!found.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Подтверждение не найдено' });
+    }
+    const row = found.rows[0];
+    if (row.user_id !== userId) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ message: 'Нет доступа' });
+    }
+    if (row.user_confirmed !== null) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ message: 'Вы уже ответили на этот вопрос' });
+    }
+
+    await client.query(
+      `UPDATE support_request_confirmations
+       SET user_confirmed = $1,
+           responded_at = CURRENT_TIMESTAMP
+       WHERE confirmation_id = $2`,
+      [confirmed, confirmationId]
+    );
+    await client.query(
+      `UPDATE user_notifications
+       SET is_read = TRUE,
+           read_at = COALESCE(read_at, CURRENT_TIMESTAMP)
+       WHERE notification_id IN (
+         SELECT notification_id FROM support_request_confirmations WHERE confirmation_id = $1
+       )`,
+      [confirmationId]
+    );
+    await client.query('COMMIT');
+    res.json({ ok: true, user_confirmed: confirmed });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[support-confirmation respond]', err);
+    const hint = dbErrorToMessage(err);
+    if (hint) return res.status(503).json({ message: hint });
+    res.status(500).json({ message: 'Не удалось сохранить ответ' });
+  } finally {
+    client.release();
   }
 });
 
@@ -259,16 +331,18 @@ router.post('/support-request', authMiddleware, async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const displayName = String(body.name ?? '').trim().slice(0, 120);
   const contact = String(body.contact ?? '').trim().slice(0, 254);
+  const whatsappRaw = String(body.whatsapp ?? '').trim();
+  const whatsapp = whatsappRaw ? whatsappRaw.slice(0, 40) : null;
   const message = String(body.message ?? '').trim().slice(0, 8000);
   if (!displayName || !contact || !message) {
     return res.status(400).json({ message: 'Заполните имя, контакт и сообщение' });
   }
   try {
     const ins = await pool.query(
-      `INSERT INTO support_requests (user_id, display_name, contact, message, status)
-       VALUES ($1, $2, $3, $4, 'new')
+      `INSERT INTO support_requests (user_id, display_name, contact, whatsapp, message, status)
+       VALUES ($1, $2, $3, $4, $5, 'new')
        RETURNING request_id, created_at`,
-      [userId, displayName, contact, message]
+      [userId, displayName, contact, whatsapp, message]
     );
     res.status(201).json({ ok: true, request_id: ins.rows[0].request_id, created_at: ins.rows[0].created_at });
   } catch (err) {
@@ -290,6 +364,7 @@ router.get('/support-requests', authMiddleware, adminOnly, async (req, res) => {
         sr.user_id,
         sr.display_name,
         sr.contact,
+        sr.whatsapp,
         sr.message,
         sr.created_at,
         u.email AS account_email,
@@ -334,6 +409,10 @@ router.get('/support-requests', authMiddleware, adminOnly, async (req, res) => {
       return r.rows;
     }
 
+    const confirmationsMap = await fetchConfirmationsByRequestIds(
+      q.rows.map((r) => r.request_id)
+    );
+
     const rows = [];
     for (const row of q.rows) {
       let catalogBurnout = null;
@@ -377,6 +456,7 @@ router.get('/support-requests', authMiddleware, adminOnly, async (req, res) => {
         user_id: row.user_id,
         display_name: row.display_name,
         contact: row.contact,
+        whatsapp: row.whatsapp ?? null,
         message: row.message,
         created_at: row.created_at,
         account_email: row.account_email,
@@ -387,7 +467,8 @@ router.get('/support-requests', authMiddleware, adminOnly, async (req, res) => {
           completed_at: row.onboarding_burnout_completed_at,
           level: bucketFromPercent(onboardingPercent, onboardingCompleted)
         },
-        catalog_burnout_test: catalogBurnout
+        catalog_burnout_test: catalogBurnout,
+        confirmations: confirmationsMap.get(row.request_id) || []
       });
     }
 

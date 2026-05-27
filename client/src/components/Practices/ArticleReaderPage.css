@@ -71,6 +71,19 @@
   letter-spacing: -0.02em;
 }
 
+.article-reader-lead {
+  margin: 0 0 clamp(28px, 4vw, 44px);
+  padding-bottom: 4px;
+  font-size: 1.05rem;
+  line-height: 1.68;
+  color: var(--text-light, #475569);
+  max-width: 72ch;
+}
+
+.article-reader-lead + .article-reader-body-wrap {
+  margin-top: 4px;
+}
+
 .article-reader-body-wrap {
   border-radius: 18px;
   border: 1px solid var(--border);
@@ -84,11 +97,52 @@
   font-size: 1.06rem;
   line-height: 1.72;
   color: var(--text-dark);
-  white-space: pre-line;
+}
+
+.article-reader-body p {
+  margin: 0 0 1em;
+}
+
+.article-reader-body p:last-child {
+  margin-bottom: 0;
+}
+
+.article-reader-body img,
+.article-reader-body .article-inline-img {
+  display: block;
+  width: auto;
+  max-width: min(420px, 92%);
+  height: auto;
+  margin: 1em auto;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+}
+
+.article-reader-body h2,
+.article-reader-body h3 {
+  margin: 1.4em 0 0.6em;
+  line-height: 1.3;
+}
+
+.article-reader-body ul,
+.article-reader-body ol {
+  margin: 0 0 1em;
+  padding-left: 1.35em;
 }
 
 [data-theme='dark'] .article-reader-body-wrap {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme='dark'] .article-reader-lead {
+  color: var(--text-light, #94a3b8);
+}
+
+[data-theme='dark'] .article-reader-body img,
+[data-theme='dark'] .article-reader-body .article-inline-img {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
 .article-reader-footer {
@@ -107,17 +161,18 @@
   font-weight: 700;
   font-size: 15px;
   text-decoration: none;
-  background: linear-gradient(135deg, #6b7fd8 0%, #5a6dcf 50%, #4338ca 100%);
+  background: linear-gradient(135deg, #5b9fd4 0%, #3d8ec4 45%, #2b82b2 100%);
   color: #fff;
   border: none;
-  box-shadow: 0 10px 28px rgba(67, 56, 202, 0.28);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: 0 10px 28px rgba(43, 130, 178, 0.28);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
 }
 
 .article-reader-original:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 36px rgba(67, 56, 202, 0.35);
+  box-shadow: 0 14px 36px rgba(43, 130, 178, 0.38);
   color: #fff;
+  filter: brightness(1.03);
 }
 
 .article-reader-hint {

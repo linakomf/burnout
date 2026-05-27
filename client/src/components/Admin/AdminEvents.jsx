@@ -6,7 +6,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import {
   EVENT_FILTER_CAT_OPTIONS,
   EVENT_KIND_OPTIONS,
-  EVENT_PRICE_OPTIONS,
+  eventPriceDisplayLabel,
   EVENT_TF_DATE_OPTIONS,
   EVENT_TF_LOC_OPTIONS,
   EVENT_TF_MOOD_OPTIONS,
@@ -48,7 +48,7 @@ const initialForm = () => ({
   title: '',
   filter_cat: 'other',
   category_label: '',
-  price_key: 'eventsEvPriceFrom2000',
+  price_key: '',
   tf_loc: 'almaty',
   tf_date: 'this_month',
   tf_time: 'evening',
@@ -174,7 +174,7 @@ export default function AdminEvents({ embedded = false }) {
       title: row.title || '',
       filter_cat: row.filterCat || 'other',
       category_label: row.categoryLabel || '',
-      price_key: row.priceKey || 'eventsEvPriceFrom2000',
+      price_key: eventPriceDisplayLabel(row.priceKey, t) || '',
       tf_loc: row.tf?.loc || 'almaty',
       tf_date: row.tf?.date || 'this_month',
       tf_time: row.tf?.time || 'evening',
@@ -207,8 +207,14 @@ export default function AdminEvents({ embedded = false }) {
     setError('');
     setSuccess('');
     const title = form.title.trim();
+    const priceLabel = form.price_key.trim();
     if (!title) {
       setError('Укажите название события.');
+      errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      return;
+    }
+    if (!priceLabel) {
+      setError('Укажите цену (подпись на карточке).');
       errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       return;
     }
@@ -227,7 +233,7 @@ export default function AdminEvents({ embedded = false }) {
       fd.append('title', title);
       fd.append('filter_cat', form.filter_cat);
       fd.append('category_label', form.category_label.trim());
-      fd.append('price_key', form.price_key);
+      fd.append('price_key', priceLabel);
       fd.append('tf_loc', form.tf_loc);
       fd.append('tf_date', form.tf_date);
       fd.append('tf_time', form.tf_time);
@@ -448,13 +454,12 @@ export default function AdminEvents({ embedded = false }) {
 
               <label className="admin-field">
                 <span>Цена (подпись на карточке)</span>
-                <select value={form.price_key} onChange={(e) => setForm({ ...form, price_key: e.target.value })}>
-                  {EVENT_PRICE_OPTIONS.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {t(`pages.${o.labelKey}`)}
-                    </option>
-                  ))}
-                </select>
+                <input
+                  value={form.price_key}
+                  onChange={(e) => setForm({ ...form, price_key: e.target.value })}
+                  placeholder="Например: от 2000 ₸"
+                  maxLength={80}
+                />
               </label>
 
               <p className="admin-film-filters-intro">Фильтры панели (когда / настроение / время)</p>
