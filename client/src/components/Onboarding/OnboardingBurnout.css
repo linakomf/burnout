@@ -42,40 +42,15 @@
   width: 100%;
 }
 
-.onb-avatar-preview {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 12px 0 4px;
-  min-height: 168px;
+.onb-profile-card .reg-avatar-grid--profile {
+  margin-bottom: 6px;
 }
 
-.onb-avatar-glow {
-  position: absolute;
-  width: min(200px, 52vw);
-  height: min(200px, 52vw);
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(202, 228, 191, 0.55) 0%,
-    rgba(179, 157, 219, 0.2) 45%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-
-.onb-avatar-preview-card {
-  position: relative;
-  z-index: 1;
-  width: min(152px, 40vw);
-  max-width: 168px;
-  cursor: default;
-  pointer-events: none;
-}
-
-.onb-avatar-preview-card .reg-avatar-ring {
-  padding: 4px;
+@media (min-width: 400px) {
+  .reg-avatar-grid--profile {
+    max-width: 320px;
+    gap: 16px 20px;
+  }
 }
 
 /* Опрос */

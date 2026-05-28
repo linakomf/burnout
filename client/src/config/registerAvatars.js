@@ -2,14 +2,23 @@ const p = (path) => `${(process.env.PUBLIC_URL || '').replace(/\/$/, '')}${path}
 
 /**
  * Аватар в БД: путь /avatars/... (без PUBLIC_URL).
- * 1 - студент + мальчик, 2 - студент + девочка, 3 - преподаватель + мальчик, 4 - преподаватель + девочка.
+ * student/boy → onb-char-boy, student/girl → onb-char-girl,
+ * teacher/boy → onb-char-man, teacher/girl → onb-char-woman.
  */
 const BY_KEY = {
-  'student:boy': '/avatars/av-student-boy.png',
-  'student:girl': '/avatars/av-student-girl.png',
-  'teacher:boy': '/avatars/av-teacher-boy.png',
-  'teacher:girl': '/avatars/av-teacher-woman.png'
+  'student:boy': '/avatars/onb-char-boy.png',
+  'student:girl': '/avatars/onb-char-girl.png',
+  'teacher:boy': '/avatars/onb-char-man.png',
+  'teacher:girl': '/avatars/onb-char-woman.png'
 };
+
+/** Все 4 персонажа для выбора на экране после регистрации */
+export const PROFILE_AVATAR_OPTIONS = [
+  { key: 'student:boy', profileRole: 'student', gender: 'boy' },
+  { key: 'student:girl', profileRole: 'student', gender: 'girl' },
+  { key: 'teacher:boy', profileRole: 'teacher', gender: 'boy' },
+  { key: 'teacher:girl', profileRole: 'teacher', gender: 'girl' }
+];
 
 /**
  * @param {'student'|'teacher'} profileRole
