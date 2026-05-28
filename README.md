@@ -23,6 +23,8 @@
 
 Ожидается: `"database":"connected"`, `"jwt":"configured"`.
 
+После `git push` в `main` Vercel обычно деплоит автоматически (1–3 мин). Если деплоя нет — **Redeploy** вручную в панели Vercel.
+
 ## Локальная разработка
 
 ```bash
