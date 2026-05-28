@@ -23,7 +23,33 @@
 
 Ожидается: `"database":"connected"`, `"jwt":"configured"`.
 
-После `git push` в `main` Vercel обычно деплоит автоматически (1–3 мин). Если деплоя нет — **Redeploy** вручную в панели Vercel.
+После `git push` в `main` Vercel обычно деплоит автоматически (1–3 мин).
+
+### Репозиторий обновился, а Vercel — нет
+
+Чаще всего **проект не привязан к GitHub** (деплой был только вручную) или привязан **другой репозиторий/ветка**.
+
+**Проверка:** откройте `/api/health` на сайте. Если в ответе `"database":"configured"` — это **старый** деплой. После актуального деплоя будет `"database":"connected"`.
+
+**Исправление (по порядку):**
+
+1. **Vercel → Project `burnout-lswd` → Settings → Git**
+   - Repository: `linakomf/burnout`
+   - Production Branch: **`main`**
+   - Если Git не подключён — **Connect Git Repository**.
+
+2. **Settings → General → Root Directory** — **пусто** (корень репо), не `client`.
+
+3. **Deployments** — последний деплой:
+   - **Failed** → откройте лог Build и исправьте ошибку.
+   - Нет новых деплоев после push → шаг 1 или Deploy Hook ниже.
+
+4. **Ручной деплой:** Deployments → ⋮ у последнего → **Redeploy** → включите **Use existing Build Cache: Off**.
+
+5. **Deploy Hook (автоматически после каждого push):**
+   - Vercel → Settings → **Deploy Hooks** → Create → branch `main` → скопируйте URL.
+   - GitHub → repo **Settings → Secrets → Actions** → `VERCEL_DEPLOY_HOOK` = этот URL.
+   - Workflow `.github/workflows/vercel-deploy.yml` вызовет hook после каждого push в `main`.
 
 ## Локальная разработка
 

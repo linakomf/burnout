@@ -1,0 +1,24 @@
+# Если Vercel не деплоит сам после git push — этот workflow дергает Deploy Hook.
+# Настройка: Vercel → Project → Settings → Deploy Hooks → Create Hook (branch: main)
+# GitHub → repo Settings → Secrets → VERCEL_DEPLOY_HOOK = URL из Vercel
+
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  trigger-vercel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel production deploy
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "VERCEL_DEPLOY_HOOK не задан — пропуск. Подключите Git в Vercel или добавьте секрет."
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK"
+          echo "Deploy hook отправлен."
