@@ -11,19 +11,10 @@ const { normalizeRegisterAvatar, normalizeGender } = require('../utils/registerP
 const { mapUserNotificationRow } = require('../utils/userNotifications');
 const { fetchConfirmationsByRequestIds } = require('../utils/supportConfirmations');
 const multer = require('multer');
-const path = require('path');
+const { uploadMulterFile } = require('../utils/cloudinaryUpload');
 
-const uploadsAbs = path.join(__dirname, '..', 'uploads');
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsAbs),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `avatar_${req.user.user_id}_${Date.now()}${ext}`);
-  }
-});
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) cb(null, true);else
@@ -586,7 +577,7 @@ router.get('/support-requests', authMiddleware, adminOnly, async (req, res) => {
 
 router.post('/avatar', authMiddleware, upload.single('avatar'), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'Файл не загружен' });
-  const avatarUrl = `/uploads/${req.file.filename}`;
+  const avatarUrl = await uploadMulterFile(req.file, { folder: 'burnout/users/avatars' });
   await pool.query('UPDATE users SET avatar=$1 WHERE user_id=$2', [avatarUrl, req.user.user_id]);
   res.json({ avatar: avatarUrl });
 });

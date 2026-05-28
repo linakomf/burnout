@@ -8,22 +8,13 @@ const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { sanitizeTopics, KINDS, DIFFICULTY, AUDIO_SOURCES } = require('../utils/meditationTopics');
 const { parseYoutubeUrl } = require('../utils/youtubeUrl');
 const { unlinkMeditationAssets, safeUnlinkUploadPath } = require('../utils/meditationUploadCleanup');
+const { uploadMulterFile } = require('../utils/cloudinaryUpload');
 
 const router = express.Router();
 const uploadsAbs = path.join(__dirname, '..', 'uploads');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsAbs),
-  filename: (req, file, cb) => {
-    const ext =
-      path.extname(file.originalname) ||
-      (file.fieldname === 'audio' ? '.mp3' : String(file.mimetype || '').toLowerCase().startsWith('video/') ? '.mp4' : '.jpg');
-    cb(null, `meditation_${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 48 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const name = String(file.originalname || '').toLowerCase();
@@ -122,7 +113,7 @@ function parseAudioPayload(body, files, existingRow) {
 
   if (source === 'file') {
     if (audioFile) {
-      out.audio_file_url = `/uploads/${audioFile.filename}`;
+      out.audio_file_url = '';
       out.audio_external_url = '';
       out.youtube_embed_url = '';
       out.youtube_video_id = '';
@@ -231,6 +222,12 @@ router.post(
 
       const audio = parseAudioPayload(req.body, req.files, null);
       if (audio.error) return res.status(400).json({ message: audio.error });
+      if (audio.audio_source === 'file' && req.files?.audio?.[0]) {
+        audio.audio_file_url = await uploadMulterFile(req.files.audio[0], {
+          folder: 'burnout/meditations/audio',
+          resource_type: 'auto',
+        });
+      }
 
       const target_role = pickTargetRole(req.body.target_role);
       const target_gender = pickTargetGender(req.body.target_gender);
@@ -249,7 +246,7 @@ router.post(
           title,
           kind,
           JSON.stringify(topics),
-          `/uploads/${coverFile.filename}`,
+          await uploadMulterFile(coverFile, { folder: 'burnout/meditations/covers' }),
           description_short,
           duration_min,
           practice_focus,
@@ -340,7 +337,7 @@ router.patch(
       const coverFile = req.files?.cover?.[0];
       if (coverFile) {
         safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-        patch.cover_url = `/uploads/${coverFile.filename}`;
+        patch.cover_url = await uploadMulterFile(coverFile, { folder: 'burnout/meditations/covers' });
       }
 
       const audioTouched =
@@ -352,6 +349,12 @@ router.patch(
       if (audioTouched) {
         const audio = parseAudioPayload(req.body, req.files, existing);
         if (audio.error) return res.status(400).json({ message: audio.error });
+        if (audio.audio_source === 'file' && req.files?.audio?.[0]) {
+          audio.audio_file_url = await uploadMulterFile(req.files.audio[0], {
+            folder: 'burnout/meditations/audio',
+            resource_type: 'auto',
+          });
+        }
         if (audio.audio_file_url && audio.audio_file_url !== existing.audio_file_url) {
           safeUnlinkUploadPath(uploadsAbs, existing.audio_file_url);
         }

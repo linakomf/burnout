@@ -8,6 +8,7 @@ const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { parseFilmPublicId, parsePublicFilmIds, slugifyTitle } = require('../utils/filmCollectionItems');
 const { normalizeFilmTags } = require('../utils/filmTagWhitelist');
 const { unlinkFilmAssets, safeUnlinkUploadPath } = require('../utils/filmUploadCleanup');
+const { uploadMulterFile, uploadMulterFiles } = require('../utils/cloudinaryUpload');
 
 const router = express.Router();
 
@@ -24,16 +25,8 @@ const ALLOWED_CATEGORY_IDS = new Set([
 
 const ALLOWED_PSYCH_TAGS = new Set(['antistress', 'motivating', 'light', 'emotional_release']);
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsAbs),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.jpg';
-    cb(null, `film_${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 12 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const name = String(file.originalname || '').toLowerCase();
@@ -290,7 +283,13 @@ router.post(
         `INSERT INTO film_collections (slug, title, description, cover_url, sort_order, is_active)
          VALUES ($1, $2, $3, $4, $5, true)
          RETURNING collection_id, slug, title, description, cover_url, sort_order, is_active`,
-        ['tmp', title.slice(0, 120), description, `/uploads/${coverFile.filename}`, sort_order]
+        [
+          'tmp',
+          title.slice(0, 120),
+          description,
+          await uploadMulterFile(coverFile, { folder: 'burnout/films/collections' }),
+          sort_order,
+        ]
       );
       const row = ins.rows[0];
       const slug = slugifyTitle(title, row.collection_id);
@@ -351,7 +350,7 @@ router.patch(
       const coverFile = req.files?.cover?.[0];
       if (coverFile) {
         safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-        patch.cover_url = `/uploads/${coverFile.filename}`;
+        patch.cover_url = await uploadMulterFile(coverFile, { folder: 'burnout/films/collections' });
       }
 
       if (Object.keys(patch).length > 0) {
@@ -443,9 +442,11 @@ router.post(
       const country = String(req.body.country ?? '').trim().slice(0, 255);
       const quote = String(req.body.quote ?? '').trim().slice(0, 2000);
 
-      const poster_url = `/uploads/${posterFile.filename}`;
+      const poster_url = await uploadMulterFile(posterFile, { folder: 'burnout/films/posters' });
       const galleryFiles = req.files?.gallery || [];
-      const gallery_urls = galleryFiles.slice(0, 6).map((f) => `/uploads/${f.filename}`);
+      const gallery_urls = await uploadMulterFiles(galleryFiles.slice(0, 6), {
+        folder: 'burnout/films/gallery',
+      });
 
       const target_role = pickTargetRole(req.body.target_role);
       const target_gender = pickTargetGender(req.body.target_gender);
@@ -586,7 +587,7 @@ router.patch(
       const posterFile = req.files?.poster?.[0];
       if (posterFile) {
         safeUnlinkUploadPath(uploadsAbs, existing.poster_url);
-        patch.poster_url = `/uploads/${posterFile.filename}`;
+        patch.poster_url = await uploadMulterFile(posterFile, { folder: 'burnout/films/posters' });
       }
 
       let nextGallery = existingGallery;
@@ -596,7 +597,7 @@ router.patch(
         const kept = hasGalleryDirective
           ? parseKeepGalleryUrls(req.body.keep_gallery_urls, existingGallery)
           : [...existingGallery];
-        const appended = galleryFiles.map((f) => `/uploads/${f.filename}`);
+        const appended = await uploadMulterFiles(galleryFiles, { folder: 'burnout/films/gallery' });
         nextGallery = [...kept, ...appended].slice(0, 6);
         const removed = existingGallery.filter((u) => !nextGallery.includes(u));
         for (const u of removed) safeUnlinkUploadPath(uploadsAbs, u);

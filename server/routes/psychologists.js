@@ -1,6 +1,5 @@
 const express = require('express');
 const crypto = require('crypto');
-const path = require('path');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
@@ -17,24 +16,15 @@ const {
 } = require('../utils/enrichSupportRequest');
 const { createUserNotification } = require('../utils/userNotifications');
 const { maybeNotifyStatusVerification } = require('../utils/supportConfirmations');
+const { uploadMulterFile } = require('../utils/cloudinaryUpload');
 
 const router = express.Router();
-const uploadsAbs = path.join(__dirname, '..', 'uploads');
 
 const REQUEST_STATUSES = ['new', 'contacted', 'online_consultation', 'in_progress', 'completed'];
 const ACCOUNT_STATUSES = ['pending_review', 'approved', 'rejected', 'blocked'];
 
-const inviteStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsAbs),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '';
-    const kind = file.fieldname === 'avatar' ? 'psych_avatar' : 'psych_doc';
-    cb(null, `${kind}_${Date.now()}_${crypto.randomBytes(4).toString('hex')}${ext}`);
-  }
-});
-
 const inviteUpload = multer({
-  storage: inviteStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 12 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'avatar') {
@@ -51,7 +41,7 @@ const inviteUpload = multer({
 });
 
 const profileUpload = multer({
-  storage: inviteStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 12 * 1024 * 1024 }
 });
 
@@ -162,7 +152,9 @@ router.post(
       }
 
       const avatarFile = req.files?.avatar?.[0];
-      const avatarPath = avatarFile ? `/uploads/${avatarFile.filename}` : null;
+      const avatarPath = avatarFile
+        ? await uploadMulterFile(avatarFile, { folder: 'burnout/psychologists/avatars' })
+        : null;
 
       const userIns = await client.query(
         `INSERT INTO users (name, email, password, role, avatar)
@@ -194,10 +186,14 @@ router.post(
 
       const docs = req.files?.documents || [];
       for (const f of docs) {
+        const docPath = await uploadMulterFile(f, {
+          folder: 'burnout/psychologists/documents',
+          resource_type: 'auto',
+        });
         await client.query(
           `INSERT INTO psychologist_documents (user_id, file_path, original_name)
            VALUES ($1, $2, $3)`,
-          [user.user_id, `/uploads/${f.filename}`, f.originalname]
+          [user.user_id, docPath, f.originalname]
         );
       }
 
@@ -706,8 +702,9 @@ router.put(
     try {
       const avatarFile = req.files?.avatar?.[0];
       if (avatarFile) {
+        const avatarUrl = await uploadMulterFile(avatarFile, { folder: 'burnout/psychologists/avatars' });
         await pool.query(`UPDATE users SET avatar = $1 WHERE user_id = $2`, [
-          `/uploads/${avatarFile.filename}`,
+          avatarUrl,
           userId
         ]);
       }
@@ -744,10 +741,14 @@ router.put(
 
       const docs = req.files?.documents || [];
       for (const f of docs) {
+        const docPath = await uploadMulterFile(f, {
+          folder: 'burnout/psychologists/documents',
+          resource_type: 'auto',
+        });
         await pool.query(
           `INSERT INTO psychologist_documents (user_id, file_path, original_name)
            VALUES ($1, $2, $3)`,
-          [userId, `/uploads/${f.filename}`, f.originalname]
+          [userId, docPath, f.originalname]
         );
       }
 

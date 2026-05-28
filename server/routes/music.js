@@ -19,6 +19,7 @@ const {
   slugifyTitle,
   parsePublicTrackIds,
 } = require('../utils/musicCollectionTracks');
+const { uploadMulterFile } = require('../utils/cloudinaryUpload');
 
 const router = express.Router();
 const uploadsAbs = path.join(__dirname, '..', 'uploads');
@@ -26,16 +27,8 @@ const uploadsAbs = path.join(__dirname, '..', 'uploads');
 const AUDIO_SOURCES = new Set(['file', 'youtube', 'url']);
 const MAX_TRACK_DURATION_MIN = 1440;
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsAbs),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || (file.fieldname === 'audio' ? '.mp3' : '.jpg');
-    cb(null, `music_${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 48 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const name = String(file.originalname || '').toLowerCase();
@@ -228,7 +221,7 @@ function parseAudioPayload(body, files, existingRow) {
 
   if (source === 'file') {
     if (audioFile) {
-      out.audio_file_url = `/uploads/${audioFile.filename}`;
+      out.audio_file_url = '';
       out.audio_external_url = '';
       out.youtube_embed_url = '';
       out.youtube_video_id = '';
@@ -353,7 +346,9 @@ router.post(
       const mood = pickMood(req.body.mood, 'calm_down');
       const sort_order = parseInt(req.body.sort_order, 10) || 0;
       const coverFile = req.files?.cover?.[0];
-      const cover_url = coverFile ? `/uploads/${coverFile.filename}` : '';
+      const cover_url = coverFile
+        ? await uploadMulterFile(coverFile, { folder: 'burnout/music/collections' })
+        : '';
 
       const ins = await pool.query(
         `INSERT INTO music_collections (slug, title, label_key, mood, cover_url, sort_order, is_active)
@@ -418,7 +413,7 @@ router.patch(
       const coverFile = req.files?.cover?.[0];
       if (coverFile) {
         safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-        patch.cover_url = `/uploads/${coverFile.filename}`;
+        patch.cover_url = await uploadMulterFile(coverFile, { folder: 'burnout/music/collections' });
       }
 
       if (Object.keys(patch).length > 0) {
@@ -510,6 +505,12 @@ router.post(
 
       const audio = parseAudioPayload(req.body, req.files, null);
       if (audio.error) return res.status(400).json({ message: audio.error });
+      if (audio.audio_source === 'file' && req.files?.audio?.[0]) {
+        audio.audio_file_url = await uploadMulterFile(req.files.audio[0], {
+          folder: 'burnout/music/audio',
+          resource_type: 'auto',
+        });
+      }
 
       const target_role = pickTargetRole(req.body.target_role);
       const target_gender = pickTargetGender(req.body.target_gender);
@@ -538,7 +539,7 @@ router.post(
           duration_min,
           duration_display,
           kind === 'quick' ? pickIcon(req.body.icon_name) : 'Music2',
-          `/uploads/${coverFile.filename}`,
+          await uploadMulterFile(coverFile, { folder: 'burnout/music/covers' }),
           audio.audio_source,
           audio.audio_file_url || '',
           audio.audio_external_url || '',
@@ -620,7 +621,7 @@ router.patch(
       const coverFile = req.files?.cover?.[0];
       if (coverFile) {
         safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-        patch.cover_url = `/uploads/${coverFile.filename}`;
+        patch.cover_url = await uploadMulterFile(coverFile, { folder: 'burnout/music/covers' });
       }
 
       const audioTouched =
@@ -632,6 +633,12 @@ router.patch(
       if (audioTouched) {
         const audio = parseAudioPayload(req.body, req.files, existing);
         if (audio.error) return res.status(400).json({ message: audio.error });
+        if (audio.audio_source === 'file' && req.files?.audio?.[0]) {
+          audio.audio_file_url = await uploadMulterFile(req.files.audio[0], {
+            folder: 'burnout/music/audio',
+            resource_type: 'auto',
+          });
+        }
         if (audio.audio_file_url && audio.audio_file_url !== existing.audio_file_url) {
           safeUnlinkUploadPath(uploadsAbs, existing.audio_file_url);
         }

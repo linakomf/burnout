@@ -7,20 +7,13 @@ const { pickTargetRole, pickTargetGender, appendAudienceFilter } = require('../u
 const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { pickCategory, pickKind } = require('../utils/readingCategories');
 const { unlinkReadingCover } = require('../utils/readingUploadCleanup');
+const { uploadMulterFile } = require('../utils/cloudinaryUpload');
 
 const router = express.Router();
 const uploadsAbs = path.join(__dirname, '..', 'uploads');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsAbs),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.jpg';
-    cb(null, `reading_${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 12 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const name = String(file.originalname || '').toLowerCase();
@@ -31,16 +24,8 @@ const upload = multer({
   },
 });
 
-const bodyImageStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsAbs),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.jpg';
-    cb(null, `reading_body_${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`);
-  },
-});
-
 const bodyImageUpload = multer({
-  storage: bodyImageStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 12 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const name = String(file.originalname || '').toLowerCase();
@@ -143,7 +128,7 @@ function readBody(body, files, existing) {
     description_short,
     body_full: kind === 'article' ? body_full : '',
     read_url: kind === 'book' ? read_url : read_url || existing?.read_url || '',
-    cover_url: files?.cover ? `/uploads/${files.cover.filename}` : undefined,
+    cover_url: undefined,
     target_role: Object.prototype.hasOwnProperty.call(body, 'target_role')
       ? pickTargetRole(body.target_role)
       : existing?.target_role || 'all',
@@ -184,7 +169,8 @@ router.post('/body-image', authMiddleware, adminOnly, (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: 'Выберите изображение' });
     }
-    return res.status(201).json({ url: `/uploads/${req.file.filename}` });
+    const url = await uploadMulterFile(req.file, { folder: 'burnout/reading/body' });
+    return res.status(201).json({ url });
   });
 });
 
@@ -216,6 +202,7 @@ router.post('/', authMiddleware, adminOnly, withCoverUpload, async (req, res) =>
 
     const parsed = readBody(req.body, { cover: req.file }, null);
     if (parsed.error) return res.status(400).json({ message: parsed.error });
+    parsed.cover_url = await uploadMulterFile(req.file, { folder: 'burnout/reading/covers' });
 
     const ins = await pool.query(
       `INSERT INTO reading_items (kind, title, category, cover_url, description_short, body_full, read_url, target_role, target_gender)
@@ -256,6 +243,9 @@ router.patch('/:readingKey', authMiddleware, adminOnly, withCoverUpload, async (
 
     const parsed = readBody(req.body, req.file ? { cover: req.file } : {}, existing);
     if (parsed.error) return res.status(400).json({ message: parsed.error });
+    if (req.file) {
+      parsed.cover_url = await uploadMulterFile(req.file, { folder: 'burnout/reading/covers' });
+    }
 
     const patch = {};
     if (Object.prototype.hasOwnProperty.call(req.body, 'title')) {

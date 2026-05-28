@@ -18,20 +18,13 @@ const {
   pickTfMood,
 } = require('../utils/eventFilters');
 const { unlinkEventAssets, safeUnlinkUploadPath } = require('../utils/eventUploadCleanup');
+const { uploadMulterFile, uploadMulterFiles } = require('../utils/cloudinaryUpload');
 
 const router = express.Router();
 const uploadsAbs = path.join(__dirname, '..', 'uploads');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsAbs),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.jpg';
-    cb(null, `event_${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 12 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const name = String(file.originalname || '').toLowerCase();
@@ -187,11 +180,9 @@ function readEventBody(body, files, existing) {
         ? parseJsonArray(body.important_notes, 12)
         : existing?.important_notes || []
     ),
-    cover_url: files?.cover?.[0] ? `/uploads/${files.cover[0].filename}` : undefined,
-    hero_url: files?.hero?.[0] ? `/uploads/${files.hero[0].filename}` : undefined,
-    venue_image_url: files?.venue_image?.[0]
-      ? `/uploads/${files.venue_image[0].filename}`
-      : undefined,
+    cover_url: undefined,
+    hero_url: undefined,
+    venue_image_url: undefined,
     gallery_urls: undefined,
     target_role: Object.prototype.hasOwnProperty.call(body, 'target_role')
       ? pickTargetRole(body.target_role)
@@ -262,9 +253,18 @@ router.post(
 
       const parsed = readEventBody(req.body, req.files, null);
       if (parsed.error) return res.status(400).json({ message: parsed.error });
+      parsed.cover_url = await uploadMulterFile(req.files.cover[0], { folder: 'burnout/events/covers' });
+      parsed.hero_url = req.files?.hero?.[0]
+        ? await uploadMulterFile(req.files.hero[0], { folder: 'burnout/events/heroes' })
+        : parsed.cover_url;
+      parsed.venue_image_url = req.files?.venue_image?.[0]
+        ? await uploadMulterFile(req.files.venue_image[0], { folder: 'burnout/events/venues' })
+        : '';
 
       const galleryFiles = req.files?.gallery || [];
-      const gallery_urls = galleryFiles.slice(0, 4).map((f) => `/uploads/${f.filename}`);
+      const gallery_urls = await uploadMulterFiles(galleryFiles.slice(0, 4), {
+        folder: 'burnout/events/gallery',
+      });
 
       const ins = await pool.query(
         `INSERT INTO events (
@@ -352,6 +352,17 @@ router.patch(
       }
 
       const parsed = readEventBody(req.body, req.files, existing);
+      if (req.files?.cover?.[0]) {
+        parsed.cover_url = await uploadMulterFile(req.files.cover[0], { folder: 'burnout/events/covers' });
+      }
+      if (req.files?.hero?.[0]) {
+        parsed.hero_url = await uploadMulterFile(req.files.hero[0], { folder: 'burnout/events/heroes' });
+      }
+      if (req.files?.venue_image?.[0]) {
+        parsed.venue_image_url = await uploadMulterFile(req.files.venue_image[0], {
+          folder: 'burnout/events/venues',
+        });
+      }
       if (parsed.error && Object.prototype.hasOwnProperty.call(req.body, 'ticket_url')) {
         return res.status(400).json({ message: parsed.error });
       }
@@ -430,7 +441,7 @@ router.patch(
           const set = new Set(existingGallery);
           kept = Array.isArray(arr) ? arr.filter((u) => typeof u === 'string' && set.has(u)) : [];
         }
-        const appended = galleryFiles.map((f) => `/uploads/${f.filename}`);
+        const appended = await uploadMulterFiles(galleryFiles, { folder: 'burnout/events/gallery' });
         const nextGallery = [...kept, ...appended].slice(0, 4);
         const removed = existingGallery.filter((u) => !nextGallery.includes(u));
         for (const u of removed) safeUnlinkUploadPath(uploadsAbs, u);
