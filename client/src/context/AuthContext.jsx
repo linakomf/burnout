@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
+import { withApiRetry } from '../utils/apiRetry';
 import {
   syncBannerProfileFromUser,
   clearBannerProfileCache } from
@@ -103,7 +104,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const res = await api.post('/auth/login', { email, password });
+    const res = await withApiRetry(() => api.post('/auth/login', { email, password }));
     const u = res.data.user;
     localStorage.setItem('token', res.data.token);
     localStorage.setItem('user', JSON.stringify(u));
@@ -113,7 +114,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (data) => {
-    const res = await api.post('/auth/register', data);
+    const res = await withApiRetry(() => api.post('/auth/register', data));
     const newUser = res.data.user;
     clearPendingOnboarding(newUser?.user_id);
     localStorage.setItem('token', res.data.token);

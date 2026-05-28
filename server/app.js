@@ -19,6 +19,7 @@ const { ensureReadingSchema } = require('./ensureReadingSchema');
 const { ensureMusicSchema } = require('./ensureMusicSchema');
 const { ensurePodcastsSchema } = require('./ensurePodcastsSchema');
 const { ensureAudienceSchema } = require('./ensureAudienceSchema');
+const { isDatabaseInitialized } = require('./dbReady');
 
 if (!process.env.JWT_SECRET?.trim()) {
   const strictProd = process.env.NODE_ENV === 'production' && !process.env.VERCEL;
@@ -124,13 +125,13 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-async function bootstrap() {
+/** Схемы БД — нужны до любого API-запроса. */
+async function bootstrapCritical() {
   await ensureCoreSchema();
   await ensureDefaultAdmin();
   await ensurePracticeSchema();
   await ensureOnboardingSchema();
   await ensureTestSchema();
-  await ensureTestCatalog();
   await ensureSupportRequestsSchema();
   await ensurePsychologistSchema();
   await ensureFilmsSchema();
@@ -142,11 +143,50 @@ async function bootstrap() {
   await ensureAudienceSchema();
 }
 
+/** Синхронизация каталога тестов — тяжёлая, на Vercel не блокирует ответ. */
+async function bootstrapDeferred() {
+  await ensureTestCatalog();
+}
+
+async function bootstrap() {
+  await bootstrapCritical();
+  await bootstrapDeferred();
+}
+
 let bootstrapPromise = null;
+let deferredBootstrapStarted = false;
+
+function startDeferredBootstrap() {
+  if (deferredBootstrapStarted) return;
+  deferredBootstrapStarted = true;
+  bootstrapDeferred().catch((err) => {
+    deferredBootstrapStarted = false;
+    console.warn('⚠️ Deferred bootstrap (test catalog):', err.message);
+  });
+}
 
 function ensureBootstrap() {
   if (!bootstrapPromise) {
-    bootstrapPromise = bootstrap().catch((err) => {
+    bootstrapPromise = (async () => {
+      if (process.env.VERCEL) {
+        try {
+          if (await isDatabaseInitialized()) {
+            console.log('✅ Vercel: схема БД уже есть — быстрый старт');
+            startDeferredBootstrap();
+            return;
+          }
+        } catch (err) {
+          if (err.code === 'DB_NOT_CONFIGURED') throw err;
+          console.warn('⚠️ Vercel db check:', err.message);
+        }
+      }
+      await bootstrapCritical();
+      if (process.env.VERCEL) {
+        startDeferredBootstrap();
+      } else {
+        await bootstrapDeferred();
+      }
+    })().catch((err) => {
       bootstrapPromise = null;
       throw err;
     });

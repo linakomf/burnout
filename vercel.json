@@ -22,8 +22,15 @@
     }
   },
   "functions": {
-    "api/**/*.js": {
-      "maxDuration": 60
+    "api/index.js": {
+      "maxDuration": 60,
+      "includeFiles": "server/**"
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/health",
+      "schedule": "*/14 * * * *"
+    }
+  ]
 }

@@ -1,34 +1,81 @@
 const serverless = require('serverless-http');
 const { app, ensureBootstrap } = require('../server/app');
 
-let handler;
+const handler = serverless(app, {
+  binary: [
+    'image/*',
+    'application/octet-stream',
+    'multipart/form-data',
+    'video/*',
+    'audio/*'
+  ]
+});
+
 let bootstrapDone = false;
 
 async function ensureReady() {
   if (!bootstrapDone) {
     await ensureBootstrap();
-    handler = serverless(app);
     bootstrapDone = true;
   }
 }
 
 function isHealthRequest(req) {
-  const url = String(req.url || '');
+  const url = requestPath(req);
   return req.method === 'GET' && (url === '/api/health' || url.startsWith('/api/health?'));
+}
+
+/** Vercel иногда передаёт укороченный req.url — восстанавливаем путь /api/... */
+function requestPath(req) {
+  const direct = String(req.url || '').split('?')[0];
+  if (direct.startsWith('/api/') || direct === '/api') return direct;
+
+  const forwarded =
+    req.headers['x-vercel-original-url'] ||
+    req.headers['x-invoke-path'] ||
+    req.headers['x-forwarded-uri'] ||
+    '';
+  const fromHeader = String(forwarded).split('?')[0];
+  if (fromHeader.startsWith('/api/') || fromHeader === '/api') {
+    const qs = String(req.url || '').includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+    req.url = fromHeader + qs;
+    return fromHeader;
+  }
+  return direct;
+}
+
+async function buildHealthPayload() {
+  const hasUrl = Boolean(process.env.DATABASE_URL?.trim());
+  const hasJwt = Boolean(process.env.JWT_SECRET?.trim());
+  let database = 'missing';
+  if (hasUrl) {
+    try {
+      const pool = require('../server/db');
+      await pool.query('SELECT 1');
+      database = 'connected';
+    } catch (err) {
+      console.warn('Health DB ping failed:', err.message);
+      database = 'error';
+    }
+  }
+  return {
+    status: database === 'connected' ? 'OK' : 'degraded',
+    timestamp: new Date().toISOString(),
+    database,
+    jwt: hasJwt ? 'configured' : 'missing',
+    vercel: Boolean(process.env.VERCEL)
+  };
 }
 
 module.exports = async (req, res) => {
   try {
+    requestPath(req);
+
     if (isHealthRequest(req)) {
-      res.statusCode = 200;
+      const payload = await buildHealthPayload();
+      res.statusCode = payload.database === 'connected' ? 200 : 503;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.end(
-        JSON.stringify({
-          status: 'OK',
-          timestamp: new Date().toISOString(),
-          database: process.env.DATABASE_URL?.trim() ? 'configured' : 'missing'
-        })
-      );
+      res.end(JSON.stringify(payload));
       return;
     }
 
@@ -44,8 +91,8 @@ module.exports = async (req, res) => {
       JSON.stringify({
         message:
           err.code === 'DB_NOT_CONFIGURED'
-            ? 'Сервер не подключён к базе данных. Задайте DATABASE_URL в настройках Vercel.'
-            : 'Ошибка сервера'
+            ? 'Сервер не подключён к базе данных. Задайте DATABASE_URL в Vercel (Production) и сделайте Redeploy.'
+            : err.message || 'Ошибка сервера'
       })
     );
   }

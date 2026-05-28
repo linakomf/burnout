@@ -26,6 +26,9 @@ import AdminDashboard from './components/Dashboards/AdminDashboard';
 import OnboardingBurnout from './components/Onboarding/OnboardingBurnout';
 import Personalization from './components/Personalization/Personalization';
 import './styles/global.css';
+import { warmupApi } from './utils/apiWarmup';
+
+warmupApi();
 
 const PrivateRoute = ({
   children,

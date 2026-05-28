@@ -3,7 +3,18 @@ import { clearBannerProfileCache } from '../config/homeBannerVideo';
 
 /** Базовый origin API без суффикса /api (пустая строка = тот же хост, относительные пути). */
 export function getApiOrigin() {
-  return (process.env.REACT_APP_API_ORIGIN || '').trim().replace(/\/$/, '');
+  const raw = (process.env.REACT_APP_API_ORIGIN || '').trim().replace(/\/$/, '');
+  if (
+    process.env.NODE_ENV === 'production' &&
+    raw &&
+    /localhost|127\.0\.0\.1|\[::1\]/i.test(raw)
+  ) {
+    console.warn(
+      '[api] REACT_APP_API_ORIGIN указывает на localhost в production — используем /api на текущем домене.'
+    );
+    return '';
+  }
+  return raw;
 }
 
 /** Базовый URL для axios: `/api` на том же домене (Vercel) или REACT_APP_API_ORIGIN + /api. */
