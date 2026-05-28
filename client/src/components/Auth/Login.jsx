@@ -7,6 +7,7 @@ import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import AppLogo from '../Brand/AppLogo';
 import { formatAuthAxiosError, mergeField, readFormField } from '../../utils/authFormRead';
 import { psychologistHomePath } from '../../utils/psychologistNav';
+import AuthFlowBackdrop from './AuthFlowBackdrop';
 import './Auth.css';
 
 const Login = () => {
@@ -48,14 +49,7 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-bg">
-        <div className="auth-blob blob-1" />
-        <div className="auth-blob blob-2" />
-        <div className="auth-blob blob-3" />
-      </div>
-
-      <div className="auth-card fade-in">
+    <AuthFlowBackdrop>
         <div className="auth-lang-bar">
           <LanguageSwitcher className="lang-switch--on-light-bg" />
         </div>
@@ -67,7 +61,8 @@ const Login = () => {
         </div>
 
         <h1 className="auth-title">{t('auth.loginTitle')}</h1>
-        <p className="auth-subtitle">{t('auth.loginSubtitle')}</p>
+        <p className="auth-subtitle auth-subtitle--tight">{t('auth.loginSubtitle')}</p>
+        <div className="reg-grad-line" aria-hidden />
 
         {error &&
         <div className="auth-error">
@@ -119,9 +114,8 @@ const Login = () => {
           {t('auth.noAccount')}{' '}
           <Link to="/register">{t('auth.linkReg')}</Link>
         </p>
-      </div>
-    </div>);
-
+    </AuthFlowBackdrop>
+  );
 };
 
 export default Login;

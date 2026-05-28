@@ -10,13 +10,48 @@
   position: relative;
   background: var(--bg);
   overflow-x: hidden;
+  overflow-y: auto;
   box-sizing: border-box;
+}
+
+/* Фон как на главной (холмы дашборда) */
+.auth-page--dashboard {
+  background-color: #e5f0f5;
 }
 
 .auth-bg {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+.auth-bg--dashboard {
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(245, 247, 251, 0.52) 0%,
+      rgba(229, 240, 245, 0.68) 42%,
+      rgba(232, 240, 248, 0.78) 100%
+    ),
+    url('../../assets/dashboard-bg-hills.png');
+  background-size: cover;
+  background-position: center 38%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.auth-bg--blobs .auth-blob {
+  opacity: 0.22;
+}
+
+[data-theme='dark'] .auth-page--dashboard {
+  background-color: #0e1210;
+}
+
+[data-theme='dark'] .auth-bg--dashboard {
+  background-image:
+    linear-gradient(180deg, rgba(14, 18, 16, 0.82) 0%, rgba(14, 18, 16, 0.92) 100%),
+    url('../../assets/dashboard-bg-hills.png');
 }
 
 .auth-blob {
@@ -61,6 +96,14 @@
 
 .auth-card.auth-card--wide {
   max-width: 440px;
+}
+
+.auth-card.auth-card--survey {
+  max-width: 560px;
+}
+
+.auth-card.auth-card--result {
+  max-width: 480px;
 }
 
 .auth-lang-bar {
@@ -111,7 +154,11 @@
 }
 
 .auth-subtitle--tight {
-  text-align: center;
+  margin-bottom: 0;
+}
+
+.auth-card .auth-subtitle--tight + .reg-grad-line {
+  margin-top: 10px;
   margin-bottom: 22px;
 }
 
@@ -314,6 +361,12 @@
   border-color: var(--primary);
   background: var(--primary-light);
   color: var(--text-dark);
+  box-shadow: 0 2px 12px rgba(155, 189, 144, 0.35);
+}
+
+.role-btn:hover:not(.active) {
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+  background: color-mix(in srgb, var(--primary-light) 65%, var(--bg-card));
 }
 
 .auth-submit {

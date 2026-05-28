@@ -2,8 +2,10 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
 import { Heart, ArrowRight, ChevronLeft } from 'lucide-react';
 import AppLogo from '../Brand/AppLogo';
+import AuthFlowBackdrop from '../Auth/AuthFlowBackdrop';
 import api from '../../utils/api';
 import { savePendingOnboarding, clearPendingOnboarding } from '../../utils/onboardingLocalStorage';
 import { getAvatarForRoleGender } from '../../config/registerAvatars';
@@ -22,7 +24,7 @@ function OnboardingProfileStep({ user, updateUser, t }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [profileRole, setProfileRole] = useState(() => (user?.role === 'teacher' ? 'teacher' : 'student'));
-  const [gender, setGender] = useState('boy');
+  const [gender, setGender] = useState(() => (user?.gender === 'girl' ? 'girl' : 'boy'));
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
 
@@ -49,7 +51,6 @@ function OnboardingProfileStep({ user, updateUser, t }) {
         avatar: avatarToSave
       });
       const d = res.data && typeof res.data === 'object' ? res.data : {};
-      // Для отображения после онбординга приоритет у выбранных значений шага.
       updateUser({
         ...d,
         role: roleToSave,
@@ -64,26 +65,29 @@ function OnboardingProfileStep({ user, updateUser, t }) {
   };
 
   return (
-    <div className="onb-shell onb-profile-shell fade-in">
-      <header className="onb-header">
-        <div className="onb-brand">
-          <div className="onb-brand-mark app-logo-wrap">
-            <AppLogo size={48} />
-          </div>
-          <div>
-            <h1 className="onb-title">{t('burnoutOnb.profileTitle')}</h1>
-            <p className="onb-subtitle">{t('burnoutOnb.profileSubtitle')}</p>
-          </div>
+    <AuthFlowBackdrop cardClassName="auth-card--wide onb-profile-card">
+      <div className="auth-lang-bar">
+        <LanguageSwitcher className="lang-switch--on-light-bg" />
+      </div>
+
+      <div className="auth-logo onb-brand-row">
+        <div className="auth-logo-icon app-logo-wrap">
+          <AppLogo size={44} />
         </div>
-      </header>
+        <span className="brand-wordmark">burnout</span>
+      </div>
+
+      <h1 className="auth-title">{t('burnoutOnb.profileTitle')}</h1>
+      <p className="auth-subtitle auth-subtitle--tight">{t('burnoutOnb.profileSubtitle')}</p>
+      <div className="reg-grad-line" aria-hidden />
 
       {err && (
-        <div className="onb-error-banner" role="alert">
-          {err}
+        <div className="auth-error onb-error" role="alert">
+          <span>{err}</span>
         </div>
       )}
 
-      <div className="onb-profile-form auth-form">
+      <div className="auth-form onb-profile-form">
         <div className="form-group">
           <label>{t('auth.labelRole')}</label>
           <div className="role-selector">
@@ -107,10 +111,18 @@ function OnboardingProfileStep({ user, updateUser, t }) {
         <div className="form-group">
           <label>{t('auth.labelGender')}</label>
           <div className="role-selector reg-gender-row">
-            <button type="button" className={`role-btn ${gender === 'boy' ? 'active' : ''}`} onClick={() => setGender('boy')}>
+            <button
+              type="button"
+              className={`role-btn ${gender === 'boy' ? 'active' : ''}`}
+              onClick={() => setGender('boy')}
+            >
               {t('auth.regGenderBoy')}
             </button>
-            <button type="button" className={`role-btn ${gender === 'girl' ? 'active' : ''}`} onClick={() => setGender('girl')}>
+            <button
+              type="button"
+              className={`role-btn ${gender === 'girl' ? 'active' : ''}`}
+              onClick={() => setGender('girl')}
+            >
               {t('auth.regGenderGirl')}
             </button>
           </div>
@@ -120,6 +132,7 @@ function OnboardingProfileStep({ user, updateUser, t }) {
         <div className="form-group">
           <label>{t('auth.regPickAvatar')}</label>
           <div className="onb-avatar-preview">
+            <div className="onb-avatar-glow" aria-hidden />
             <div className="reg-avatar-btn reg-avatar-btn--selected onb-avatar-preview-card" aria-hidden>
               <span className="reg-avatar-ring">
                 <img src={currentAvatar.src} alt="" className="reg-avatar-img" />
@@ -129,22 +142,27 @@ function OnboardingProfileStep({ user, updateUser, t }) {
           <p className="reg-hint">{t('burnoutOnb.avatarByRoleHint')}</p>
         </div>
 
-        <div className="onb-profile-actions">
+        <div className="reg-step2-actions">
           <button
             type="button"
-            className="btn btn-ghost onb-profile-back"
+            className="btn btn-ghost reg-back-btn"
             onClick={handleBackToRegister}
             aria-label={t('burnoutOnb.backToRegisterAria')}
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={18} aria-hidden />
             {t('burnoutOnb.backToRegister')}
           </button>
-          <button type="button" className="btn btn-primary auth-submit onb-profile-cta" onClick={save} disabled={saving}>
+          <button
+            type="button"
+            className="btn btn-primary auth-submit reg-submit-primary onb-profile-cta"
+            onClick={save}
+            disabled={saving}
+          >
             {saving ? t('burnoutOnb.saving') : t('burnoutOnb.toSurvey')}
           </button>
         </div>
       </div>
-    </div>
+    </AuthFlowBackdrop>
   );
 }
 
@@ -197,11 +215,7 @@ const OnboardingBurnout = () => {
   }
 
   if (needsProfile) {
-    return (
-      <div className="onb-page">
-        <OnboardingProfileStep user={user} updateUser={updateUser} t={t} />
-      </div>
-    );
+    return <OnboardingProfileStep user={user} updateUser={updateUser} t={t} />;
   }
 
   const totalSteps = questions.length;
@@ -235,7 +249,7 @@ const OnboardingBurnout = () => {
     } catch (e) {
       console.error(e);
       const sum = answers.reduce((s, v) => s + v, 0);
-      const percent = Math.min(100, Math.max(0, Math.round(sum / ONBOARDING_MAX_RAW * 100)));
+      const percent = Math.min(100, Math.max(0, Math.round((sum / ONBOARDING_MAX_RAW) * 100)));
       savePendingOnboarding(user.user_id, { percent, rawScore: sum, answers });
       setResultPercent(percent);
       setRawScore(sum);
@@ -263,129 +277,139 @@ const OnboardingBurnout = () => {
   if (surveyPhase === 'result' && resultPercent != null && level) {
     const markerLeft = `${resultPercent}%`;
     return (
-      <div className="onb-page">
-        <div className="onb-result-inner fade-in">
-          <header className="onb-result-head">
-            <div className="onb-brand-mark app-logo-wrap">
-              <AppLogo size={48} />
-            </div>
-            <h1 className="onb-result-title">Ваш результат</h1>
-            <p className="onb-result-sub">Оценка текущего уровня выгорания по ответам</p>
-          </header>
+      <AuthFlowBackdrop cardClassName="auth-card--result onb-result-card">
+        <div className="auth-lang-bar">
+          <LanguageSwitcher className="lang-switch--on-light-bg" />
+        </div>
 
-          <div className="onb-result-card">
-            <div className="onb-scale-wrap" aria-hidden>
-              <div className="onb-scale-bar">
-                <div className="onb-scale-gradient" />
-                <div className="onb-scale-marker" style={{ left: markerLeft }} />
-              </div>
-            </div>
+        <div className="onb-result-head">
+          <div className="auth-logo-icon app-logo-wrap onb-result-logo">
+            <AppLogo size={44} />
+          </div>
+          <h1 className="auth-title auth-title--center">Ваш результат</h1>
+          <p className="auth-subtitle auth-subtitle--tight">Оценка текущего уровня выгорания по ответам</p>
+          <div className="reg-grad-line" aria-hidden />
+        </div>
 
-            <div className="onb-score-row">
-              <span className="onb-score-pill">
-                {rawScore != null ? `${rawScore} из ${ONBOARDING_MAX_RAW} баллов` : 'Итог'}
-              </span>
-              <span className="onb-score-pct">{resultPercent}%</span>
-              <span className="onb-score-label">уровень выгорания</span>
+        <div className="onb-result-card-inner">
+          <div className="onb-scale-wrap" aria-hidden>
+            <div className="onb-scale-bar">
+              <div className="onb-scale-gradient" />
+              <div className="onb-scale-marker" style={{ left: markerLeft }} />
             </div>
-
-            <h2 className={`onb-level-title onb-level-title--${level.key}`}>{level.title}</h2>
-            <p className="onb-level-desc">{level.hint}</p>
-            {savedOffline && (
-              <p className="onb-offline-note">
-                Нет связи с сервером: результат сохранён на устройстве. При появлении сети он отправится автоматически при следующем входе.
-              </p>
-            )}
           </div>
 
-          <button type="button" className="onb-continue-btn" onClick={() => navigate('/dashboard', { replace: true })}>
-            Продолжить
-            <ArrowRight size={20} />
-          </button>
-          <p className="onb-result-foot">
-            Далее вы попадёте на главный экран: раздел «Пространство», дневник и аналитика помогут отслеживать динамику.
-          </p>
+          <div className="onb-score-row">
+            <span className="onb-score-pill">
+              {rawScore != null ? `${rawScore} из ${ONBOARDING_MAX_RAW} баллов` : 'Итог'}
+            </span>
+            <span className="onb-score-pct">{resultPercent}%</span>
+            <span className="onb-score-label">уровень выгорания</span>
+          </div>
+
+          <h2 className={`onb-level-title onb-level-title--${level.key}`}>{level.title}</h2>
+          <p className="onb-level-desc">{level.hint}</p>
+          {savedOffline && (
+            <p className="onb-offline-note">
+              Нет связи с сервером: результат сохранён на устройстве. При появлении сети он отправится
+              автоматически при следующем входе.
+            </p>
+          )}
         </div>
-      </div>
+
+        <button
+          type="button"
+          className="btn btn-primary auth-submit reg-submit-primary onb-continue-btn"
+          onClick={() => navigate('/dashboard', { replace: true })}
+        >
+          Продолжить
+          <ArrowRight size={20} aria-hidden />
+        </button>
+        <p className="onb-result-foot">
+          Далее вы попадёте на главный экран: раздел «Пространство», дневник и аналитика помогут отслеживать
+          динамику.
+        </p>
+      </AuthFlowBackdrop>
     );
   }
 
   return (
-    <div className="onb-page">
-      <div className="onb-shell fade-in">
-        <header className="onb-header">
-          <div className="onb-brand">
-            <div className="onb-brand-mark app-logo-wrap">
-              <AppLogo size={48} />
-            </div>
-            <div>
-              <h1 className="onb-title">Оценка уровня выгорания</h1>
-              <p className="onb-subtitle">
-                Ответьте на 9 вопросов - мы покажем ориентир в процентах (не диагноз).
-                {user.role === 'teacher' ? ' Вопросы для преподавателей.' : ' Вопросы для студентов.'}
-              </p>
-            </div>
-          </div>
-        </header>
-
-        <div className="onb-progress-row">
-          <span className="onb-progress-label">
-            Вопрос {step + 1} из {totalSteps}
-          </span>
-          <span className="onb-progress-pct">{Math.round(progress)}%</span>
-        </div>
-        <div className="onb-progress-track">
-          <div className="onb-progress-fill" style={{ width: `${progress}%` }} />
-        </div>
-
-        <div className="onb-question-card">
-          <div className="onb-q-icon" aria-hidden>
-            <Heart size={22} strokeWidth={1.8} />
-          </div>
-          <p className="onb-q-text">{questions[step]}</p>
-          <div className="onb-options">
-            {ONBOARDING_OPTIONS.map((label, idx) => (
-              <button
-                key={label}
-                type="button"
-                className={`onb-option ${currentAnswer === idx ? 'selected' : ''}`}
-                onClick={() => pickOption(idx)}
-              >
-                <span className="onb-option-dot" />
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {error && step === totalSteps - 1 && (
-          <div className="onb-error-banner" role="alert">
-            {error}
-          </div>
-        )}
-
-        <div className="onb-actions">
-          {step > 0 ? (
-            <button type="button" className="onb-back-btn" onClick={goBack}>
-              <ChevronLeft size={18} />
-              Назад
-            </button>
-          ) : (
-            <span />
-          )}
-          <button
-            type="button"
-            className="btn btn-primary onb-next-btn"
-            onClick={goNext}
-            disabled={currentAnswer === null || submitting}
-          >
-            {step === totalSteps - 1 ? (submitting ? 'Сохранение…' : 'Завершить') : 'Далее'}
-          </button>
-        </div>
-
-        <p className="onb-foot-hint">Отвечайте честно - так рекомендации будут полезнее.</p>
+    <AuthFlowBackdrop cardClassName="auth-card--survey onb-survey-card">
+      <div className="auth-lang-bar">
+        <LanguageSwitcher className="lang-switch--on-light-bg" />
       </div>
-    </div>
+
+      <div className="onb-brand-row">
+        <div className="auth-logo-icon app-logo-wrap">
+          <AppLogo size={44} />
+        </div>
+        <div className="onb-brand-text">
+          <h1 className="auth-title onb-survey-title">Оценка уровня выгорания</h1>
+          <p className="auth-subtitle onb-survey-sub">
+            Ответьте на 9 вопросов — мы покажем ориентир в процентах (не диагноз).
+            {user.role === 'teacher' ? ' Вопросы для преподавателей.' : ' Вопросы для студентов.'}
+          </p>
+        </div>
+      </div>
+      <div className="reg-grad-line onb-survey-grad" aria-hidden />
+
+      <div className="onb-progress-row">
+        <span className="onb-progress-label">
+          Вопрос {step + 1} из {totalSteps}
+        </span>
+        <span className="onb-progress-pct">{Math.round(progress)}%</span>
+      </div>
+      <div className="onb-progress-track">
+        <div className="onb-progress-fill" style={{ width: `${progress}%` }} />
+      </div>
+
+      <div className="onb-question-card">
+        <div className="onb-q-icon" aria-hidden>
+          <Heart size={22} strokeWidth={1.8} />
+        </div>
+        <p className="onb-q-text">{questions[step]}</p>
+        <div className="onb-options">
+          {ONBOARDING_OPTIONS.map((label, idx) => (
+            <button
+              key={label}
+              type="button"
+              className={`onb-option ${currentAnswer === idx ? 'selected' : ''}`}
+              onClick={() => pickOption(idx)}
+            >
+              <span className="onb-option-dot" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {error && step === totalSteps - 1 && (
+        <div className="auth-error onb-error" role="alert">
+          <span>{error}</span>
+        </div>
+      )}
+
+      <div className="onb-actions">
+        {step > 0 ? (
+          <button type="button" className="onb-back-btn" onClick={goBack}>
+            <ChevronLeft size={18} aria-hidden />
+            Назад
+          </button>
+        ) : (
+          <span className="onb-actions-spacer" />
+        )}
+        <button
+          type="button"
+          className="btn btn-primary auth-submit reg-submit-primary onb-next-btn"
+          onClick={goNext}
+          disabled={currentAnswer === null || submitting}
+        >
+          {step === totalSteps - 1 ? (submitting ? 'Сохранение…' : 'Завершить') : 'Далее'}
+        </button>
+      </div>
+
+      <p className="onb-foot-hint">Отвечайте честно — так рекомендации будут полезнее.</p>
+    </AuthFlowBackdrop>
   );
 };
 

@@ -6,6 +6,7 @@ import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import AppLogo from '../Brand/AppLogo';
 import { formatAuthAxiosError, mergeField, readFormField } from '../../utils/authFormRead';
+import AuthFlowBackdrop from './AuthFlowBackdrop';
 import './Auth.css';
 
 const Register = () => {
@@ -57,14 +58,7 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-bg">
-        <div className="auth-blob blob-1" />
-        <div className="auth-blob blob-2" />
-        <div className="auth-blob blob-3" />
-      </div>
-
-      <div className="auth-card auth-card--wide fade-in">
+    <AuthFlowBackdrop cardClassName="auth-card--wide">
         <div className="auth-lang-bar">
           <LanguageSwitcher className="lang-switch--on-light-bg" />
         </div>
@@ -76,7 +70,8 @@ const Register = () => {
         </div>
 
         <h1 className="auth-title">{t('auth.registerTitle')}</h1>
-        <p className="auth-subtitle">{t('auth.registerSubtitle')}</p>
+        <p className="auth-subtitle auth-subtitle--tight">{t('auth.registerSubtitle')}</p>
+        <div className="reg-grad-line" aria-hidden />
 
         {error && (
           <div className="auth-error">
@@ -171,8 +166,7 @@ const Register = () => {
         <p className="auth-switch">
           {t('auth.hasAccount')} <Link to="/login">{t('auth.linkLogin')}</Link>
         </p>
-      </div>
-    </div>
+    </AuthFlowBackdrop>
   );
 };
 
