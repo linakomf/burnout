@@ -12,6 +12,7 @@ client/build/
 # Uploads (local dev)
 server/uploads/*
 !server/uploads/.gitkeep
+server/scripts/.migrate-uploads-map.json
 
 # Logs & OS
 npm-debug.log*

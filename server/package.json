@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "migrate:uploads": "node scripts/migrateLocalUploadsToCloudinary.js",
+    "migrate:uploads:dry-run": "node scripts/migrateLocalUploadsToCloudinary.js --dry-run",
+    "migrate:uploads:update-only": "node scripts/migrateLocalUploadsToCloudinary.js --update-only"
   },
   "dependencies": {
     "burnout-app": "file:..",

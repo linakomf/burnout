@@ -1,3 +1,5 @@
+import { backendPublicUrl } from './assetUrl';
+
 const ALLOWED_TAGS = new Set([
   'P',
   'BR',
@@ -28,7 +30,8 @@ function escapeHtml(text) {
 export function isSafeArticleImageSrc(src) {
   const s = String(src || '').trim();
   if (!s) return false;
-  if (s.startsWith('/uploads/')) return true;
+  if (s.startsWith('/uploads/') || s.startsWith('/images/')) return true;
+  if (/^https:\/\/res\.cloudinary\.com\//i.test(s)) return true;
   try {
     const u = new URL(s);
     return u.protocol === 'http:' || u.protocol === 'https:';
@@ -108,6 +111,19 @@ export function sanitizeArticleHtml(unsafeHtml) {
   }
 
   [...doc.body.children].forEach((child) => cleanElement(child));
+  return rewriteArticleHtmlMediaUrls(doc.body.innerHTML);
+}
+
+function rewriteArticleHtmlMediaUrls(html) {
+  const raw = String(html || '');
+  if (!raw || typeof DOMParser === 'undefined') return raw;
+  const doc = new DOMParser().parseFromString(raw, 'text/html');
+  doc.querySelectorAll('img[src]').forEach((img) => {
+    const src = img.getAttribute('src');
+    if (!src || !isSafeArticleImageSrc(src)) return;
+    const resolved = backendPublicUrl(src);
+    if (resolved && resolved !== src) img.setAttribute('src', resolved);
+  });
   return doc.body.innerHTML;
 }
 

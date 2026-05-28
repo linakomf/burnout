@@ -1,4 +1,7 @@
+const fs = require('fs');
+const path = require('path');
 const { v2: cloudinary } = require('cloudinary');
+const { guessCloudinaryResourceType } = require('./mediaPaths');
 
 const cloudName = String(process.env.CLOUDINARY_CLOUD_NAME || '').trim();
 const apiKey = String(process.env.CLOUDINARY_API_KEY || '').trim();
@@ -30,6 +33,8 @@ function uploadBufferToCloudinary(buffer, options = {}) {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: options.folder || 'burnout',
+        public_id: options.public_id,
+        overwrite: options.overwrite ?? Boolean(options.public_id),
         resource_type: options.resource_type || 'auto',
       },
       (err, result) => {
@@ -60,9 +65,25 @@ async function uploadMulterFiles(files, options = {}) {
   return out;
 }
 
+async function uploadLocalFile(absPath, options = {}) {
+  const buffer = await fs.promises.readFile(absPath);
+  const folder = options.folder || 'burnout/legacy';
+  const publicId =
+    options.public_id ||
+    path.basename(absPath, path.extname(absPath));
+  const res = await uploadBufferToCloudinary(buffer, {
+    folder,
+    public_id: publicId,
+    resource_type: options.resource_type || guessCloudinaryResourceType(absPath),
+  });
+  return String(res?.secure_url || '');
+}
+
 module.exports = {
   isCloudinaryConfigured: isConfigured,
+  uploadBufferToCloudinary,
   uploadMulterFile,
   uploadMulterFiles,
+  uploadLocalFile,
 };
 
