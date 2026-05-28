@@ -1,15 +1,4 @@
-const serverless = require('serverless-http');
 const { app, ensureBootstrap } = require('../server/app');
-
-const handler = serverless(app, {
-  binary: [
-    'image/*',
-    'application/octet-stream',
-    'multipart/form-data',
-    'video/*',
-    'audio/*'
-  ]
-});
 
 let bootstrapDone = false;
 let bootstrapPromise = null;
@@ -34,17 +23,6 @@ async function ensureReady() {
   }
 }
 
-function isHealthRequest(req) {
-  const url = requestPath(req);
-  return req.method === 'GET' && (url === '/api/health' || url.startsWith('/api/health?'));
-}
-
-function isWarmRequest(req) {
-  const url = requestPath(req);
-  return req.method === 'GET' && (url === '/api/warm' || url.startsWith('/api/warm?'));
-}
-
-/** Vercel иногда передаёт укороченный req.url — восстанавливаем путь /api/... */
 function requestPath(req) {
   const direct = String(req.url || '').split('?')[0];
   if (direct.startsWith('/api/') || direct === '/api') return direct;
@@ -61,6 +39,16 @@ function requestPath(req) {
     return fromHeader;
   }
   return direct;
+}
+
+function isHealthRequest(req) {
+  const url = requestPath(req);
+  return req.method === 'GET' && (url === '/api/health' || url.startsWith('/api/health?'));
+}
+
+function isWarmRequest(req) {
+  const url = requestPath(req);
+  return req.method === 'GET' && (url === '/api/warm' || url.startsWith('/api/warm?'));
 }
 
 async function buildHealthPayload() {
@@ -91,6 +79,7 @@ if (process.env.VERCEL && process.env.DATABASE_URL?.trim()) {
   runBootstrap().catch((err) => console.warn('Background bootstrap:', err.message));
 }
 
+/** Express напрямую (без serverless-http — на Vercel POST не зависает). */
 module.exports = async (req, res) => {
   try {
     requestPath(req);
@@ -115,7 +104,7 @@ module.exports = async (req, res) => {
     }
 
     await ensureReady();
-    return handler(req, res);
+    return app(req, res);
   } catch (err) {
     console.error('API handler error:', err);
     if (res.headersSent) return;
