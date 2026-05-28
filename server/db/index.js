@@ -6,6 +6,20 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 let pool = null;
 
+function resolveSsl(connectionString) {
+  if (process.env.PGSSLMODE === 'disable') return false;
+
+  const host = String(parse(connectionString).host || '').toLowerCase();
+  const needsSsl =
+    host.includes('neon.tech') ||
+    host.includes('supabase.co') ||
+    host.endsWith('.render.com') ||
+    process.env.NODE_ENV === 'production' ||
+    Boolean(process.env.VERCEL);
+
+  return needsSsl ? { rejectUnauthorized: false } : undefined;
+}
+
 function createPool() {
   const connectionString = process.env.DATABASE_URL?.trim();
   if (!connectionString) {
@@ -16,23 +30,13 @@ function createPool() {
     throw err;
   }
 
-  const parsed = parse(connectionString);
-  const ssl =
-    process.env.PGSSLMODE === 'disable'
-      ? false
-      : parsed.ssl || process.env.NODE_ENV === 'production'
-        ? { rejectUnauthorized: false }
-        : undefined;
-
   const nextPool = new Pool({
-    ...parsed,
-    password: String(parsed.password ?? process.env.PGPASSWORD ?? ''),
-    ssl
+    connectionString,
+    ssl: resolveSsl(connectionString)
   });
 
   let pgLogOnce = false;
-  nextPool.on('connect', (client) => {
-    client.query("SET client_encoding TO 'UTF8'").catch(() => {});
+  nextPool.on('connect', () => {
     if (!pgLogOnce) {
       pgLogOnce = true;
       console.log('✅ Connected to PostgreSQL database');

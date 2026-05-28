@@ -1,9 +1,14 @@
 import axios from 'axios';
 import { clearBannerProfileCache } from '../config/homeBannerVideo';
 
-/** Как backendPublicUrl: в проде при отдельном хосте API задайте REACT_APP_API_ORIGIN (без /api). */
-function getApiBaseURL() {
-  const origin = (process.env.REACT_APP_API_ORIGIN || '').trim().replace(/\/$/, '');
+/** Базовый origin API без суффикса /api (пустая строка = тот же хост, относительные пути). */
+export function getApiOrigin() {
+  return (process.env.REACT_APP_API_ORIGIN || '').trim().replace(/\/$/, '');
+}
+
+/** Базовый URL для axios: `/api` на том же домене (Vercel) или REACT_APP_API_ORIGIN + /api. */
+export function getApiBaseURL() {
+  const origin = getApiOrigin();
   if (origin) return `${origin}/api`;
   return '/api';
 }

@@ -1,11 +1,8 @@
 import axios from 'axios';
+import { getApiBaseURL } from './api';
 
 function adminPortalBaseURL() {
-  const raw = process.env.REACT_APP_API_BASE;
-  if (raw == null || String(raw).trim() === '') return '/api/admin-portal';
-  const base = String(raw).replace(/\/$/, '');
-  const withApi = base.endsWith('/api') ? base : `${base}/api`;
-  return `${withApi}/admin-portal`;
+  return `${getApiBaseURL().replace(/\/$/, '')}/admin-portal`;
 }
 
 const adminApi = axios.create({
