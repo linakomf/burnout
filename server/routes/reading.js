@@ -158,20 +158,25 @@ router.get('/', optionalAuthMiddleware, async (req, res) => {
   }
 });
 
-router.post('/body-image', authMiddleware, adminOnly, (req, res) => {
-  bodyImageUpload.single('image')(req, res, (err) => {
-    if (err) {
-      if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ message: 'Файл слишком большой (макс. 12 МБ)' });
-      }
-      return res.status(400).json({ message: err.message || 'Ошибка загрузки файла' });
-    }
+router.post('/body-image', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    await new Promise((resolve, reject) => {
+      bodyImageUpload.single('image')(req, res, (err) => {
+        if (err) return reject(err);
+        return resolve();
+      });
+    });
     if (!req.file) {
       return res.status(400).json({ message: 'Выберите изображение' });
     }
     const url = await uploadMulterFile(req.file, { folder: 'burnout/reading/body' });
     return res.status(201).json({ url });
-  });
+  } catch (err) {
+    if (err?.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: 'Файл слишком большой (макс. 12 МБ)' });
+    }
+    return res.status(400).json({ message: err?.message || 'Ошибка загрузки файла' });
+  }
 });
 
 router.get('/:readingKey', optionalAuthMiddleware, async (req, res) => {
