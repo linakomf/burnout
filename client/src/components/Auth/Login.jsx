@@ -50,14 +50,16 @@ const Login = () => {
 
   return (
     <AuthFlowBackdrop>
-        <div className="auth-lang-bar">
-          <LanguageSwitcher className="lang-switch--on-light-bg" />
-        </div>
-        <div className="auth-logo">
-          <div className="auth-logo-icon app-logo-wrap">
-            <AppLogo size={44} />
+        <div className="auth-card-top">
+          <div className="auth-lang-bar">
+            <LanguageSwitcher className="lang-switch--on-light-bg" />
           </div>
-          <span className="brand-wordmark">burnout</span>
+          <div className="auth-logo">
+            <div className="auth-logo-icon app-logo-wrap">
+              <AppLogo size={44} />
+            </div>
+            <span className="brand-wordmark">burnout</span>
+          </div>
         </div>
 
         <h1 className="auth-title">{t('auth.loginTitle')}</h1>

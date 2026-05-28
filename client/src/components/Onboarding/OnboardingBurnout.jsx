@@ -66,15 +66,16 @@ function OnboardingProfileStep({ user, updateUser, t }) {
 
   return (
     <AuthFlowBackdrop cardClassName="auth-card--wide onb-profile-card">
-      <div className="auth-lang-bar">
-        <LanguageSwitcher className="lang-switch--on-light-bg" />
-      </div>
-
-      <div className="auth-logo onb-brand-row">
-        <div className="auth-logo-icon app-logo-wrap">
-          <AppLogo size={44} />
+      <div className="auth-card-top">
+        <div className="auth-lang-bar">
+          <LanguageSwitcher className="lang-switch--on-light-bg" />
         </div>
-        <span className="brand-wordmark">burnout</span>
+        <div className="auth-logo onb-brand-row">
+          <div className="auth-logo-icon app-logo-wrap">
+            <AppLogo size={44} />
+          </div>
+          <span className="brand-wordmark">burnout</span>
+        </div>
       </div>
 
       <h1 className="auth-title">{t('burnoutOnb.profileTitle')}</h1>
@@ -278,8 +279,10 @@ const OnboardingBurnout = () => {
     const markerLeft = `${resultPercent}%`;
     return (
       <AuthFlowBackdrop cardClassName="auth-card--result onb-result-card">
-        <div className="auth-lang-bar">
-          <LanguageSwitcher className="lang-switch--on-light-bg" />
+        <div className="auth-card-top onb-result-top">
+          <div className="auth-lang-bar">
+            <LanguageSwitcher className="lang-switch--on-light-bg" />
+          </div>
         </div>
 
         <div className="onb-result-head">
@@ -335,11 +338,13 @@ const OnboardingBurnout = () => {
 
   return (
     <AuthFlowBackdrop cardClassName="auth-card--survey onb-survey-card">
-      <div className="auth-lang-bar">
-        <LanguageSwitcher className="lang-switch--on-light-bg" />
+      <div className="auth-card-top onb-survey-top">
+        <div className="auth-lang-bar">
+          <LanguageSwitcher className="lang-switch--on-light-bg" />
+        </div>
       </div>
 
-      <div className="onb-brand-row">
+      <div className="onb-brand-row onb-brand-row--center">
         <div className="auth-logo-icon app-logo-wrap">
           <AppLogo size={44} />
         </div>

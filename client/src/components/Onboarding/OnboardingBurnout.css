@@ -1,14 +1,30 @@
 /* Онбординг: внутри auth-card (см. AuthFlowBackdrop + Auth.css) */
 
-.onb-profile-card .auth-logo {
-  margin-bottom: 20px;
+.onb-profile-card .auth-card-top {
+  margin-bottom: 22px;
 }
 
 .onb-brand-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
+}
+
+.onb-brand-row--center {
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.onb-brand-row--center .onb-brand-text {
+  text-align: left;
+}
+
+.onb-survey-top,
+.onb-result-top {
+  margin-bottom: 12px;
 }
 
 .onb-brand-row .brand-wordmark {
