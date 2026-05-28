@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
 
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const { ensureCoreSchema } = require('./ensureCoreSchema');
@@ -30,14 +29,6 @@ if (!process.env.JWT_SECRET?.trim()) {
     ? 'задайте JWT_SECRET в Environment Variables на Vercel'
     : 'для локального запуска используется временный ключ';
   console.warn(`⚠️ JWT_SECRET не задан - ${hint}.`);
-}
-
-const cloudinaryVarsReady =
-  Boolean(process.env.CLOUDINARY_CLOUD_NAME?.trim()) &&
-  Boolean(process.env.CLOUDINARY_API_KEY?.trim()) &&
-  Boolean(process.env.CLOUDINARY_API_SECRET?.trim());
-if (!cloudinaryVarsReady) {
-  console.warn('⚠️ Cloudinary env не полностью задан: новые uploads могут завершаться ошибкой.');
 }
 
 const app = express();
@@ -102,10 +93,7 @@ app.use('/api', (req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
-app.use('/uploads', express.static(uploadsDir));
-
+app.use('/api/media', require('./routes/media'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/psychologists', require('./routes/psychologists'));

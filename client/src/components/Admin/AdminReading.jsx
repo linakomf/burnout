@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Edit2, Plus, Trash2, X } from 'lucide-react';
 import api from '../../utils/api';
-import { backendPublicUrl } from '../../utils/assetUrl';
+import AdminMediaPathInput from './AdminMediaPathInput';
 import { useLanguage } from '../../context/LanguageContext';
 import {
   ARTICLE_FILTER_OPTIONS,
@@ -40,7 +40,7 @@ const initialForm = () => ({
   description_short: '',
   body_full: '',
   read_url: '',
-  coverFile: null,
+  cover_url: '',
   ...emptyAudienceFields(),
 });
 
@@ -73,9 +73,7 @@ export default function AdminReading({ embedded = false }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [coverBlobUrl, setCoverBlobUrl] = useState('');
   const errorBannerRef = useRef(null);
-  const fileInputKey = useRef(0);
 
   const isArticle = form.kind === 'article';
   const categoryOptions = isArticle ? ARTICLE_FILTER_OPTIONS : BOOK_FILTER_OPTIONS;
@@ -98,31 +96,11 @@ export default function AdminReading({ embedded = false }) {
     load();
   }, [load]);
 
-  useEffect(() => {
-    if (!form.coverFile) {
-      setCoverBlobUrl('');
-      return undefined;
-    }
-    const u = URL.createObjectURL(form.coverFile);
-    setCoverBlobUrl(u);
-    return () => URL.revokeObjectURL(u);
-  }, [form.coverFile]);
-
-  const coverPreview = useMemo(() => {
-    if (coverBlobUrl) return coverBlobUrl;
-    if (editingId) {
-      const row = items.find((r) => r.id === editingId);
-      if (row?.coverImage) return backendPublicUrl(row.coverImage);
-    }
-    return '';
-  }, [coverBlobUrl, editingId, items]);
-
   const closeModal = () => {
     setModalOpen(false);
     setEditingId(null);
     setForm(initialForm());
     setError('');
-    fileInputKey.current += 1;
   };
 
   const openCreate = (kind = 'article') => {
@@ -145,7 +123,7 @@ export default function AdminReading({ embedded = false }) {
       description_short: row.descriptionShort || '',
       body_full: row.bodyFull || '',
       read_url: row.kind === 'book' ? row.readUrl || '' : row.sourceUrl || '',
-      coverFile: null,
+      cover_url: row.coverImage || '',
       target_role: row.target_role || 'all',
       target_gender: row.target_gender || 'all',
     });
@@ -186,35 +164,37 @@ export default function AdminReading({ embedded = false }) {
       }
     }
 
+    const cover_url = form.cover_url.trim();
+    if (!cover_url) {
+      setError('Укажите путь к обложке.');
+      errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      return;
+    }
+
+    const payload = {
+      kind: form.kind,
+      title,
+      category: form.category,
+      description_short: form.description_short.trim(),
+      target_role: form.target_role || 'all',
+      target_gender: form.target_gender || 'all',
+      cover_url,
+    };
+    if (isArticle) {
+      payload.body_full = form.body_full.trim();
+      const src = normalizeUrl(form.read_url);
+      if (src) payload.read_url = src;
+    } else {
+      payload.read_url = normalizeUrl(form.read_url);
+    }
+
     const wasEdit = Boolean(editingId);
     setSaving(true);
     try {
-      const fd = new FormData();
-      fd.append('kind', form.kind);
-      fd.append('title', title);
-      fd.append('category', form.category);
-      fd.append('description_short', form.description_short.trim());
-      if (isArticle) {
-        fd.append('body_full', form.body_full.trim());
-        const src = normalizeUrl(form.read_url);
-        if (src) fd.append('read_url', src);
-      } else {
-        fd.append('read_url', normalizeUrl(form.read_url));
-      }
-      fd.append('target_role', form.target_role || 'all');
-      fd.append('target_gender', form.target_gender || 'all');
-
       if (!editingId) {
-        if (!form.coverFile) {
-          setError('Загрузите обложку.');
-          setSaving(false);
-          return;
-        }
-        fd.append('cover', form.coverFile);
-        await api.post('/reading', fd);
+        await api.post('/reading', payload);
       } else {
-        if (form.coverFile) fd.append('cover', form.coverFile);
-        await api.patch(`/reading/${editingId}`, fd);
+        await api.patch(`/reading/${editingId}`, payload);
       }
 
       closeModal();
@@ -380,17 +360,12 @@ export default function AdminReading({ embedded = false }) {
                 t={t}
               />
 
-              <label className="admin-field">
-                <span>Обложка{editingId ? '' : ' *'}</span>
-                <input
-                  key={`cover-${fileInputKey.current}`}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/*"
-                  required={!editingId}
-                  onChange={(e) => setForm({ ...form, coverFile: e.target.files?.[0] || null })}
-                />
-                {coverPreview ? <img src={coverPreview} alt="" className="admin-film-poster-preview" /> : null}
-              </label>
+              <AdminMediaPathInput
+                label={`Обложка${editingId ? '' : ' *'}`}
+                value={form.cover_url}
+                onChange={(v) => setForm((f) => ({ ...f, cover_url: v }))}
+                required={!editingId}
+              />
 
               <label className="admin-field">
                 <span>Краткое описание</span>

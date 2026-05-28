@@ -1,6 +1,4 @@
 const express = require('express');
-const multer = require('multer');
-const path = require('path');
 const pool = require('../db');
 const { authMiddleware, adminOnly, optionalAuthMiddleware } = require('../middleware/auth');
 const { pickTargetRole, pickTargetGender, appendAudienceFilter } = require('../utils/audienceTargeting');
@@ -18,41 +16,17 @@ const {
   pickTfMood,
 } = require('../utils/eventFilters');
 const { unlinkEventAssets, safeUnlinkUploadPath } = require('../utils/eventUploadCleanup');
-const { uploadMulterFile, uploadMulterFiles } = require('../utils/cloudinaryUpload');
+const {
+  requirePublicImagePath,
+  parseGalleryUrlsField,
+  getPublicUploadsDir,
+} = require('../utils/publicMediaPath');
 
 const router = express.Router();
-const uploadsAbs = path.join(__dirname, '..', 'uploads');
-
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 12 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const name = String(file.originalname || '').toLowerCase();
-    const byExt = /\.(jpe?g|png|gif|webp|avif|bmp|heic|heif)$/i.test(name);
-    const byMime = String(file.mimetype || '').toLowerCase().startsWith('image/');
-    if (byMime || byExt) cb(null, true);
-    else cb(new Error('Только изображения (JPG, PNG, WebP и т.д.)'));
-  },
-});
+const uploadsAbs = getPublicUploadsDir();
 
 function apiErrorMessage(e) {
   return dbErrorToMessage(e) || e?.message || 'Ошибка сервера';
-}
-
-function withUpload(fields) {
-  const mw = upload.fields(fields);
-  return (req, res, next) => {
-    mw(req, res, (err) => {
-      if (!err) return next();
-      if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ message: 'Файл слишком большой (макс. 12 МБ)' });
-      }
-      if (String(err.message || '').includes('Только изображения')) {
-        return res.status(400).json({ message: err.message });
-      }
-      return res.status(400).json({ message: err.message || 'Ошибка загрузки файла' });
-    });
-  };
 }
 
 function parseEventPublicId(param) {
@@ -115,7 +89,7 @@ function normalizeTicketUrl(raw) {
   return '';
 }
 
-function readEventBody(body, files, existing) {
+function readEventBody(body, existing) {
   const kind = KINDS.has(String(body.kind || existing?.kind || 'solo').trim())
     ? String(body.kind || existing?.kind || 'solo').trim()
     : 'solo';
@@ -180,10 +154,6 @@ function readEventBody(body, files, existing) {
         ? parseJsonArray(body.important_notes, 12)
         : existing?.important_notes || []
     ),
-    cover_url: undefined,
-    hero_url: undefined,
-    venue_image_url: undefined,
-    gallery_urls: undefined,
     target_role: Object.prototype.hasOwnProperty.call(body, 'target_role')
       ? pickTargetRole(body.target_role)
       : existing?.target_role || 'all',
@@ -232,247 +202,222 @@ router.get('/:eventKey', optionalAuthMiddleware, async (req, res) => {
   }
 });
 
-router.post(
-  '/',
-  authMiddleware,
-  adminOnly,
-  withUpload([
-    { name: 'cover', maxCount: 1 },
-    { name: 'hero', maxCount: 1 },
-    { name: 'venue_image', maxCount: 1 },
-    { name: 'gallery', maxCount: 4 },
-  ]),
-  async (req, res) => {
-    try {
-      if (!req.files?.cover?.[0]) {
-        return res.status(400).json({ message: 'Загрузите обложку для карточки' });
-      }
+router.post('/', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const coverImg = requirePublicImagePath(req.body, 'cover_url', {
+      required: true,
+      label: 'обложку для карточки',
+    });
+    if (coverImg.error) return res.status(400).json({ message: coverImg.error });
 
+    const title = String(req.body.title || '').trim();
+    if (!title) return res.status(400).json({ message: 'Укажите название события' });
+
+    const parsed = readEventBody(req.body, null);
+    if (parsed.error) return res.status(400).json({ message: parsed.error });
+
+    const heroImg = requirePublicImagePath(req.body, 'hero_url', { label: 'hero-изображение' });
+    if (heroImg.error) return res.status(400).json({ message: heroImg.error });
+    const hero_url = heroImg.path || coverImg.path;
+
+    const venueImg = requirePublicImagePath(req.body, 'venue_image_url', {
+      label: 'изображение площадки',
+    });
+    if (venueImg.error) return res.status(400).json({ message: venueImg.error });
+    const venue_image_url = venueImg.path || '';
+
+    const gallery_urls = parseGalleryUrlsField(req.body.gallery_urls).slice(0, 4);
+
+    const ins = await pool.query(
+      `INSERT INTO events (
+        title, kind, filter_cat, category_label, price_key, tf_loc, tf_date, tf_time, tf_mood,
+        card_tags, cover_url, hero_url, ticket_url, venue_line, teaser, about_text, duration_label,
+        age_label, genre_label, refund_label, venue_image_url, venue_pin_text, organizer_name,
+        organizer_desc, suit_tags, important_notes, gallery_urls, target_role, target_gender
+      ) VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25::jsonb,$26::jsonb,$27::jsonb,$28,$29
+      )
+      RETURNING event_id, title, kind, filter_cat, category_label, price_key, tf_loc, tf_date, tf_time, tf_mood,
+                card_tags, cover_url, hero_url, ticket_url, venue_line, teaser, about_text, duration_label,
+                age_label, genre_label, refund_label, venue_image_url, venue_pin_text, organizer_name,
+                organizer_desc, suit_tags, important_notes, gallery_urls, target_role, target_gender,
+                created_at, updated_at`,
+      [
+        title,
+        parsed.kind,
+        parsed.filter_cat,
+        parsed.category_label,
+        parsed.price_key,
+        parsed.tf_loc,
+        parsed.tf_date,
+        parsed.tf_time,
+        parsed.tf_mood,
+        JSON.stringify(parsed.card_tags || buildCardTags(req.body, parsed.kind)),
+        coverImg.path,
+        hero_url,
+        parsed.ticket_url,
+        parsed.venue_line,
+        parsed.teaser,
+        parsed.about_text,
+        parsed.duration_label,
+        parsed.age_label,
+        parsed.genre_label,
+        parsed.refund_label,
+        venue_image_url,
+        parsed.venue_pin_text,
+        parsed.organizer_name,
+        parsed.organizer_desc,
+        parsed.suit_tags,
+        parsed.important_notes,
+        JSON.stringify(gallery_urls),
+        parsed.target_role,
+        parsed.target_gender,
+      ]
+    );
+
+    res.status(201).json(rowToPublicEvent(ins.rows[0]));
+  } catch (e) {
+    console.error('POST /events', e);
+    res.status(500).json({ message: apiErrorMessage(e) });
+  }
+});
+
+router.patch('/:eventKey', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const id = parseEventPublicId(req.params.eventKey);
+    if (!id) return res.status(404).json({ message: 'Событие не найдено' });
+
+    const cur = await pool.query(`SELECT * FROM events WHERE event_id=$1`, [id]);
+    if (cur.rows.length === 0) return res.status(404).json({ message: 'Событие не найдено' });
+    const existing = cur.rows[0];
+
+    const patch = {};
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'title')) {
       const title = String(req.body.title || '').trim();
-      if (!title) return res.status(400).json({ message: 'Укажите название события' });
-
-      const parsed = readEventBody(req.body, req.files, null);
-      if (parsed.error) return res.status(400).json({ message: parsed.error });
-      parsed.cover_url = await uploadMulterFile(req.files.cover[0], { folder: 'burnout/events/covers' });
-      parsed.hero_url = req.files?.hero?.[0]
-        ? await uploadMulterFile(req.files.hero[0], { folder: 'burnout/events/heroes' })
-        : parsed.cover_url;
-      parsed.venue_image_url = req.files?.venue_image?.[0]
-        ? await uploadMulterFile(req.files.venue_image[0], { folder: 'burnout/events/venues' })
-        : '';
-
-      const galleryFiles = req.files?.gallery || [];
-      const gallery_urls = await uploadMulterFiles(galleryFiles.slice(0, 4), {
-        folder: 'burnout/events/gallery',
-      });
-
-      const ins = await pool.query(
-        `INSERT INTO events (
-          title, kind, filter_cat, category_label, price_key, tf_loc, tf_date, tf_time, tf_mood,
-          card_tags, cover_url, hero_url, ticket_url, venue_line, teaser, about_text, duration_label,
-          age_label, genre_label, refund_label, venue_image_url, venue_pin_text, organizer_name,
-          organizer_desc, suit_tags, important_notes, gallery_urls, target_role, target_gender
-        ) VALUES (
-          $1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25::jsonb,$26::jsonb,$27::jsonb,$28,$29
-        )
-        RETURNING event_id, title, kind, filter_cat, category_label, price_key, tf_loc, tf_date, tf_time, tf_mood,
-                  card_tags, cover_url, hero_url, ticket_url, venue_line, teaser, about_text, duration_label,
-                  age_label, genre_label, refund_label, venue_image_url, venue_pin_text, organizer_name,
-                  organizer_desc, suit_tags, important_notes, gallery_urls, target_role, target_gender,
-                  created_at, updated_at`,
-        [
-          title,
-          parsed.kind,
-          parsed.filter_cat,
-          parsed.category_label,
-          parsed.price_key,
-          parsed.tf_loc,
-          parsed.tf_date,
-          parsed.tf_time,
-          parsed.tf_mood,
-          JSON.stringify(parsed.card_tags || buildCardTags(req.body, parsed.kind)),
-          parsed.cover_url,
-          parsed.hero_url || parsed.cover_url,
-          parsed.ticket_url,
-          parsed.venue_line,
-          parsed.teaser,
-          parsed.about_text,
-          parsed.duration_label,
-          parsed.age_label,
-          parsed.genre_label,
-          parsed.refund_label,
-          parsed.venue_image_url || '',
-          parsed.venue_pin_text,
-          parsed.organizer_name,
-          parsed.organizer_desc,
-          parsed.suit_tags,
-          parsed.important_notes,
-          JSON.stringify(gallery_urls),
-          parsed.target_role,
-          parsed.target_gender,
-        ]
-      );
-
-      res.status(201).json(rowToPublicEvent(ins.rows[0]));
-    } catch (e) {
-      console.error('POST /events', e);
-      res.status(500).json({ message: apiErrorMessage(e) });
+      if (!title) return res.status(400).json({ message: 'Укажите название' });
+      patch.title = title;
     }
-  }
-);
 
-router.patch(
-  '/:eventKey',
-  authMiddleware,
-  adminOnly,
-  withUpload([
-    { name: 'cover', maxCount: 1 },
-    { name: 'hero', maxCount: 1 },
-    { name: 'venue_image', maxCount: 1 },
-    { name: 'gallery', maxCount: 4 },
-  ]),
-  async (req, res) => {
-    try {
-      const id = parseEventPublicId(req.params.eventKey);
-      if (!id) return res.status(404).json({ message: 'Событие не найдено' });
-
-      const cur = await pool.query(
-        `SELECT * FROM events WHERE event_id=$1`,
-        [id]
-      );
-      if (cur.rows.length === 0) return res.status(404).json({ message: 'Событие не найдено' });
-      const existing = cur.rows[0];
-
-      const patch = {};
-
-      if (Object.prototype.hasOwnProperty.call(req.body, 'title')) {
-        const title = String(req.body.title || '').trim();
-        if (!title) return res.status(400).json({ message: 'Укажите название' });
-        patch.title = title;
-      }
-
-      const parsed = readEventBody(req.body, req.files, existing);
-      if (req.files?.cover?.[0]) {
-        parsed.cover_url = await uploadMulterFile(req.files.cover[0], { folder: 'burnout/events/covers' });
-      }
-      if (req.files?.hero?.[0]) {
-        parsed.hero_url = await uploadMulterFile(req.files.hero[0], { folder: 'burnout/events/heroes' });
-      }
-      if (req.files?.venue_image?.[0]) {
-        parsed.venue_image_url = await uploadMulterFile(req.files.venue_image[0], {
-          folder: 'burnout/events/venues',
-        });
-      }
-      if (parsed.error && Object.prototype.hasOwnProperty.call(req.body, 'ticket_url')) {
-        return res.status(400).json({ message: parsed.error });
-      }
-
-      const scalarKeys = [
-        'kind',
-        'filter_cat',
-        'category_label',
-        'price_key',
-        'tf_loc',
-        'tf_date',
-        'tf_time',
-        'tf_mood',
-        'venue_line',
-        'teaser',
-        'about_text',
-        'duration_label',
-        'age_label',
-        'genre_label',
-        'refund_label',
-        'venue_pin_text',
-        'organizer_name',
-        'organizer_desc',
-      ];
-      for (const key of scalarKeys) {
-        if (Object.prototype.hasOwnProperty.call(req.body, key) || (key === 'kind' && parsed.kind)) {
-          if (parsed[key] !== undefined) patch[key] = parsed[key];
-        }
-      }
-
-      if (parsed.card_tags) {
-        patch.card_tags = JSON.stringify(parsed.card_tags);
-      }
-
-      if (Object.prototype.hasOwnProperty.call(req.body, 'ticket_url')) {
-        patch.ticket_url = parsed.ticket_url;
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'suit_tags')) {
-        patch.suit_tags = parsed.suit_tags;
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'important_notes')) {
-        patch.important_notes = parsed.important_notes;
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'target_role')) {
-        patch.target_role = parsed.target_role;
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'target_gender')) {
-        patch.target_gender = parsed.target_gender;
-      }
-
-      if (parsed.cover_url) {
-        safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-        patch.cover_url = parsed.cover_url;
-      }
-      if (parsed.hero_url) {
-        safeUnlinkUploadPath(uploadsAbs, existing.hero_url);
-        patch.hero_url = parsed.hero_url;
-      }
-      if (parsed.venue_image_url) {
-        safeUnlinkUploadPath(uploadsAbs, existing.venue_image_url);
-        patch.venue_image_url = parsed.venue_image_url;
-      }
-
-      const galleryFiles = req.files?.gallery || [];
-      const hasGalleryDirective = Object.prototype.hasOwnProperty.call(req.body, 'keep_gallery_urls');
-      if (hasGalleryDirective || galleryFiles.length > 0) {
-        const existingGallery = Array.isArray(existing.gallery_urls) ? existing.gallery_urls : [];
-        let kept = existingGallery;
-        if (hasGalleryDirective) {
-          let arr = [];
-          try {
-            arr = JSON.parse(req.body.keep_gallery_urls || '[]');
-          } catch {
-            arr = [];
-          }
-          const set = new Set(existingGallery);
-          kept = Array.isArray(arr) ? arr.filter((u) => typeof u === 'string' && set.has(u)) : [];
-        }
-        const appended = await uploadMulterFiles(galleryFiles, { folder: 'burnout/events/gallery' });
-        const nextGallery = [...kept, ...appended].slice(0, 4);
-        const removed = existingGallery.filter((u) => !nextGallery.includes(u));
-        for (const u of removed) safeUnlinkUploadPath(uploadsAbs, u);
-        patch.gallery_urls = JSON.stringify(nextGallery);
-      }
-
-      const keys = Object.keys(patch);
-      if (keys.length === 0) {
-        return res.json(rowToPublicEvent(existing));
-      }
-
-      const sets = keys.map((k, i) => `${k}=$${i + 1}`);
-      const vals = keys.map((k) => patch[k]);
-      vals.push(id);
-
-      const upd = await pool.query(
-        `UPDATE events SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE event_id=$${keys.length + 1}
-         RETURNING event_id, title, kind, filter_cat, category_label, price_key, tf_loc, tf_date, tf_time, tf_mood,
-                   card_tags, cover_url, hero_url, ticket_url, venue_line, teaser, about_text, duration_label,
-                   age_label, genre_label, refund_label, venue_image_url, venue_pin_text, organizer_name,
-                   organizer_desc, suit_tags, important_notes, gallery_urls, created_at, updated_at`,
-        vals
-      );
-
-      res.json(rowToPublicEvent(upd.rows[0]));
-    } catch (e) {
-      console.error('PATCH /events', e);
-      res.status(500).json({ message: apiErrorMessage(e) });
+    const parsed = readEventBody(req.body, existing);
+    if (parsed.error && Object.prototype.hasOwnProperty.call(req.body, 'ticket_url')) {
+      return res.status(400).json({ message: parsed.error });
     }
+
+    const scalarKeys = [
+      'kind',
+      'filter_cat',
+      'category_label',
+      'price_key',
+      'tf_loc',
+      'tf_date',
+      'tf_time',
+      'tf_mood',
+      'venue_line',
+      'teaser',
+      'about_text',
+      'duration_label',
+      'age_label',
+      'genre_label',
+      'refund_label',
+      'venue_pin_text',
+      'organizer_name',
+      'organizer_desc',
+    ];
+    for (const key of scalarKeys) {
+      if (Object.prototype.hasOwnProperty.call(req.body, key) || (key === 'kind' && parsed.kind)) {
+        if (parsed[key] !== undefined) patch[key] = parsed[key];
+      }
+    }
+
+    if (parsed.card_tags) {
+      patch.card_tags = JSON.stringify(parsed.card_tags);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'ticket_url')) {
+      patch.ticket_url = parsed.ticket_url;
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'suit_tags')) {
+      patch.suit_tags = parsed.suit_tags;
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'important_notes')) {
+      patch.important_notes = parsed.important_notes;
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'target_role')) {
+      patch.target_role = parsed.target_role;
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'target_gender')) {
+      patch.target_gender = parsed.target_gender;
+    }
+
+    const coverImg = requirePublicImagePath(req.body, 'cover_url', { label: 'обложку' });
+    if (coverImg.error) return res.status(400).json({ message: coverImg.error });
+    if (coverImg.path) {
+      safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
+      patch.cover_url = coverImg.path;
+    }
+
+    const heroImg = requirePublicImagePath(req.body, 'hero_url', { label: 'hero-изображение' });
+    if (heroImg.error) return res.status(400).json({ message: heroImg.error });
+    if (heroImg.path) {
+      safeUnlinkUploadPath(uploadsAbs, existing.hero_url);
+      patch.hero_url = heroImg.path;
+    }
+
+    const venueImg = requirePublicImagePath(req.body, 'venue_image_url', {
+      label: 'изображение площадки',
+    });
+    if (venueImg.error) return res.status(400).json({ message: venueImg.error });
+    if (venueImg.path) {
+      safeUnlinkUploadPath(uploadsAbs, existing.venue_image_url);
+      patch.venue_image_url = venueImg.path;
+    }
+
+    const existingGallery = Array.isArray(existing.gallery_urls) ? existing.gallery_urls : [];
+    const hasGalleryDirective = Object.prototype.hasOwnProperty.call(req.body, 'keep_gallery_urls');
+    if (Object.prototype.hasOwnProperty.call(req.body, 'gallery_urls')) {
+      const nextGallery = parseGalleryUrlsField(req.body.gallery_urls).slice(0, 4);
+      const removed = existingGallery.filter((u) => !nextGallery.includes(u));
+      for (const u of removed) safeUnlinkUploadPath(uploadsAbs, u);
+      patch.gallery_urls = JSON.stringify(nextGallery);
+    } else if (hasGalleryDirective) {
+      let arr = [];
+      try {
+        arr = JSON.parse(req.body.keep_gallery_urls || '[]');
+      } catch {
+        arr = [];
+      }
+      const set = new Set(existingGallery);
+      const kept = Array.isArray(arr) ? arr.filter((u) => typeof u === 'string' && set.has(u)) : [];
+      const removed = existingGallery.filter((u) => !kept.includes(u));
+      for (const u of removed) safeUnlinkUploadPath(uploadsAbs, u);
+      patch.gallery_urls = JSON.stringify(kept.slice(0, 4));
+    }
+
+    const keys = Object.keys(patch);
+    if (keys.length === 0) {
+      return res.json(rowToPublicEvent(existing));
+    }
+
+    const sets = keys.map((k, i) => `${k}=$${i + 1}`);
+    const vals = keys.map((k) => patch[k]);
+    vals.push(id);
+
+    const upd = await pool.query(
+      `UPDATE events SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE event_id=$${keys.length + 1}
+       RETURNING event_id, title, kind, filter_cat, category_label, price_key, tf_loc, tf_date, tf_time, tf_mood,
+                 card_tags, cover_url, hero_url, ticket_url, venue_line, teaser, about_text, duration_label,
+                 age_label, genre_label, refund_label, venue_image_url, venue_pin_text, organizer_name,
+                 organizer_desc, suit_tags, important_notes, gallery_urls, created_at, updated_at`,
+      vals
+    );
+
+    res.json(rowToPublicEvent(upd.rows[0]));
+  } catch (e) {
+    console.error('PATCH /events', e);
+    res.status(500).json({ message: apiErrorMessage(e) });
   }
-);
+});
 
 router.delete('/:eventKey', authMiddleware, adminOnly, async (req, res) => {
   try {

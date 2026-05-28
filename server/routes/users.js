@@ -10,17 +10,7 @@ const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { normalizeRegisterAvatar, normalizeGender } = require('../utils/registerProfile');
 const { mapUserNotificationRow } = require('../utils/userNotifications');
 const { fetchConfirmationsByRequestIds } = require('../utils/supportConfirmations');
-const multer = require('multer');
-const { uploadMulterFile } = require('../utils/cloudinaryUpload');
-
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) cb(null, true);else
-    cb(new Error('Только изображения'));
-  }
-});
+const { normalizePublicMediaPath } = require('../utils/publicMediaPath');
 
 router.get('/me', authMiddleware, async (req, res) => {
   try {
@@ -575,9 +565,17 @@ router.get('/support-requests', authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
-router.post('/avatar', authMiddleware, upload.single('avatar'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ message: 'Файл не загружен' });
-  const avatarUrl = await uploadMulterFile(req.file, { folder: 'burnout/users/avatars' });
+router.post('/avatar', authMiddleware, async (req, res) => {
+  const raw =
+    typeof req.body?.avatar === 'string'
+      ? req.body.avatar
+      : typeof req.body === 'string'
+        ? req.body
+        : '';
+  const avatarUrl = normalizePublicMediaPath(raw);
+  if (!avatarUrl) {
+    return res.status(400).json({ message: 'Укажите avatar: /uploads/... или /images/...' });
+  }
   await pool.query('UPDATE users SET avatar=$1 WHERE user_id=$2', [avatarUrl, req.user.user_id]);
   res.json({ avatar: avatarUrl });
 });

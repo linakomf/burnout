@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Edit2, Plus, Trash2, X } from 'lucide-react';
 import api from '../../utils/api';
-import { backendPublicUrl } from '../../utils/assetUrl';
+import { mediaPathsToText } from '../../utils/assetUrl';
 import { useLanguage } from '../../context/LanguageContext';
+import AdminMediaPathInput from './AdminMediaPathInput';
 import { FILM_CATEGORIES, FILM_PSYCH_TAG_IDS } from '../Practices/filmsCatalogData';
 import {
   FILMS_FILTER_ATMOS_OPTIONS,
@@ -85,9 +86,8 @@ const initialForm = () => ({
   country: '',
   quote: '',
   tags: emptyTags(),
-  posterFile: null,
-  galleryFiles: [],
-  galleryKeepUrls: [],
+  poster_url: '',
+  gallery_urls: '',
   ...emptyAudienceFields(),
 });
 
@@ -95,7 +95,7 @@ const initialCollectionForm = () => ({
   title: '',
   description: '',
   filmIds: [],
-  coverFile: null,
+  cover_url: '',
   sort_order: '0',
 });
 
@@ -111,15 +111,11 @@ export default function AdminFilms({ embedded = false }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [hubError, setHubError] = useState('');
-  const [posterBlobUrl, setPosterBlobUrl] = useState('');
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
   const [collectionEditSlug, setCollectionEditSlug] = useState(null);
   const [collectionForm, setCollectionForm] = useState(initialCollectionForm);
   const [collectionSaving, setCollectionSaving] = useState(false);
-  const [collectionCoverBlob, setCollectionCoverBlob] = useState('');
   const errorBannerRef = useRef(null);
-  const posterInputKeyRef = useRef(0);
-  const collectionFileKeyRef = useRef(0);
 
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
@@ -146,51 +142,12 @@ export default function AdminFilms({ embedded = false }) {
     load();
   }, [load]);
 
-  useEffect(() => {
-    if (!form.posterFile) {
-      setPosterBlobUrl('');
-      return undefined;
-    }
-    const u = URL.createObjectURL(form.posterFile);
-    setPosterBlobUrl(u);
-    return () => URL.revokeObjectURL(u);
-  }, [form.posterFile]);
-
-  useEffect(() => {
-    if (!collectionForm.coverFile) {
-      setCollectionCoverBlob('');
-      return undefined;
-    }
-    const u = URL.createObjectURL(collectionForm.coverFile);
-    setCollectionCoverBlob(u);
-    return () => URL.revokeObjectURL(u);
-  }, [collectionForm.coverFile]);
-
-  const posterPreview = useMemo(() => {
-    if (posterBlobUrl) return posterBlobUrl;
-    if (editingId) {
-      const film = films.find((f) => f.id === editingId);
-      if (film?.poster) return backendPublicUrl(film.poster);
-    }
-    return '';
-  }, [posterBlobUrl, editingId, films]);
-
-  const collectionCoverPreview = useMemo(() => {
-    if (collectionCoverBlob) return collectionCoverBlob;
-    if (collectionEditSlug) {
-      const collection = collections.find((item) => item.slug === collectionEditSlug);
-      if (collection?.image) return backendPublicUrl(collection.image);
-    }
-    return '';
-  }, [collectionCoverBlob, collectionEditSlug, collections]);
-
   const closeModal = () => {
     setModalOpen(false);
     setEditingId(null);
     setForm(initialForm());
     setError('');
     setSuccess('');
-    posterInputKeyRef.current += 1;
   };
 
   const openCreate = () => {
@@ -198,7 +155,6 @@ export default function AdminFilms({ embedded = false }) {
     setForm(initialForm());
     setError('');
     setSuccess('');
-    posterInputKeyRef.current += 1;
     setModalOpen(true);
   };
 
@@ -229,9 +185,8 @@ export default function AdminFilms({ embedded = false }) {
         type: [...(tags.type || [])],
         atmosphere: [...(tags.atmosphere || [])],
       },
-      posterFile: null,
-      galleryFiles: [],
-      galleryKeepUrls: [...(film.gallery || [])],
+      poster_url: film.poster || '',
+      gallery_urls: mediaPathsToText(film.gallery || []),
       target_role: film.target_role || 'all',
       target_gender: film.target_gender || 'all',
     });
@@ -245,7 +200,6 @@ export default function AdminFilms({ embedded = false }) {
     setCollectionEditSlug(null);
     setCollectionForm(initialCollectionForm());
     setHubError('');
-    collectionFileKeyRef.current += 1;
   };
 
   const openCreateCollection = () => {
@@ -264,7 +218,7 @@ export default function AdminFilms({ embedded = false }) {
       title: collection.title || '',
       description: collection.description || '',
       filmIds: [...(collection.filmIds || [])],
-      coverFile: null,
+      cover_url: collection.image || '',
       sort_order: String(collection.sort_order ?? 0),
     });
     setHubError('');
@@ -309,50 +263,44 @@ export default function AdminFilms({ embedded = false }) {
       errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       return;
     }
+    const poster_url = form.poster_url.trim();
+    if (!poster_url) {
+      setError('Укажите путь к постеру (/uploads/... или /images/...).');
+      errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      return;
+    }
+
     const wasEdit = Boolean(editingId);
     setSaving(true);
     try {
-      const fd = new FormData();
-      fd.append('title', title);
-      fd.append('description_short', form.description_short.trim());
-      fd.append('description_full', form.description_full.trim());
-      fd.append('watch_url', watchUrl);
-      fd.append('tags', JSON.stringify(form.tags));
-      fd.append('category_id', form.category_id);
-      fd.append('psych_tag', form.psych_tag);
-      fd.append('genres_display', form.genres_display.trim());
-      fd.append('source', form.source.trim());
-      fd.append('duration', form.duration.trim());
-      fd.append('year', form.year.trim());
-      fd.append('rating', form.rating.trim());
-      fd.append('embed_url', form.embed_url.trim());
-      fd.append('director', form.director.trim());
-      fd.append('screenwriter', form.screenwriter.trim());
-      fd.append('country', form.country.trim());
-      fd.append('quote', form.quote.trim());
-      fd.append('target_role', form.target_role || 'all');
-      fd.append('target_gender', form.target_gender || 'all');
+      const payload = {
+        title,
+        description_short: form.description_short.trim(),
+        description_full: form.description_full.trim(),
+        watch_url: watchUrl,
+        tags: form.tags,
+        category_id: form.category_id,
+        psych_tag: form.psych_tag,
+        genres_display: form.genres_display.trim(),
+        source: form.source.trim(),
+        duration: form.duration.trim(),
+        year: form.year.trim(),
+        rating: form.rating.trim(),
+        embed_url: form.embed_url.trim(),
+        director: form.director.trim(),
+        screenwriter: form.screenwriter.trim(),
+        country: form.country.trim(),
+        quote: form.quote.trim(),
+        target_role: form.target_role || 'all',
+        target_gender: form.target_gender || 'all',
+        poster_url,
+        gallery_urls: form.gallery_urls.trim(),
+      };
 
       if (!editingId) {
-        if (!form.posterFile) {
-          setError('Выберите главное изображение (постер).');
-          setSaving(false);
-          return;
-        }
-        fd.append('poster', form.posterFile);
-        for (const g of form.galleryFiles.slice(0, 6)) {
-          fd.append('gallery', g);
-        }
-        await api.post('/films', fd);
+        await api.post('/films', payload);
       } else {
-        const kept = [...form.galleryKeepUrls];
-        fd.append('keep_gallery_urls', JSON.stringify(kept));
-        if (form.posterFile) fd.append('poster', form.posterFile);
-        const slotsLeft = Math.max(0, 6 - kept.length);
-        for (const g of form.galleryFiles.slice(0, slotsLeft)) {
-          fd.append('gallery', g);
-        }
-        await api.patch(`/films/${editingId}`, fd);
+        await api.patch(`/films/${editingId}`, payload);
       }
 
       closeModal();
@@ -384,8 +332,9 @@ export default function AdminFilms({ embedded = false }) {
       setHubError('Укажите название подборки.');
       return;
     }
-    if (!collectionEditSlug && !collectionForm.coverFile) {
-      setHubError('Загрузите изображение подборки.');
+    const cover_url = collectionForm.cover_url.trim();
+    if (!collectionEditSlug && !cover_url) {
+      setHubError('Укажите путь к изображению подборки.');
       return;
     }
     if (collectionForm.filmIds.length === 0) {
@@ -396,17 +345,18 @@ export default function AdminFilms({ embedded = false }) {
     setCollectionSaving(true);
     setHubError('');
     try {
-      const fd = new FormData();
-      fd.append('title', title);
-      fd.append('description', description);
-      fd.append('sort_order', collectionForm.sort_order || '0');
-      fd.append('film_ids', JSON.stringify(collectionForm.filmIds));
-      if (collectionForm.coverFile) fd.append('cover', collectionForm.coverFile);
+      const payload = {
+        title,
+        description,
+        sort_order: collectionForm.sort_order || '0',
+        film_ids: collectionForm.filmIds,
+        cover_url,
+      };
 
       if (collectionEditSlug) {
-        await api.patch(`/films/collections/${collectionEditSlug}`, fd);
+        await api.patch(`/films/collections/${collectionEditSlug}`, payload);
       } else {
-        await api.post('/films/collections', fd);
+        await api.post('/films/collections', payload);
       }
 
       closeCollectionModal();
@@ -614,21 +564,12 @@ export default function AdminFilms({ embedded = false }) {
                   />
                 </label>
 
-                <label className="admin-field">
-                  <span>Изображение карточки{collectionEditSlug ? '' : ' *'}</span>
-                  <input
-                    key={`film-collection-cover-${collectionFileKeyRef.current}`}
-                    type="file"
-                    accept="image/*"
-                    required={!collectionEditSlug}
-                    onChange={(e) =>
-                      setCollectionForm({ ...collectionForm, coverFile: e.target.files?.[0] || null })
-                    }
-                  />
-                  {collectionCoverPreview ? (
-                    <img src={collectionCoverPreview} alt="" className="admin-film-poster-preview" />
-                  ) : null}
-                </label>
+                <AdminMediaPathInput
+                  label={`Изображение карточки${collectionEditSlug ? '' : ' *'}`}
+                  value={collectionForm.cover_url}
+                  onChange={(v) => setCollectionForm((f) => ({ ...f, cover_url: v }))}
+                  required={!collectionEditSlug}
+                />
 
                 <div className="admin-film-tag-group">
                   <div className="admin-film-tag-label">
@@ -746,49 +687,22 @@ export default function AdminFilms({ embedded = false }) {
                 <input value={form.watch_url} onChange={(e) => setForm({ ...form, watch_url: e.target.value })} placeholder="https://…" />
               </label>
 
-              <label className="admin-field">
-                <span>Главное фото (постер){editingId ? '' : ' *'}</span>
-                <input
-                  key={`poster-input-${posterInputKeyRef.current}-${editingId || 'new'}`}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif,image/*"
-                  required={!editingId}
-                  onChange={(e) => setForm({ ...form, posterFile: e.target.files?.[0] || null })}
-                />
-                {posterPreview ? (
-                  <img src={posterPreview} alt="" className="admin-film-poster-preview" />
-                ) : null}
-              </label>
+              <AdminMediaPathInput
+                label={`Главное фото (постер)${editingId ? '' : ' *'}`}
+                value={form.poster_url}
+                onChange={(v) => setForm((f) => ({ ...f, poster_url: v }))}
+                required={!editingId}
+              />
 
-              <div className="admin-field">
-                <span>Галерея (до 6 файлов; при редактировании добавляются к сохранённым слотам)</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => setForm({ ...form, galleryFiles: Array.from(e.target.files || []).slice(0, 6) })}
+              <label className="admin-field">
+                <span>Галерея (до 6 путей, по одному на строку или через запятую)</span>
+                <textarea
+                  rows={4}
+                  value={form.gallery_urls}
+                  onChange={(e) => setForm({ ...form, gallery_urls: e.target.value })}
+                  placeholder="/uploads/gallery-1.jpg&#10;/uploads/gallery-2.jpg"
                 />
-                {editingId && form.galleryKeepUrls.length > 0 ? (
-                  <ul className="admin-film-gallery-kept">
-                    {form.galleryKeepUrls.map((url) => (
-                      <li key={url}>
-                        <img src={backendPublicUrl(url)} alt="" />
-                        <button
-                          type="button"
-                          className="btn btn-danger btn-sm"
-                          onClick={() =>
-                            setForm((prev) => ({
-                              ...prev,
-                              galleryKeepUrls: prev.galleryKeepUrls.filter((u) => u !== url),
-                            }))
-                          }>
-                          Убрать
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
+              </label>
 
               <div className="admin-field-row">
                 <label className="admin-field">

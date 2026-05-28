@@ -9,10 +9,9 @@ client/build/
 .env.local
 .env.*.local
 
-# Uploads (local dev)
+# Legacy server/uploads (файлы перенесены в client/public/uploads)
 server/uploads/*
 !server/uploads/.gitkeep
-server/scripts/.migrate-uploads-map.json
 
 # Logs & OS
 npm-debug.log*

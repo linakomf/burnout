@@ -13,35 +13,29 @@ function insertSnippet(value, snippet, textarea) {
 
 export default function ArticleBodyEditor({ value, onChange, placeholder, rows = 12 }) {
   const textareaRef = useRef(null);
-  const fileRef = useRef(null);
+  const [imagePath, setImagePath] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
 
-  const handlePickImage = () => {
-    setUploadError('');
-    fileRef.current?.click();
-  };
-
-  const handleImageSelected = async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
+  const insertImage = async () => {
+    const path = imagePath.trim();
+    if (!path) {
+      setUploadError('Укажите путь к изображению (/uploads/... или /images/...).');
+      return;
+    }
 
     setUploading(true);
     setUploadError('');
     try {
-      const fd = new FormData();
-      fd.append('image', file);
-      const { data } = await api.post('/reading/body-image', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      const url = backendPublicUrl(data?.url || '');
+      const { data } = await api.post('/reading/body-image', { image_path: path });
+      const url = backendPublicUrl(data?.url || path);
       if (!url) throw new Error('empty url');
 
       const snippet = `\n\n<img src="${url}" alt="" class="article-inline-img" />\n\n`;
       const textarea = textareaRef.current;
       const { next, cursor } = insertSnippet(value, snippet, textarea);
       onChange(next);
+      setImagePath('');
 
       requestAnimationFrame(() => {
         if (!textarea) return;
@@ -49,7 +43,7 @@ export default function ArticleBodyEditor({ value, onChange, placeholder, rows =
         textarea.setSelectionRange(cursor, cursor);
       });
     } catch {
-      setUploadError('Не удалось загрузить изображение. Попробуйте другой файл.');
+      setUploadError('Не удалось вставить изображение. Проверьте путь.');
     } finally {
       setUploading(false);
     }
@@ -58,26 +52,30 @@ export default function ArticleBodyEditor({ value, onChange, placeholder, rows =
   return (
     <div className="article-body-editor">
       <div className="article-body-editor__toolbar">
+        <input
+          type="text"
+          className="admin-input article-body-editor__path-input"
+          value={imagePath}
+          onChange={(e) => {
+            setImagePath(e.target.value);
+            setUploadError('');
+          }}
+          placeholder="/uploads/article-photo.jpg"
+          aria-label="Путь к изображению"
+        />
         <button
           type="button"
           className="btn btn-secondary btn-sm article-body-editor__insert-btn"
-          onClick={handlePickImage}
+          onClick={insertImage}
           disabled={uploading}
         >
           <ImagePlus size={16} aria-hidden />
-          {uploading ? 'Загрузка…' : 'Вставить изображение'}
+          {uploading ? 'Вставка…' : 'Вставить изображение'}
         </button>
         <span className="article-body-editor__hint">
           Курсор в тексте — картинка вставится в это место
         </span>
       </div>
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif,image/*"
-        className="article-body-editor__file"
-        onChange={handleImageSelected}
-      />
       <textarea
         ref={textareaRef}
         className="article-body-editor__textarea"

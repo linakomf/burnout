@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Edit2, Plus, Trash2, X } from 'lucide-react';
 import api from '../../utils/api';
 import { backendPublicUrl } from '../../utils/assetUrl';
+import AdminMediaPathInput from './AdminMediaPathInput';
 import { useLanguage } from '../../context/LanguageContext';
 import {
   MEDITATION_AUDIO_SOURCE_OPTIONS,
@@ -39,8 +40,8 @@ const initialForm = () => ({
   audio_source: 'youtube',
   youtube_url: '',
   audio_external_url: '',
-  coverFile: null,
-  audioFile: null,
+  cover_url: '',
+  audio_file_url: '',
   ...emptyAudienceFields(),
 });
 
@@ -78,9 +79,7 @@ export default function AdminMeditations({ embedded = false }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [coverBlobUrl, setCoverBlobUrl] = useState('');
   const errorBannerRef = useRef(null);
-  const fileInputsKey = useRef(0);
 
   const isSound = form.kind === 'sound';
 
@@ -102,29 +101,10 @@ export default function AdminMeditations({ embedded = false }) {
     load();
   }, [load]);
 
-  useEffect(() => {
-    if (!form.coverFile) {
-      setCoverBlobUrl('');
-      return undefined;
-    }
-    const u = URL.createObjectURL(form.coverFile);
-    setCoverBlobUrl(u);
-    return () => URL.revokeObjectURL(u);
-  }, [form.coverFile]);
-
-  const coverPreview = useMemo(() => {
-    if (coverBlobUrl) return coverBlobUrl;
-    if (editingId) {
-      const row = items.find((m) => m.id === editingId);
-      if (row?.coverImage) return backendPublicUrl(row.coverImage);
-    }
-    return '';
-  }, [coverBlobUrl, editingId, items]);
-
-  const coverPreviewIsVideo = useMemo(() => {
-    if (form.coverFile) return isVideoCoverAsset(form.coverFile);
-    return isVideoCoverAsset(coverPreview);
-  }, [form.coverFile, coverPreview]);
+  const coverPreviewIsVideo = useMemo(
+    () => isVideoCoverAsset(form.cover_url),
+    [form.cover_url]
+  );
 
   const closeModal = () => {
     setModalOpen(false);
@@ -132,7 +112,6 @@ export default function AdminMeditations({ embedded = false }) {
     setForm(initialForm());
     setError('');
     setSuccess('');
-    fileInputsKey.current += 1;
   };
 
   const openCreate = (kind = 'meditation') => {
@@ -171,8 +150,8 @@ export default function AdminMeditations({ embedded = false }) {
       audio_source: row.audioSource || 'youtube',
       youtube_url,
       audio_external_url,
-      coverFile: null,
-      audioFile: null,
+      cover_url: row.coverImage || '',
+      audio_file_url: row.audioSource === 'file' ? row.audioUrl || '' : '',
       target_role: row.target_role || 'all',
       target_gender: row.target_gender || 'all',
     });
@@ -203,52 +182,52 @@ export default function AdminMeditations({ embedded = false }) {
       return;
     }
 
+    const cover_url = form.cover_url.trim();
+    if (!cover_url) {
+      setError('Укажите путь к обложке.');
+      errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      return;
+    }
+
+    const payload = {
+      kind: form.kind,
+      title,
+      topics: isSound ? ['sounds'] : form.topics,
+      description_short: form.description_short.trim(),
+      duration_min: form.duration_min.trim() || '10',
+      practice_focus: form.practice_focus.trim(),
+      difficulty_level: isSound ? 'beginner' : form.difficulty_level,
+      tip_before: form.tip_before.trim(),
+      target_role: form.target_role || 'all',
+      target_gender: form.target_gender || 'all',
+      audio_source: form.audio_source,
+      cover_url,
+    };
+
+    if (form.audio_source === 'youtube') {
+      payload.youtube_url = form.youtube_url.trim();
+    }
+    if (form.audio_source === 'url') {
+      const u = form.audio_external_url.trim();
+      payload.audio_external_url = /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : '';
+    }
+    if (form.audio_source === 'file') {
+      const audioPath = form.audio_file_url.trim();
+      if (!audioPath && !editingId) {
+        setError('Укажите путь к аудиофайлу.');
+        errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        return;
+      }
+      if (audioPath) payload.audio_file_url = audioPath;
+    }
+
     const wasEdit = Boolean(editingId);
     setSaving(true);
     try {
-      const fd = new FormData();
-      fd.append('kind', form.kind);
-      fd.append('title', title);
-      fd.append('topics', JSON.stringify(isSound ? ['sounds'] : form.topics));
-      fd.append('description_short', form.description_short.trim());
-      fd.append('duration_min', form.duration_min.trim() || '10');
-      fd.append('practice_focus', form.practice_focus.trim());
-      fd.append('difficulty_level', isSound ? 'beginner' : form.difficulty_level);
-      fd.append('tip_before', form.tip_before.trim());
-      fd.append('target_role', form.target_role || 'all');
-      fd.append('target_gender', form.target_gender || 'all');
-      fd.append('audio_source', form.audio_source);
-      if (form.audio_source === 'youtube') {
-        fd.append('youtube_url', form.youtube_url.trim());
-      }
-      if (form.audio_source === 'url') {
-        const u = form.audio_external_url.trim();
-        const withProto = /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : '';
-        fd.append('audio_external_url', withProto);
-      }
-
       if (!editingId) {
-        if (!form.coverFile) {
-          setError('Загрузите обложку.');
-          setSaving(false);
-          return;
-        }
-        fd.append('cover', form.coverFile);
-        if (form.audio_source === 'file') {
-          if (!form.audioFile) {
-            setError('Загрузите аудиофайл.');
-            setSaving(false);
-            return;
-          }
-          fd.append('audio', form.audioFile);
-        }
-        await api.post('/meditations', fd);
+        await api.post('/meditations', payload);
       } else {
-        if (form.coverFile) fd.append('cover', form.coverFile);
-        if (form.audio_source === 'file' && form.audioFile) {
-          fd.append('audio', form.audioFile);
-        }
-        await api.patch(`/meditations/${editingId}`, fd);
+        await api.patch(`/meditations/${editingId}`, payload);
       }
 
       closeModal();
@@ -418,30 +397,23 @@ export default function AdminMeditations({ embedded = false }) {
                 <p className="admin-film-filters-intro">Звуки автоматически попадают в раздел «Звуки».</p>
               )}
 
-              <label className="admin-field">
-                <span>Обложка{editingId ? '' : ' *'}</span>
-                <input
-                  key={`cover-${fileInputsKey.current}`}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,image/*"
-                  required={!editingId}
-                  onChange={(e) => setForm({ ...form, coverFile: e.target.files?.[0] || null })}
+              <AdminMediaPathInput
+                label={`Обложка${editingId ? '' : ' *'}`}
+                value={form.cover_url}
+                onChange={(v) => setForm((f) => ({ ...f, cover_url: v }))}
+                required={!editingId}
+                hint="Например: /uploads/cover.jpg или /uploads/cover.mp4"
+              />
+              {form.cover_url && coverPreviewIsVideo ? (
+                <video
+                  src={backendPublicUrl(form.cover_url)}
+                  className="admin-film-poster-preview"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
                 />
-                {coverPreview ? (
-                  coverPreviewIsVideo ? (
-                    <video
-                      src={coverPreview}
-                      className="admin-film-poster-preview"
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                    />
-                  ) : (
-                    <img src={coverPreview} alt="" className="admin-film-poster-preview" />
-                  )
-                ) : null}
-              </label>
+              ) : null}
 
               <label className="admin-field">
                 <span>{isSound ? 'Описание (необязательно)' : 'Краткое описание'}</span>
@@ -526,15 +498,13 @@ export default function AdminMeditations({ embedded = false }) {
               </label>
 
               {form.audio_source === 'file' ? (
-                <label className="admin-field">
-                  <span>Аудиофайл{editingId ? ' (оставьте пустым, чтобы не менять)' : ' *'}</span>
-                  <input
-                    key={`audio-${fileInputsKey.current}`}
-                    type="file"
-                    accept="audio/*,.mp3,.m4a,.wav,.ogg"
-                    onChange={(e) => setForm({ ...form, audioFile: e.target.files?.[0] || null })}
-                  />
-                </label>
+                <AdminMediaPathInput
+                  label={`Аудиофайл${editingId ? ' (оставьте пустым, чтобы не менять)' : ' *'}`}
+                  value={form.audio_file_url}
+                  onChange={(v) => setForm((f) => ({ ...f, audio_file_url: v }))}
+                  required={!editingId}
+                  hint="Например: /uploads/meditation.mp3"
+                />
               ) : null}
 
               {form.audio_source === 'youtube' ? (

@@ -5,13 +5,6 @@ function isHealthRequest(req) {
   return req.method === 'GET' && (url === '/api/health' || url.startsWith('/api/health?'));
 }
 
-function normalizeStaticUploadsPath(req) {
-  const url = String(req.url || '');
-  if (url.startsWith('/api/uploads/')) {
-    req.url = url.replace('/api/uploads/', '/uploads/');
-  }
-}
-
 module.exports = async (req, res) => {
   try {
     if (isHealthRequest(req)) {
@@ -28,7 +21,6 @@ module.exports = async (req, res) => {
     }
 
     await ensureBootstrap();
-    normalizeStaticUploadsPath(req);
     return app(req, res);
   } catch (err) {
     console.error('API handler error:', err);

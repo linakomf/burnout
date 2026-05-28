@@ -1,6 +1,4 @@
 const express = require('express');
-const multer = require('multer');
-const path = require('path');
 const pool = require('../db');
 const { authMiddleware, adminOnly, optionalAuthMiddleware } = require('../middleware/auth');
 const { pickTargetRole, pickTargetGender, appendAudienceFilter } = require('../utils/audienceTargeting');
@@ -18,49 +16,19 @@ const {
   parsePodcastTagsField,
   legacyTopicFromTags,
 } = require('../utils/podcastTagWhitelist');
-const { uploadMulterFile } = require('../utils/cloudinaryUpload');
+const {
+  requirePublicImagePath,
+  normalizePublicMediaPath,
+  getPublicUploadsDir,
+} = require('../utils/publicMediaPath');
 
 const router = express.Router();
-const uploadsAbs = path.join(__dirname, '..', 'uploads');
+const uploadsAbs = getPublicUploadsDir();
 
 const AUDIO_SOURCES = new Set(['file', 'youtube', 'url']);
 
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 48 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const name = String(file.originalname || '').toLowerCase();
-    if (file.fieldname === 'cover') {
-      const byExt = /\.(jpe?g|png|gif|webp|avif|bmp|heic|heif)$/i.test(name);
-      const byMime = String(file.mimetype || '').toLowerCase().startsWith('image/');
-      if (byMime || byExt) return cb(null, true);
-      return cb(new Error('Обложка: только изображения'));
-    }
-    if (file.fieldname === 'audio') {
-      const byExt = /\.(mp3|m4a|wav|ogg|webm|aac|flac)$/i.test(name);
-      const byMime = String(file.mimetype || '').toLowerCase().startsWith('audio/');
-      if (byMime || byExt) return cb(null, true);
-      return cb(new Error('Аудио: MP3, M4A, WAV, OGG и др.'));
-    }
-    cb(new Error('Неизвестное поле файла'));
-  },
-});
-
 function apiErrorMessage(e) {
   return dbErrorToMessage(e) || e?.message || 'Ошибка сервера';
-}
-
-function withUpload(fields) {
-  const mw = upload.fields(fields);
-  return (req, res, next) => {
-    mw(req, res, (err) => {
-      if (!err) return next();
-      if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ message: 'Файл слишком большой (макс. 48 МБ)' });
-      }
-      return res.status(400).json({ message: err.message || 'Ошибка загрузки файла' });
-    });
-  };
 }
 
 function parsePodcastPublicId(param) {
@@ -118,30 +86,31 @@ function rowToPublicPodcast(row) {
   };
 }
 
-function parseAudioPayload(body, files, existingRow) {
+function parseAudioPayload(body, existingRow) {
   const source = String(body.audio_source || existingRow?.audio_source || 'youtube').trim();
   if (!AUDIO_SOURCES.has(source)) {
     return { error: 'Некорректный тип аудио' };
   }
 
-  const audioFile = files?.audio?.[0];
   const out = { audio_source: source };
 
   if (source === 'file') {
-    if (audioFile) {
-      out.audio_file_url = '';
+    const fromBody = normalizePublicMediaPath(body.audio_file_url);
+    if (fromBody) {
+      out.audio_file_url = fromBody;
       out.audio_external_url = '';
       out.youtube_embed_url = '';
       out.youtube_video_id = '';
-    } else if (existingRow?.audio_file_url) {
+      return out;
+    }
+    if (existingRow?.audio_file_url) {
       out.audio_file_url = existingRow.audio_file_url;
       out.audio_external_url = '';
       out.youtube_embed_url = '';
       out.youtube_video_id = '';
-    } else {
-      return { error: 'Загрузите аудиофайл' };
+      return out;
     }
-    return out;
+    return { error: 'Укажите путь к аудио /uploads/file.mp3' };
   }
 
   if (source === 'url') {
@@ -205,195 +174,169 @@ router.get('/:podcastKey', optionalAuthMiddleware, async (req, res) => {
   }
 });
 
-router.post(
-  '/',
-  authMiddleware,
-  adminOnly,
-  withUpload([
-    { name: 'cover', maxCount: 1 },
-    { name: 'audio', maxCount: 1 },
-  ]),
-  async (req, res) => {
-    try {
-      const coverFile = req.files?.cover?.[0];
-      if (!coverFile) return res.status(400).json({ message: 'Загрузите обложку' });
+router.post('/', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const coverImg = requirePublicImagePath(req.body, 'cover_url', {
+      required: true,
+      label: 'обложку',
+    });
+    if (coverImg.error) return res.status(400).json({ message: coverImg.error });
 
+    const title = String(req.body.title || '').trim();
+    if (!title) return res.status(400).json({ message: 'Укажите название выпуска' });
+
+    const audio = parseAudioPayload(req.body, null);
+    if (audio.error) return res.status(400).json({ message: audio.error });
+
+    const duration_min = parseDurationMin(req.body.duration_min);
+    const duration_display =
+      String(req.body.duration_display || '').trim() || formatDurationDisplay(duration_min);
+    const tags = parsePodcastTagsField(req.body.tags);
+    const topic = legacyTopicFromTags(tags);
+    const target_role = pickTargetRole(req.body.target_role);
+    const target_gender = pickTargetGender(req.body.target_gender);
+
+    const ins = await pool.query(
+      `INSERT INTO podcast_episodes (
+        title, show_name, description_short, meta_line, topic, tags, episode_num, duration_min,
+        duration_display, is_featured_pick, cover_url, audio_source, audio_file_url,
+        audio_external_url, youtube_embed_url, youtube_video_id, target_role, target_gender
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+      RETURNING podcast_id, title, show_name, description_short, meta_line, topic, tags, episode_num,
+                duration_min, duration_display, is_featured_pick, cover_url, audio_source,
+                audio_file_url, audio_external_url, youtube_embed_url, youtube_video_id,
+                target_role, target_gender, created_at, updated_at`,
+      [
+        title,
+        String(req.body.show_name || '').trim().slice(0, 180),
+        String(req.body.description_short ?? '').trim(),
+        String(req.body.meta_line ?? '').trim().slice(0, 255),
+        pickTopic(topic),
+        JSON.stringify(tags),
+        Math.max(1, parseInt(req.body.episode_num, 10) || 1),
+        duration_min,
+        duration_display,
+        parseBool(req.body.is_featured_pick),
+        coverImg.path,
+        audio.audio_source,
+        audio.audio_file_url || '',
+        audio.audio_external_url || '',
+        audio.youtube_embed_url || '',
+        audio.youtube_video_id || '',
+        target_role,
+        target_gender,
+      ]
+    );
+
+    res.status(201).json(rowToPublicPodcast(ins.rows[0]));
+  } catch (e) {
+    console.error('POST /podcasts', e);
+    res.status(500).json({ message: apiErrorMessage(e) });
+  }
+});
+
+router.patch('/:podcastKey', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const id = parsePodcastPublicId(req.params.podcastKey);
+    if (!id) return res.status(404).json({ message: 'Выпуск не найден' });
+
+    const cur = await pool.query(`SELECT * FROM podcast_episodes WHERE podcast_id=$1`, [id]);
+    if (cur.rows.length === 0) return res.status(404).json({ message: 'Выпуск не найден' });
+    const existing = cur.rows[0];
+    const patch = {};
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'title')) {
       const title = String(req.body.title || '').trim();
-      if (!title) return res.status(400).json({ message: 'Укажите название выпуска' });
-
-      const audio = parseAudioPayload(req.body, req.files, null);
-      if (audio.error) return res.status(400).json({ message: audio.error });
-      if (audio.audio_source === 'file' && req.files?.audio?.[0]) {
-        audio.audio_file_url = await uploadMulterFile(req.files.audio[0], {
-          folder: 'burnout/podcasts/audio',
-          resource_type: 'auto',
-        });
-      }
-
-      const duration_min = parseDurationMin(req.body.duration_min);
-      const duration_display =
-        String(req.body.duration_display || '').trim() || formatDurationDisplay(duration_min);
+      if (!title) return res.status(400).json({ message: 'Укажите название' });
+      patch.title = title;
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'show_name')) {
+      patch.show_name = String(req.body.show_name ?? '').trim().slice(0, 180);
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'description_short')) {
+      patch.description_short = String(req.body.description_short ?? '').trim();
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'meta_line')) {
+      patch.meta_line = String(req.body.meta_line ?? '').trim().slice(0, 255);
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'tags')) {
       const tags = parsePodcastTagsField(req.body.tags);
-      const topic = legacyTopicFromTags(tags);
-      const target_role = pickTargetRole(req.body.target_role);
-      const target_gender = pickTargetGender(req.body.target_gender);
-
-      const ins = await pool.query(
-        `INSERT INTO podcast_episodes (
-          title, show_name, description_short, meta_line, topic, tags, episode_num, duration_min,
-          duration_display, is_featured_pick, cover_url, audio_source, audio_file_url,
-          audio_external_url, youtube_embed_url, youtube_video_id, target_role, target_gender
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
-        RETURNING podcast_id, title, show_name, description_short, meta_line, topic, tags, episode_num,
-                  duration_min, duration_display, is_featured_pick, cover_url, audio_source,
-                  audio_file_url, audio_external_url, youtube_embed_url, youtube_video_id,
-                  target_role, target_gender, created_at, updated_at`,
-        [
-          title,
-          String(req.body.show_name || '').trim().slice(0, 180),
-          String(req.body.description_short ?? '').trim(),
-          String(req.body.meta_line ?? '').trim().slice(0, 255),
-          pickTopic(topic),
-          JSON.stringify(tags),
-          Math.max(1, parseInt(req.body.episode_num, 10) || 1),
-          duration_min,
-          duration_display,
-          parseBool(req.body.is_featured_pick),
-          await uploadMulterFile(coverFile, { folder: 'burnout/podcasts/covers' }),
-          audio.audio_source,
-          audio.audio_file_url || '',
-          audio.audio_external_url || '',
-          audio.youtube_embed_url || '',
-          audio.youtube_video_id || '',
-          target_role,
-          target_gender,
-        ]
-      );
-
-      res.status(201).json(rowToPublicPodcast(ins.rows[0]));
-    } catch (e) {
-      console.error('POST /podcasts', e);
-      res.status(500).json({ message: apiErrorMessage(e) });
+      patch.tags = JSON.stringify(tags);
+      patch.topic = pickTopic(legacyTopicFromTags(tags), existing.topic);
+    } else if (Object.prototype.hasOwnProperty.call(req.body, 'topic')) {
+      patch.topic = pickTopic(req.body.topic, existing.topic);
     }
-  }
-);
-
-router.patch(
-  '/:podcastKey',
-  authMiddleware,
-  adminOnly,
-  withUpload([
-    { name: 'cover', maxCount: 1 },
-    { name: 'audio', maxCount: 1 },
-  ]),
-  async (req, res) => {
-    try {
-      const id = parsePodcastPublicId(req.params.podcastKey);
-      if (!id) return res.status(404).json({ message: 'Выпуск не найден' });
-
-      const cur = await pool.query(`SELECT * FROM podcast_episodes WHERE podcast_id=$1`, [id]);
-      if (cur.rows.length === 0) return res.status(404).json({ message: 'Выпуск не найден' });
-      const existing = cur.rows[0];
-      const patch = {};
-
-      if (Object.prototype.hasOwnProperty.call(req.body, 'title')) {
-        const title = String(req.body.title || '').trim();
-        if (!title) return res.status(400).json({ message: 'Укажите название' });
-        patch.title = title;
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'show_name')) {
-        patch.show_name = String(req.body.show_name ?? '').trim().slice(0, 180);
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'description_short')) {
-        patch.description_short = String(req.body.description_short ?? '').trim();
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'meta_line')) {
-        patch.meta_line = String(req.body.meta_line ?? '').trim().slice(0, 255);
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'tags')) {
-        const tags = parsePodcastTagsField(req.body.tags);
-        patch.tags = JSON.stringify(tags);
-        patch.topic = pickTopic(legacyTopicFromTags(tags), existing.topic);
-      } else if (Object.prototype.hasOwnProperty.call(req.body, 'topic')) {
-        patch.topic = pickTopic(req.body.topic, existing.topic);
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'target_role')) {
-        patch.target_role = pickTargetRole(req.body.target_role);
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'target_gender')) {
-        patch.target_gender = pickTargetGender(req.body.target_gender);
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'episode_num')) {
-        patch.episode_num = Math.max(1, parseInt(req.body.episode_num, 10) || 1);
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'duration_min')) {
-        const duration_min = parseDurationMin(req.body.duration_min);
-        patch.duration_min = duration_min;
-        patch.duration_display = formatDurationDisplay(duration_min);
-      }
-      if (Object.prototype.hasOwnProperty.call(req.body, 'is_featured_pick')) {
-        patch.is_featured_pick = parseBool(req.body.is_featured_pick);
-      }
-
-      const coverFile = req.files?.cover?.[0];
-      if (coverFile) {
-        safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-        patch.cover_url = await uploadMulterFile(coverFile, { folder: 'burnout/podcasts/covers' });
-      }
-
-      const audioTouched =
-        Object.prototype.hasOwnProperty.call(req.body, 'audio_source') ||
-        Object.prototype.hasOwnProperty.call(req.body, 'youtube_url') ||
-        Object.prototype.hasOwnProperty.call(req.body, 'audio_external_url') ||
-        req.files?.audio?.[0];
-
-      if (audioTouched) {
-        const audio = parseAudioPayload(req.body, req.files, existing);
-        if (audio.error) return res.status(400).json({ message: audio.error });
-        if (audio.audio_source === 'file' && req.files?.audio?.[0]) {
-          audio.audio_file_url = await uploadMulterFile(req.files.audio[0], {
-            folder: 'burnout/podcasts/audio',
-            resource_type: 'auto',
-          });
-        }
-        if (audio.audio_file_url && audio.audio_file_url !== existing.audio_file_url) {
-          safeUnlinkUploadPath(uploadsAbs, existing.audio_file_url);
-        }
-        Object.assign(patch, {
-          audio_source: audio.audio_source,
-          audio_file_url: audio.audio_file_url || '',
-          audio_external_url: audio.audio_external_url || '',
-          youtube_embed_url: audio.youtube_embed_url || '',
-          youtube_video_id: audio.youtube_video_id || '',
-        });
-      }
-
-      const keys = Object.keys(patch);
-      if (keys.length === 0) {
-        return res.json(rowToPublicPodcast(existing));
-      }
-
-      const sets = keys.map((k, i) => `${k}=$${i + 1}`);
-      const vals = keys.map((k) => patch[k]);
-      vals.push(id);
-
-      const upd = await pool.query(
-        `UPDATE podcast_episodes SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP
-         WHERE podcast_id=$${keys.length + 1}
-         RETURNING podcast_id, title, show_name, description_short, meta_line, topic, tags, episode_num,
-                   duration_min, duration_display, is_featured_pick, cover_url, audio_source,
-                   audio_file_url, audio_external_url, youtube_embed_url, youtube_video_id,
-                   created_at, updated_at`,
-        vals
-      );
-
-      res.json(rowToPublicPodcast(upd.rows[0]));
-    } catch (e) {
-      console.error('PATCH /podcasts', e);
-      res.status(500).json({ message: apiErrorMessage(e) });
+    if (Object.prototype.hasOwnProperty.call(req.body, 'target_role')) {
+      patch.target_role = pickTargetRole(req.body.target_role);
     }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'target_gender')) {
+      patch.target_gender = pickTargetGender(req.body.target_gender);
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'episode_num')) {
+      patch.episode_num = Math.max(1, parseInt(req.body.episode_num, 10) || 1);
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'duration_min')) {
+      const duration_min = parseDurationMin(req.body.duration_min);
+      patch.duration_min = duration_min;
+      patch.duration_display = formatDurationDisplay(duration_min);
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'is_featured_pick')) {
+      patch.is_featured_pick = parseBool(req.body.is_featured_pick);
+    }
+
+    const coverImg = requirePublicImagePath(req.body, 'cover_url', { label: 'обложку' });
+    if (coverImg.error) return res.status(400).json({ message: coverImg.error });
+    if (coverImg.path) {
+      safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
+      patch.cover_url = coverImg.path;
+    }
+
+    const audioTouched =
+      Object.prototype.hasOwnProperty.call(req.body, 'audio_source') ||
+      Object.prototype.hasOwnProperty.call(req.body, 'youtube_url') ||
+      Object.prototype.hasOwnProperty.call(req.body, 'audio_external_url') ||
+      Object.prototype.hasOwnProperty.call(req.body, 'audio_file_url');
+
+    if (audioTouched) {
+      const audio = parseAudioPayload(req.body, existing);
+      if (audio.error) return res.status(400).json({ message: audio.error });
+      if (audio.audio_file_url && audio.audio_file_url !== existing.audio_file_url) {
+        safeUnlinkUploadPath(uploadsAbs, existing.audio_file_url);
+      }
+      Object.assign(patch, {
+        audio_source: audio.audio_source,
+        audio_file_url: audio.audio_file_url || '',
+        audio_external_url: audio.audio_external_url || '',
+        youtube_embed_url: audio.youtube_embed_url || '',
+        youtube_video_id: audio.youtube_video_id || '',
+      });
+    }
+
+    const keys = Object.keys(patch);
+    if (keys.length === 0) {
+      return res.json(rowToPublicPodcast(existing));
+    }
+
+    const sets = keys.map((k, i) => `${k}=$${i + 1}`);
+    const vals = keys.map((k) => patch[k]);
+    vals.push(id);
+
+    const upd = await pool.query(
+      `UPDATE podcast_episodes SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP
+       WHERE podcast_id=$${keys.length + 1}
+       RETURNING podcast_id, title, show_name, description_short, meta_line, topic, tags, episode_num,
+                 duration_min, duration_display, is_featured_pick, cover_url, audio_source,
+                 audio_file_url, audio_external_url, youtube_embed_url, youtube_video_id,
+                 created_at, updated_at`,
+      vals
+    );
+
+    res.json(rowToPublicPodcast(upd.rows[0]));
+  } catch (e) {
+    console.error('PATCH /podcasts', e);
+    res.status(500).json({ message: apiErrorMessage(e) });
   }
-);
+});
 
 router.delete('/:podcastKey', authMiddleware, adminOnly, async (req, res) => {
   try {
