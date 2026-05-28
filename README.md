@@ -2,6 +2,10 @@
 
 ## Деплой на Vercel (важно)
 
+**Текущий прод:** https://burnout-1.vercel.app  
+
+Пошаговая настройка нового проекта: [docs/VERCEL-NEW-PROJECT.md](docs/VERCEL-NEW-PROJECT.md)
+
 **Root Directory в настройках проекта Vercel должен быть пустым (корень репозитория), НЕ `client`.**
 
 Иначе `/api/*` отдаёт HTML вместо JSON и появляется ошибка «API не отвечает».
@@ -33,7 +37,7 @@
 
 **Исправление (по порядку):**
 
-1. **Vercel → Project `burnout-lswd` → Settings → Git**
+1. **Vercel → Project `burnout-1` → Settings → Git**
    - Repository: `linakomf/burnout`
    - Production Branch: **`main`**
    - Если Git не подключён — **Connect Git Repository**.
