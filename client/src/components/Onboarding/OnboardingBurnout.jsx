@@ -158,7 +158,6 @@ function OnboardingProfileStep({ user, updateUser, t }) {
               );
             })}
           </div>
-          <p className="reg-hint">{t('burnoutOnb.avatarByRoleHint')}</p>
         </div>
 
         <div className="reg-step2-actions">
