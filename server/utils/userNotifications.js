@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { isUserNotificationsEnabled } = require('./notificationPreferences');
 
 function mapUserNotificationRow(row) {
   if (!row) return null;
@@ -22,6 +23,8 @@ function mapUserNotificationRow(row) {
 
 async function createUserNotification(dbOrPool, { userId, type = 'system', title, body, payload = null }) {
   const db = dbOrPool && typeof dbOrPool.query === 'function' ? dbOrPool : pool;
+  const enabled = await isUserNotificationsEnabled(userId, db);
+  if (!enabled) return null;
   const result = await db.query(
     `INSERT INTO user_notifications (user_id, type, title, body, payload)
      VALUES ($1, $2, $3, $4, $5)

@@ -19,6 +19,12 @@ async function runOnboardingMigration() {
   await pool.query(`
     ALTER TABLE users ADD COLUMN IF NOT EXISTS has_completed_space_onboarding BOOLEAN DEFAULT FALSE;
   `);
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
+  `);
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(120);
+  `);
 }
 
 async function ensureOnboardingSchema() {

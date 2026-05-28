@@ -12,7 +12,10 @@ function normalizeEmail(raw) {
 
 router.post('/register', async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const name = String(body.name ?? '').trim();
+  const name = String(
+    body.firstName ?? body.first_name ?? body.name ?? ''
+  ).trim();
+  const lastName = String(body.lastName ?? body.last_name ?? '').trim();
   const email = normalizeEmail(body.email);
   const password =
     body.password != null && body.password !== '' ? String(body.password) : '';
@@ -39,15 +42,16 @@ router.post('/register', async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO users (name, email, password, role, age, gender, avatar)
-       VALUES ($1, $2, $3, $4, $5, NULL, NULL)
-       RETURNING user_id, name, email, role, avatar, age, gender,
+      `INSERT INTO users (name, last_name, email, password, role, age, gender, avatar)
+       VALUES ($1, $2, $3, $4, $5, $6, NULL, NULL)
+       RETURNING user_id, name, last_name, email, role, avatar, age, gender,
          COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
          onboarding_burnout_percent,
          onboarding_burnout_completed_at,
          space_preferences,
-         COALESCE(has_completed_space_onboarding, false) AS has_completed_space_onboarding`,
-      [name, email, password, insertRole, ageVal]
+         COALESCE(has_completed_space_onboarding, false) AS has_completed_space_onboarding,
+         COALESCE(notifications_enabled, true) AS notifications_enabled`,
+      [name, lastName || null, email, password, insertRole, ageVal]
     );
 
     const user = result.rows[0];
@@ -62,6 +66,7 @@ router.post('/register', async (req, res) => {
       user: {
         user_id: user.user_id,
         name: user.name,
+        last_name: user.last_name ?? null,
         email: user.email,
         role: user.role,
         avatar: user.avatar,
@@ -71,7 +76,8 @@ router.post('/register', async (req, res) => {
         onboarding_burnout_percent: user.onboarding_burnout_percent ?? null,
         onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
         space_preferences: user.space_preferences ?? null,
-        has_completed_space_onboarding: Boolean(user.has_completed_space_onboarding)
+        has_completed_space_onboarding: Boolean(user.has_completed_space_onboarding),
+        notifications_enabled: user.notifications_enabled !== false
       }
     });
   } catch (err) {
@@ -129,6 +135,7 @@ router.post('/login', async (req, res) => {
       user: {
         user_id: user.user_id,
         name: user.name,
+        last_name: user.last_name ?? null,
         email: user.email,
         role: user.role,
         avatar: user.avatar,
@@ -142,7 +149,8 @@ router.post('/login', async (req, res) => {
         onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
         space_preferences: user.space_preferences ?? null,
         has_completed_space_onboarding: Boolean(user.has_completed_space_onboarding),
-        psychologist_account_status: user.psychologist_account_status ?? null
+        psychologist_account_status: user.psychologist_account_status ?? null,
+        notifications_enabled: user.notifications_enabled !== false
       }
     });
   } catch (err) {

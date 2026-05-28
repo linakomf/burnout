@@ -34,12 +34,13 @@ const upload = multer({
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT u.user_id, u.name, u.email, u.role, u.avatar, u.age, u.gender, u.created_at,
+      `SELECT u.user_id, u.name, u.last_name, u.email, u.role, u.avatar, u.age, u.gender, u.created_at,
         COALESCE(u.onboarding_burnout_completed, false) AS onboarding_burnout_completed,
         u.onboarding_burnout_percent,
         u.onboarding_burnout_completed_at,
         u.space_preferences,
         COALESCE(u.has_completed_space_onboarding, false) AS has_completed_space_onboarding,
+        COALESCE(u.notifications_enabled, true) AS notifications_enabled,
         pp.account_status AS psychologist_account_status,
         pp.organization AS psychologist_organization,
         pp.specialist_level AS psychologist_specialist_level
@@ -67,7 +68,8 @@ router.get('/me', authMiddleware, async (req, res) => {
 });
 
 router.put('/me', authMiddleware, async (req, res) => {
-  const { name, email, age, currentPassword, newPassword, role, gender, avatar } = req.body;
+  const { name, last_name, lastName, email, age, currentPassword, newPassword, role, gender, avatar } =
+    req.body;
   const userId = req.user.user_id;
 
   try {
@@ -120,14 +122,20 @@ router.put('/me', authMiddleware, async (req, res) => {
       nextAvatar = av;
     }
 
+    const nextLastName = Object.prototype.hasOwnProperty.call(req.body, 'last_name')
+      ? String(last_name ?? lastName ?? '').trim().slice(0, 120)
+      : user.last_name;
+
     const result = await pool.query(
-      `UPDATE users SET name=$1, email=$2, age=$3, password=$4, role=$5, gender=$6, avatar=$7 WHERE user_id=$8
-       RETURNING user_id, name, email, role, avatar, age, gender,
+      `UPDATE users SET name=$1, last_name=$2, email=$3, age=$4, password=$5, role=$6, gender=$7, avatar=$8 WHERE user_id=$9
+       RETURNING user_id, name, last_name, email, role, avatar, age, gender,
          COALESCE(onboarding_burnout_completed, false) AS onboarding_burnout_completed,
          onboarding_burnout_percent,
-         onboarding_burnout_completed_at`,
+         onboarding_burnout_completed_at,
+         COALESCE(notifications_enabled, true) AS notifications_enabled`,
       [
         name || user.name,
+        nextLastName || null,
         email || user.email,
         age !== undefined && age !== null && age !== '' ? age : user.age,
         updatedPassword,
@@ -205,6 +213,34 @@ router.put('/me/space-preferences', authMiddleware, async (req, res) => {
   }
 });
 
+router.put('/me/notifications-enabled', authMiddleware, async (req, res) => {
+  const userId = parseInt(req.user.user_id, 10);
+  const enabledRaw = req.body?.enabled ?? req.body?.notifications_enabled;
+
+  if (!Number.isFinite(userId)) {
+    return res.status(400).json({ message: 'Некорректная сессия - войдите снова' });
+  }
+  if (typeof enabledRaw !== 'boolean') {
+    return res.status(400).json({ message: 'Укажите enabled: true или false' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE users SET notifications_enabled = $1::boolean
+       WHERE user_id = $2
+       RETURNING user_id, COALESCE(notifications_enabled, TRUE) AS notifications_enabled`,
+      [enabledRaw, userId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ message: 'Пользователь не найден' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('[PUT /me/notifications-enabled]', err);
+    const hint = dbErrorToMessage(err);
+    if (hint) return res.status(503).json({ message: hint });
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
 router.get('/notifications', authMiddleware, async (req, res) => {
   const userId = parseInt(req.user.user_id, 10);
   const rawLimit = parseInt(req.query?.limit, 10);
@@ -215,6 +251,17 @@ router.get('/notifications', authMiddleware, async (req, res) => {
   }
 
   try {
+    const pref = await pool.query(
+      `SELECT COALESCE(notifications_enabled, TRUE) AS notifications_enabled FROM users WHERE user_id = $1`,
+      [userId]
+    );
+    if (!pref.rows.length) {
+      return res.status(404).json({ message: 'Пользователь не найден' });
+    }
+    if (!pref.rows[0].notifications_enabled) {
+      return res.json({ rows: [], unread_count: 0, notifications_enabled: false });
+    }
+
     const result = await pool.query(
       `SELECT n.notification_id, n.user_id, n.type, n.title, n.body, n.payload,
               n.is_read, n.read_at, n.created_at,
@@ -229,7 +276,8 @@ router.get('/notifications', authMiddleware, async (req, res) => {
     const rows = result.rows.map(mapUserNotificationRow);
     res.json({
       rows,
-      unread_count: rows.reduce((sum, row) => sum + (row.is_read ? 0 : 1), 0)
+      unread_count: rows.reduce((sum, row) => sum + (row.is_read ? 0 : 1), 0),
+      notifications_enabled: true
     });
   } catch (err) {
     console.error('[notifications list]', err);

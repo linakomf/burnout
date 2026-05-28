@@ -60,7 +60,7 @@ const UserDashboard = () => {
             <div className="ud-brand-mark app-logo-wrap">
               <AppLogo size={36} />
             </div>
-            <span>MindTrack</span>
+            <span className="brand-wordmark">burnout</span>
           </div>
           <div className="ud-actions">
             <button type="button" className="ud-btn ud-btn-ghost" onClick={() => refreshUser()}>

@@ -63,7 +63,7 @@ const Login = () => {
           <div className="auth-logo-icon app-logo-wrap">
             <AppLogo size={44} />
           </div>
-          <span>Burnout</span>
+          <span className="brand-wordmark">burnout</span>
         </div>
 
         <h1 className="auth-title">{t('auth.loginTitle')}</h1>

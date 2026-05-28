@@ -18,9 +18,9 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useSidebarCollapse } from '../../context/SidebarCollapseContext';
+import AppLogo from '../Brand/AppLogo';
 import './Sidebar.css';
 import { backendPublicUrl } from '../../utils/assetUrl';
-import AppLogo from '../Brand/AppLogo';
 
 const publicPrefix = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
 const DEFAULT_AVATAR = encodeURI(`${publicPrefix}/photos/character.png`);
@@ -121,9 +121,9 @@ const Sidebar = () => {
         aria-label={t('nav.landingHome')}
       >
         <div className="logo-icon app-logo-wrap" aria-hidden>
-          <AppLogo size={40} decorative />
+          <AppLogo size={collapsed ? 32 : 40} decorative />
         </div>
-        {!collapsed && <span className="logo-text">Burnout</span>}
+        {!collapsed && <span className="logo-text brand-wordmark">burnout</span>}
       </button>
 
       {collapsed ? (

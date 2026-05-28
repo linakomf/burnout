@@ -7,6 +7,10 @@ import {
   Moon,
 } from 'lucide-react';
 
+export function isRemoteFilmId(id) {
+  return /^film-\d+$/.test(String(id || ''));
+}
+
 export const FILM_CATEGORIES = [
   { id: 'burnout', labelKey: 'filmCatBurnout', Icon: Flame },
   { id: 'anxiety', labelKey: 'filmCatAnxiety', Icon: Brain },

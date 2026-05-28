@@ -167,6 +167,7 @@ export default {
       loading: 'Loading notifications...',
       loadError: 'Could not load notifications',
       empty: 'No notifications yet',
+      disabled: 'Notifications are off in profile settings. Turn them on to receive reminders.',
       new: 'New',
       confirmYes: 'Yes, they contacted me',
       confirmNo: 'No, they did not',
@@ -282,7 +283,7 @@ export default {
     psychologistRequests: 'Requests'
   },
   landing: {
-    brandName: 'MindTrack',
+    brandName: 'burnout',
     logoSub: 'Academic edition',
     toCabinet: 'Open app',
     login: 'Log in',
@@ -393,6 +394,10 @@ export default {
     linkLogin: 'Log in',
     labelName: 'Full name',
     phName: 'Your name',
+    labelFirstName: 'First name',
+    phFirstName: 'First name',
+    labelLastName: 'Last name',
+    phLastName: 'Last name',
     labelAge: 'Age',
     phAge: 'Your age',
     labelRole: 'Role',

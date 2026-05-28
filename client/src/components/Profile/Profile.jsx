@@ -9,17 +9,18 @@ import {
   CheckCircle,
   Info,
   Bell,
-  Shield,
   LogOut,
-  ChevronRight,
   Languages,
 } from 'lucide-react';
 import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
 import api from '../../utils/api';
 import { backendPublicUrl } from '../../utils/assetUrl';
+import {
+  areNotificationsEnabled,
+  writeLocalNotificationsEnabled,
+} from '../../utils/notificationPreferences';
+import { formatUserDisplayName } from '../../utils/userDisplayName';
 import './Profile.css';
-
-const NOTIF_KEY = 'burnout_notifications';
 
 const Profile = () => {
   const { user, updateUser, logout } = useAuth();
@@ -28,27 +29,53 @@ const Profile = () => {
 
   const [form, setForm] = useState({
     name: user?.name || '',
+    last_name: user?.last_name || '',
     email: user?.email || '',
     age: user?.age || '',
     currentPassword: '',
     newPassword: ''
   });
-  const [msg, setMsg] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [notifOn, setNotifOn] = useState(() => {
-    try {
-      return localStorage.getItem(NOTIF_KEY) !== '0';
-    } catch {
-      return true;
-    }
-  });
 
   useEffect(() => {
+    if (!user) return;
+    setForm((f) => ({
+      ...f,
+      name: user.name || '',
+      last_name: user.last_name || '',
+      email: user.email || '',
+      age: user.age ?? '',
+    }));
+  }, [user?.user_id, user?.name, user?.last_name, user?.email, user?.age]);
+  const [msg, setMsg] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [notifOn, setNotifOn] = useState(() => areNotificationsEnabled(user));
+  const [notifSaving, setNotifSaving] = useState(false);
+
+  useEffect(() => {
+    setNotifOn(areNotificationsEnabled(user));
+  }, [user?.user_id, user?.notifications_enabled]);
+
+  const handleNotificationsToggle = async () => {
+    if (notifSaving) return;
+    const next = !notifOn;
+    setNotifOn(next);
+    writeLocalNotificationsEnabled(next);
+    setNotifSaving(true);
     try {
-      localStorage.setItem(NOTIF_KEY, notifOn ? '1' : '0');
+      const { data } = await api.put('/users/me/notifications-enabled', { enabled: next });
+      const enabled = data?.notifications_enabled !== false;
+      setNotifOn(enabled);
+      writeLocalNotificationsEnabled(enabled);
+      updateUser({ notifications_enabled: enabled });
     } catch {
+      const rollback = !next;
+      setNotifOn(rollback);
+      writeLocalNotificationsEnabled(rollback);
+      setMsg({ type: 'error', text: 'Не удалось сохранить настройку уведомлений' });
+    } finally {
+      setNotifSaving(false);
     }
-  }, [notifOn]);
+  };
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -89,6 +116,8 @@ const Profile = () => {
     navigate('/login');
   };
 
+  const displayName = formatUserDisplayName(user);
+
   const roleLabel = {
     student: t('auth.roleStudent'),
     teacher: t('auth.roleTeacher'),
@@ -128,7 +157,7 @@ const Profile = () => {
 
 
             <div className="profile-avatar-placeholder">
-                {user?.name?.charAt(0)?.toUpperCase()}
+                {(displayName || user?.name)?.charAt(0)?.toUpperCase()}
               </div>
             }
             <label className="avatar-upload-btn" htmlFor="avatarInput">
@@ -142,7 +171,7 @@ const Profile = () => {
               onChange={handleAvatarChange} />
             
           </div>
-          <h2 className="profile-name">{user?.name}</h2>
+          <h2 className="profile-name">{displayName || user?.name}</h2>
           <span className="profile-role-badge">{roleLabel[user?.role]}</span>
           {user?.gender && <p className="profile-age">{genderLabel[user.gender] || user.gender}</p>}
           <p className="profile-email">{user?.email}</p>
@@ -156,12 +185,23 @@ const Profile = () => {
             <div className="form-row">
               <div className="form-group">
                 <label>Имя</label>
-                <input className="input" name="name" value={form.name} onChange={handleChange} />
+                <input className="input" name="name" value={form.name} onChange={handleChange} autoComplete="given-name" />
               </div>
               <div className="form-group">
-                <label>Возраст</label>
-                <input className="input" type="number" name="age" value={form.age} onChange={handleChange} min="14" />
+                <label>Фамилия</label>
+                <input
+                  className="input"
+                  name="last_name"
+                  value={form.last_name}
+                  onChange={handleChange}
+                  autoComplete="family-name"
+                />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label>Возраст</label>
+              <input className="input" type="number" name="age" value={form.age} onChange={handleChange} min="14" />
             </div>
 
             <div className="form-group">
@@ -219,7 +259,7 @@ const Profile = () => {
                 <span className="profile-setting-desc">{t('pages.profileLangHint')}</span>
               </div>
               <div className="profile-lang-switch-wrap">
-                <LanguageSwitcher className="lang-switch--on-light-bg" />
+                <LanguageSwitcher variant="dropdown" />
               </div>
             </li>
 
@@ -235,30 +275,12 @@ const Profile = () => {
                 <input
                   type="checkbox"
                   checked={notifOn}
-                  onChange={() => setNotifOn((v) => !v)} />
+                  disabled={notifSaving}
+                  onChange={handleNotificationsToggle}
+                />
                 
                 <span className="profile-switch-slider" />
               </label>
-            </li>
-
-            <li className="profile-setting-row">
-              <span className="profile-setting-icon" aria-hidden>
-                <Shield size={20} strokeWidth={2} />
-              </span>
-              <div className="profile-setting-text">
-                <span className="profile-setting-label">Приватность</span>
-                <span className="profile-setting-desc">Кто видит ваш прогресс</span>
-              </div>
-              <button
-                type="button"
-                className="profile-setting-action"
-                onClick={() =>
-                setMsg({ type: 'info', text: 'Раздел приватности появится в следующем обновлении.' })
-                }
-                aria-label="Приватность">
-                
-                <ChevronRight size={22} />
-              </button>
             </li>
           </ul>
 

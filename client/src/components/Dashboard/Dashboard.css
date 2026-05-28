@@ -459,7 +459,7 @@
   justify-content: center;
   padding: 13px 49px;
   border-radius: 18px;
-  border: 1px solid #c8daf0;
+  border: none;
   background: #ffffff;
   cursor: pointer;
   min-width: 120px;
@@ -467,7 +467,6 @@
   scroll-snap-align: start;
   transition:
     transform 0.15s,
-    border-color 0.2s,
     box-shadow 0.2s,
     background 0.2s,
     color 0.2s;
@@ -476,18 +475,15 @@
 }
 
 .week-day-btn:hover {
-  border-color: #a8c4e8;
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(100, 135, 215, 0.1);
 }
 
 .week-day-btn.is-today:not(.selected) {
-  border-color: #9bb6e6;
   box-shadow: 0 2px 10px rgba(100, 135, 215, 0.08);
 }
 
 .week-day-btn.has-mark:not(.selected) {
-  border-color: #c8daf0;
   background: #ffffff;
   box-shadow: 0 1px 4px rgba(30, 58, 95, 0.06);
 }
@@ -505,13 +501,11 @@
 }
 
 .week-day-btn.selected {
-  border-color: transparent;
   background: #cae4bf;
   box-shadow: 0 2px 10px rgba(55, 85, 50, 0.14);
 }
 
 .week-day-btn.selected:hover {
-  border-color: transparent;
   background: color-mix(in srgb, #cae4bf 72%, #9bbd90);
   box-shadow: 0 4px 14px rgba(55, 85, 50, 0.18);
 }
@@ -2237,18 +2231,16 @@
 
 [data-theme='dark'] .dashboard-new .week-day-btn {
   background: var(--bg-card);
-  border-color: var(--border);
+  border: none;
 }
 
 [data-theme='dark'] .dashboard-new .week-day-btn.selected {
   background: #cae4bf;
-  border-color: transparent;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.22);
 }
 
 [data-theme='dark'] .dashboard-new .week-day-btn.selected:hover {
   background: color-mix(in srgb, #cae4bf 72%, #9bbd90);
-  border-color: transparent;
 }
 
 [data-theme='dark'] .dashboard-new .week-day-btn.selected .wday-date,
@@ -2258,7 +2250,6 @@
 
 [data-theme='dark'] .dashboard-new .week-day-btn.has-mark:not(.selected) {
   background: var(--bg-card);
-  border-color: var(--border);
 }
 
 [data-theme='dark'] .dashboard-new .week-day-btn.has-mark:not(.selected)::after {

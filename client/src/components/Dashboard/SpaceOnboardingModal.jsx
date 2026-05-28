@@ -1,95 +1,66 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowRight, X } from 'lucide-react';
+import {
+  SPACE_ONBOARDING_QUESTIONS,
+  buildSpacePreferencesPayload,
+  spaceOnboardingTagLabel,
+  spacePreferencesToAnswers,
+} from '../../utils/spaceOnboardingData';
+import '../Tests/Tests.css';
+import './SpaceOnboardingModal.css';
 
-const QUESTIONS = [
-  {
-    id: 'contentPreferences',
-    title: 'Что обычно помогает вам немного выдохнуть?',
-    options: [
-      { label: 'Музыка', tag: 'music' },
-      { label: 'Фильмы или сериалы', tag: 'movies' },
-      { label: 'Медитации и тишина', tag: 'meditation' },
-      { label: 'Книги и статьи', tag: 'reading' },
-      { label: 'Подкасты', tag: 'podcasts' },
-      { label: 'События и прогулки', tag: 'events' },
-    ],
-  },
-  {
-    id: 'formatPreferences',
-    title: 'Какой формат вам сейчас ближе?',
-    options: [
-      { label: 'Что-то короткое и лёгкое', tag: 'short' },
-      { label: 'Спокойное и медленное', tag: 'calm' },
-      { label: 'Что-то вдохновляющее', tag: 'inspiration' },
-      { label: 'Хочу полностью отвлечься', tag: 'distraction' },
-      { label: 'Что-то уютное', tag: 'cozy' },
-    ],
-  },
-  {
-    id: 'emotionalNeeds',
-    title: 'Что вам сейчас нужно больше всего?',
-    options: [
-      { label: 'Отдых', tag: 'rest' },
-      { label: 'Спокойствие', tag: 'peace' },
-      { label: 'Поддержка', tag: 'support' },
-      { label: 'Концентрация', tag: 'focus' },
-      { label: 'Мотивация', tag: 'motivation' },
-      { label: 'Эмоциональная разгрузка', tag: 'emotional-release' },
-    ],
-  },
-  {
-    id: 'difficulties',
-    title: 'Что вам обычно сложнее всего?',
-    options: [
-      { label: 'Перестать тревожиться', tag: 'anxiety' },
-      { label: 'Найти силы', tag: 'low-energy' },
-      { label: 'Сконцентрироваться', tag: 'focus-problems' },
-      { label: 'Отдохнуть без чувства вины', tag: 'rest-guilt' },
-      { label: 'Переключиться от мыслей', tag: 'overthinking' },
-    ],
-  },
-  {
-    id: 'atmospherePreferences',
-    title: 'Какая атмосфера вам ближе?',
-    options: [
-      { label: 'Тёплая и уютная', tag: 'warm' },
-      { label: 'Спокойная и минималистичная', tag: 'minimal' },
-      { label: 'Вдохновляющая', tag: 'inspiring' },
-      { label: 'Лёгкая и весёлая', tag: 'light' },
-      { label: 'Эстетичная и красивая', tag: 'aesthetic' },
-    ],
-  },
-];
+function getSelectedForQuestion(answers, questionId) {
+  const raw = answers[questionId];
+  return Array.isArray(raw) ? raw : raw ? [raw] : [];
+}
 
-export default function SpaceOnboardingModal({ saving, onClose, onGoSpace, onComplete }) {
+export default function SpaceOnboardingModal({
+  saving,
+  initialPreferences = null,
+  onClose,
+  onGoSpace,
+  onComplete,
+}) {
+  const isEditMode = Boolean(
+    initialPreferences?.completedAt || hasInitialAnswers(initialPreferences)
+  );
+
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState({});
+  const [answers, setAnswers] = useState(() => spacePreferencesToAnswers(initialPreferences));
   const [doneView, setDoneView] = useState(false);
-  const q = QUESTIONS[step];
-  const selected = Array.isArray(answers[q.id]) ? answers[q.id] : answers[q.id] ? [answers[q.id]] : [];
 
+  const q = SPACE_ONBOARDING_QUESTIONS[step];
+  const selected = getSelectedForQuestion(answers, q.id);
   const canNext = selected.length > 0;
-  const isLast = step === QUESTIONS.length - 1;
+  const isLast = step === SPACE_ONBOARDING_QUESTIONS.length - 1;
 
-  const payload = useMemo(() => {
-    const out = {
-      contentPreferences: [],
-      formatPreferences: [],
-      emotionalNeeds: [],
-      difficulties: [],
-      atmospherePreferences: [],
-      completedAt: new Date().toISOString(),
-    };
-    QUESTIONS.forEach((item) => {
-      const raw = answers[item.id];
-      out[item.id] = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  const payload = useMemo(() => buildSpacePreferencesPayload(answers), [answers]);
+
+  const toggleTag = (questionId, tag) => {
+    setAnswers((prev) => {
+      const cur = getSelectedForQuestion(prev, questionId);
+      const has = cur.includes(tag);
+      const next = has ? cur.filter((t) => t !== tag) : [...cur, tag];
+      return { ...prev, [questionId]: next };
     });
-    return out;
-  }, [answers]);
+  };
+
+  const removeTag = (questionId, tag) => {
+    setAnswers((prev) => {
+      const cur = getSelectedForQuestion(prev, questionId);
+      return { ...prev, [questionId]: cur.filter((t) => t !== tag) };
+    });
+  };
+
+  const handleFinish = async () => {
+    if (!canNext || saving) return;
+    await onComplete(payload);
+    setDoneView(true);
+  };
 
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="space-onb-title">
-      <div className="modal-card fade-in" style={{ maxWidth: 760, width: 'min(96vw, 760px)' }}>
+    <div className="modal-overlay space-onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="space-onb-title">
+      <div className="modal-card space-onboarding-card fade-in">
         <button
           type="button"
           className="modal-close"
@@ -102,39 +73,75 @@ export default function SpaceOnboardingModal({ saving, onClose, onGoSpace, onCom
 
         {!doneView ? (
           <>
-            <p style={{ margin: 0, color: '#6b6478', fontWeight: 700 }}>Подбор пространства</p>
-            <h2 id="space-onb-title" style={{ margin: '8px 0 10px', fontSize: 28, lineHeight: 1.2 }}>
+            <p className="space-onboarding-eyebrow">Подбор пространства</p>
+            <h2 id="space-onb-title" className="space-onboarding-title">
               {q.title}
             </h2>
-            <p style={{ margin: '0 0 12px', color: '#7b7690', fontSize: 14 }}>Можно выбрать несколько вариантов</p>
-            <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
+            <p className="space-onboarding-hint">
+              {isEditMode
+                ? 'Выбранные варианты подсвечены. Снимите крестиком то, что больше не подходит — рекомендации обновятся после сохранения.'
+                : 'Можно выбрать несколько вариантов'}
+            </p>
+
+            {selected.length > 0 ? (
+              <div className="space-onboarding-selected" aria-label="Выбрано на этом шаге">
+                {selected.map((tag) => (
+                  <span key={tag} className="space-onboarding-selected-chip">
+                    <span className="space-onboarding-selected-chip-label">{spaceOnboardingTagLabel(tag)}</span>
+                    <button
+                      type="button"
+                      className="space-onboarding-selected-chip-remove"
+                      aria-label={`Убрать: ${spaceOnboardingTagLabel(tag)}`}
+                      disabled={saving}
+                      onClick={() => removeTag(q.id, tag)}
+                    >
+                      <X size={14} strokeWidth={2.5} aria-hidden />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="space-onboarding-options" role="group" aria-label={q.title}>
               {q.options.map((opt) => {
                 const active = selected.includes(opt.tag);
                 return (
                   <button
                     key={opt.tag}
                     type="button"
-                    onClick={() =>
-                      setAnswers((prev) => {
-                        const cur = Array.isArray(prev[q.id]) ? prev[q.id] : prev[q.id] ? [prev[q.id]] : [];
-                        const has = cur.includes(opt.tag);
-                        const next = has ? cur.filter((t) => t !== opt.tag) : [...cur, opt.tag];
-                        return { ...prev, [q.id]: next };
-                      })
-                    }
-                    className={`tests-mock-chip tests-mock-chip--v2 ${active ? 'tests-mock-chip--active tests-mock-chip--v2-active' : ''}`}
-                    style={{ width: '100%', justifyContent: 'flex-start', padding: '14px 16px' }}
+                    aria-pressed={active}
+                    disabled={saving}
+                    onClick={() => toggleTag(q.id, opt.tag)}
+                    className={`tests-mock-chip tests-mock-chip--v2 space-onboarding-option ${
+                      active ? 'tests-mock-chip--active tests-mock-chip--v2-active' : ''
+                    }`}
                   >
                     {opt.label}
                   </button>
                 );
               })}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-              <div style={{ color: '#7b7690', fontSize: 14 }}>
-                Вопрос {step + 1} из {QUESTIONS.length}
+
+            <div className="space-onboarding-steps" aria-hidden>
+              {SPACE_ONBOARDING_QUESTIONS.map((item, i) => {
+                const count = getSelectedForQuestion(answers, item.id).length;
+                return (
+                  <span
+                    key={item.id}
+                    className={`space-onboarding-step-dot ${i === step ? 'is-current' : ''} ${
+                      count > 0 ? 'has-answers' : ''
+                    }`}
+                    title={count > 0 ? `Выбрано: ${count}` : undefined}
+                  />
+                );
+              })}
+            </div>
+
+            <div className="space-onboarding-footer">
+              <div className="space-onboarding-progress">
+                Вопрос {step + 1} из {SPACE_ONBOARDING_QUESTIONS.length}
               </div>
-              <div style={{ display: 'flex', gap: 10 }}>
+              <div className="space-onboarding-actions">
                 {step > 0 ? (
                   <button
                     type="button"
@@ -146,21 +153,22 @@ export default function SpaceOnboardingModal({ saving, onClose, onGoSpace, onCom
                   </button>
                 ) : null}
                 {!isLast ? (
-                  <button type="button" className="btn btn-primary" onClick={() => setStep((s) => s + 1)} disabled={!canNext || saving}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setStep((s) => s + 1)}
+                    disabled={!canNext || saving}
+                  >
                     Дальше
                   </button>
                 ) : (
                   <button
                     type="button"
                     className="btn btn-primary"
-                    onClick={async () => {
-                      if (!canNext || saving) return;
-                      await onComplete(payload);
-                      setDoneView(true);
-                    }}
+                    onClick={handleFinish}
                     disabled={!canNext || saving}
                   >
-                    {saving ? 'Сохраняем…' : 'Готово'}
+                    {saving ? 'Сохраняем…' : isEditMode ? 'Сохранить изменения' : 'Готово'}
                   </button>
                 )}
               </div>
@@ -168,14 +176,20 @@ export default function SpaceOnboardingModal({ saving, onClose, onGoSpace, onCom
           </>
         ) : (
           <>
-            <h2 id="space-onb-title" style={{ margin: '0 0 10px', fontSize: 30 }}>Ваше пространство готово 🌿</h2>
-            <p style={{ margin: '0 0 12px', color: '#5f5870', lineHeight: 1.55 }}>
-              Мы подобрали для вас более комфортный формат рекомендаций. Теперь на главной странице будут появляться фильмы, музыка, подкасты, медитации и материалы, которые лучше подходят вашему состоянию и интересам.
+            <h2 id="space-onb-title" className="space-onboarding-title space-onboarding-title--done">
+              {isEditMode ? 'Предпочтения обновлены 🌿' : 'Ваше пространство готово 🌿'}
+            </h2>
+            <p className="space-onboarding-done-text">
+              {isEditMode
+                ? 'Мы пересобрали рекомендации на главной с учётом вашего нового выбора. Убранные интересы больше не влияют на подбор.'
+                : 'Мы подобрали для вас более комфортный формат рекомендаций. Теперь на главной странице будут появляться фильмы, музыка, подкасты, медитации и материалы, которые лучше подходят вашему состоянию и интересам.'}
             </p>
-            <p style={{ margin: '0 0 18px', color: '#6c6780' }}>
-              Вы всегда сможете пройти подбор заново и изменить предпочтения.
-            </p>
-            <div className="modal-actions" style={{ justifyContent: 'space-between', gap: 10 }}>
+            {!isEditMode ? (
+              <p className="space-onboarding-done-text space-onboarding-done-text--muted">
+                Вы всегда сможете пройти подбор заново и изменить предпочтения.
+              </p>
+            ) : null}
+            <div className="modal-actions space-onboarding-done-actions">
               <button type="button" className="btn btn-ghost" onClick={onClose}>
                 На главную
               </button>
@@ -188,4 +202,12 @@ export default function SpaceOnboardingModal({ saving, onClose, onGoSpace, onCom
       </div>
     </div>
   );
+}
+
+function hasInitialAnswers(prefs) {
+  if (!prefs || typeof prefs !== 'object') return false;
+  return SPACE_ONBOARDING_QUESTIONS.some((q) => {
+    const raw = prefs[q.id];
+    return Array.isArray(raw) ? raw.length > 0 : Boolean(raw);
+  });
 }

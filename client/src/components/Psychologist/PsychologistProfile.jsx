@@ -14,6 +14,10 @@ import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
 import api from '../../utils/api';
+import {
+  areNotificationsEnabled,
+  writeLocalNotificationsEnabled,
+} from '../../utils/notificationPreferences';
 import { backendPublicUrl } from '../../utils/assetUrl';
 import { ACCOUNT_STATUS_LABELS } from './psychConstants';
 import SidebarCollapseButton from '../Layout/SidebarCollapseButton';
@@ -21,10 +25,8 @@ import '../Profile/Profile.css';
 
 void SidebarCollapseButton;
 
-const NOTIF_KEY = 'burnout_notifications';
-
 export default function PsychologistProfile() {
-  const { updateUser, logout } = useAuth();
+  const { user, updateUser, logout } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -45,13 +47,8 @@ export default function PsychologistProfile() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState(null);
-  const [notifOn, setNotifOn] = useState(() => {
-    try {
-      return localStorage.getItem(NOTIF_KEY) !== '0';
-    } catch {
-      return true;
-    }
-  });
+  const [notifOn, setNotifOn] = useState(() => areNotificationsEnabled(user));
+  const [notifSaving, setNotifSaving] = useState(false);
 
   useEffect(() => {
     api
@@ -76,12 +73,30 @@ export default function PsychologistProfile() {
   }, []);
 
   useEffect(() => {
+    setNotifOn(areNotificationsEnabled(user));
+  }, [user?.user_id, user?.notifications_enabled]);
+
+  const handleNotificationsToggle = async () => {
+    if (notifSaving) return;
+    const next = !notifOn;
+    setNotifOn(next);
+    writeLocalNotificationsEnabled(next);
+    setNotifSaving(true);
     try {
-      localStorage.setItem(NOTIF_KEY, notifOn ? '1' : '0');
+      const { data } = await api.put('/users/me/notifications-enabled', { enabled: next });
+      const enabled = data?.notifications_enabled !== false;
+      setNotifOn(enabled);
+      writeLocalNotificationsEnabled(enabled);
+      updateUser({ notifications_enabled: enabled });
     } catch {
-      /* ignore */
+      const rollback = !next;
+      setNotifOn(rollback);
+      writeLocalNotificationsEnabled(rollback);
+      setMsg({ type: 'error', text: 'Не удалось сохранить настройку уведомлений' });
+    } finally {
+      setNotifSaving(false);
     }
-  }, [notifOn]);
+  };
 
   useEffect(() => {
     if (!avatarFile) {
@@ -317,7 +332,7 @@ export default function PsychologistProfile() {
                 <span className="profile-setting-desc">{t('pages.profileLangHint')}</span>
               </div>
               <div className="profile-lang-switch-wrap">
-                <LanguageSwitcher className="lang-switch--on-light-bg" />
+                <LanguageSwitcher variant="dropdown" />
               </div>
             </li>
 
@@ -333,7 +348,8 @@ export default function PsychologistProfile() {
                 <input
                   type="checkbox"
                   checked={notifOn}
-                  onChange={() => setNotifOn((v) => !v)}
+                  disabled={notifSaving}
+                  onChange={handleNotificationsToggle}
                 />
                 <span className="profile-switch-slider" />
               </label>

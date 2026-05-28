@@ -5316,46 +5316,16 @@
   width: 100%;
 }
 
-.practices-favorites-music {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 14px;
-  margin-bottom: 16px;
+.practices-favorites-page .music-hub--favorites-strip {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  background: transparent;
 }
 
-.practices-favorites-mood-card {
-  width: 100%;
-}
-
-.practices-favorites-music-track {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 14px;
-  border: 1px solid rgba(130, 165, 235, 0.22);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.92);
-  cursor: pointer;
-  text-align: left;
-  font: inherit;
-}
-
-.practices-favorites-music-track-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.practices-favorites-music-track-meta strong {
-  font-size: 14px;
-  color: #1e293b;
-}
-
-.practices-favorites-music-track-meta span {
-  font-size: 12px;
-  color: #64748b;
+.practices-favorites-page .music-hub--favorites-strip .music-hub-rec-row {
+  grid-template-columns: auto 1fr auto auto;
 }
 
 .practices-favorites-podcasts {
@@ -6649,6 +6619,49 @@
   margin-bottom: 12px;
 }
 
+/* Избранное: голубые сердечки на карточках (ниже hub-cover-cards — перебивает серый/чёрный) */
+.practices-favorites-page .hub-cover-cards .practice-card-fav--cover,
+.practices-favorites-page .hub-cover-cards .practice-card-fav--cover:hover,
+.practices-favorites-page .hub-cover-cards .practice-card-fav--cover.is-on,
+.practices-favorites-page .hub-cover-cards .practice-card-fav,
+.practices-favorites-page .hub-cover-cards .practice-card-fav:hover,
+.practices-favorites-page .hub-cover-cards .practice-card-fav.is-on,
+.practices-favorites-page .hub-cover-fav.practice-card-fav--cover,
+.practices-favorites-page .hub-cover-fav.practice-card-fav--cover:hover,
+.practices-favorites-page .hub-cover-fav.practice-card-fav--cover.is-on,
+.practices-favorites-page .events-flix-results.hub-cover-cards .events-flix-card__fav,
+.practices-favorites-page .events-flix-results.hub-cover-cards .events-flix-card__fav:hover,
+.practices-favorites-page .events-flix-results.hub-cover-cards .events-flix-card__fav.is-on {
+  color: #6a8ad6;
+}
+
+.practices-favorites-page .hub-cover-cards .practice-card-fav--cover.is-on,
+.practices-favorites-page .hub-cover-cards .practice-card-fav.is-on,
+.practices-favorites-page .hub-cover-fav.practice-card-fav--cover.is-on,
+.practices-favorites-page .events-flix-results.hub-cover-cards .events-flix-card__fav.is-on,
+.practices-favorites-page .music-hub-rec-fav,
+.practices-favorites-page .music-hub-rec-fav.is-on {
+  color: #82a5eb;
+}
+
+.practices-favorites-page .hub-cover-cards .practice-card-fav--cover svg,
+.practices-favorites-page .hub-cover-cards .practice-card-fav svg,
+.practices-favorites-page .hub-cover-fav.practice-card-fav--cover svg,
+.practices-favorites-page .events-flix-results.hub-cover-cards .events-flix-card__fav svg {
+  stroke: currentColor;
+}
+
+.practices-favorites-page .practice-card-meta svg,
+.practices-favorites-page .practice-card-footer .practice-card-meta svg,
+.practices-favorites-page .events-flix-card__time svg {
+  color: #6a8ad6;
+}
+
+.practices-favorites-page .events-flix-results.hub-cover-cards .events-flix-card__topic.practice-card-topic {
+  background: rgba(106, 138, 214, 0.16);
+  color: #3b6fb8;
+}
+
 .meditation-hub-tagline {
   display: flex;
   align-items: center;
@@ -6738,6 +6751,17 @@
   background: rgba(30, 58, 138, 0.35);
   border-color: rgba(96, 165, 250, 0.45);
   color: #dbeafe;
+}
+
+[data-theme='dark'] .practices-favorites-page .hub-cover-cards .practice-card-fav--cover,
+[data-theme='dark'] .practices-favorites-page .hub-cover-cards .practice-card-fav--cover:hover,
+[data-theme='dark'] .practices-favorites-page .hub-cover-cards .practice-card-fav--cover.is-on,
+[data-theme='dark'] .practices-favorites-page .hub-cover-fav.practice-card-fav--cover,
+[data-theme='dark'] .practices-favorites-page .hub-cover-fav.practice-card-fav--cover:hover,
+[data-theme='dark'] .practices-favorites-page .hub-cover-fav.practice-card-fav--cover.is-on,
+[data-theme='dark'] .practices-favorites-page .events-flix-results.hub-cover-cards .events-flix-card__fav,
+[data-theme='dark'] .practices-favorites-page .events-flix-results.hub-cover-cards .events-flix-card__fav.is-on {
+  color: #9db4ed;
 }
 
 [data-theme='dark'] .meditation-formats-deco {

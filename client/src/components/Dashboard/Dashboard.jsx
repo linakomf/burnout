@@ -38,6 +38,10 @@ import supportNearbyArt from '../../assets/dash-support-nearby.png';
 import testsNavIcon from '../../assets/tests-nav-icon.png';
 import { resolveHomeBannerVideoSrc } from '../../config/homeBannerVideo';
 import { moodEmojiUrl } from '../../utils/moodEmojiAssets';
+import {
+  areNotificationsEnabled,
+  NOTIF_CHANGED_EVENT,
+} from '../../utils/notificationPreferences';
 import SpaceOnboardingModal from './SpaceOnboardingModal';
 import './Dashboard.css';
 
@@ -213,11 +217,40 @@ const Dashboard = () => {
     };
   }, [heroBannerVideoSrc]);
 
+  const [notifEnabled, setNotifEnabled] = useState(() => areNotificationsEnabled(user));
+
+  useEffect(() => {
+    setNotifEnabled(areNotificationsEnabled(user));
+  }, [user?.user_id, user?.notifications_enabled]);
+
+  useEffect(() => {
+    const onPrefChange = (event) => {
+      if (event?.detail && typeof event.detail.enabled === 'boolean') {
+        setNotifEnabled(event.detail.enabled);
+        return;
+      }
+      setNotifEnabled(areNotificationsEnabled(user));
+    };
+    window.addEventListener(NOTIF_CHANGED_EVENT, onPrefChange);
+    return () => window.removeEventListener(NOTIF_CHANGED_EVENT, onPrefChange);
+  }, [user]);
+
   const loadNotifications = React.useCallback(async () => {
+    if (!areNotificationsEnabled(user)) {
+      setNotifications([]);
+      setNotificationsLoading(false);
+      setNotificationsError(false);
+      return;
+    }
     setNotificationsLoading(true);
     setNotificationsError(false);
     try {
       const { data } = await api.get('/users/notifications', { params: { limit: 20 } });
+      if (data?.notifications_enabled === false) {
+        setNotifications([]);
+        setNotifEnabled(false);
+        return;
+      }
       setNotifications(Array.isArray(data?.rows) ? data.rows : []);
     } catch {
       setNotifications([]);
@@ -225,13 +258,19 @@ const Dashboard = () => {
     } finally {
       setNotificationsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!user?.user_id) return undefined;
+    if (!notifEnabled) {
+      setNotifications([]);
+      setNotificationsLoading(false);
+      setNotificationsError(false);
+      return undefined;
+    }
     loadNotifications();
     return undefined;
-  }, [user?.user_id, loadNotifications]);
+  }, [user?.user_id, notifEnabled, loadNotifications]);
 
   useEffect(() => {
     let cancelled = false;
@@ -409,8 +448,8 @@ const Dashboard = () => {
   const toggleNotifications = async () => {
     const nextOpen = !notifOpen;
     setNotifOpen(nextOpen);
-    if (nextOpen) await loadNotifications();
-    if (!nextOpen || unreadNotificationsCount === 0) return;
+    if (nextOpen && notifEnabled) await loadNotifications();
+    if (!nextOpen || !notifEnabled || unreadNotificationsCount === 0) return;
 
     setNotifications((current) =>
       current.map((item) =>
@@ -645,6 +684,8 @@ const Dashboard = () => {
                 <div className="dash-notif-state">{t('dash.notifications.loading')}</div>
               ) : notificationsError ? (
                 <div className="dash-notif-state">{t('dash.notifications.loadError')}</div>
+              ) : !notifEnabled ? (
+                <div className="dash-notif-state">{t('dash.notifications.disabled')}</div>
               ) : notifications.length === 0 ? (
                 <div className="dash-notif-state">{t('dash.notifications.empty')}</div>
               ) : (
@@ -1369,6 +1410,7 @@ const Dashboard = () => {
       {spaceOnboardingOpen ? (
         <SpaceOnboardingModal
           saving={spaceOnboardingSaving}
+          initialPreferences={user?.space_preferences || null}
           onClose={() => setSpaceOnboardingOpen(false)}
           onGoSpace={() => {
             setSpaceOnboardingOpen(false);

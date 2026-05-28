@@ -1,21 +1,28 @@
 import React from 'react';
-import logoSrc from '../../assets/brand/mindtrack-logo.png';
+import logoSrc from '../../assets/brand/burnout-logo.png';
 import './AppLogo.css';
 
-export const APP_LOGO_ALT = 'MindTrack';
+/**
+ * Фирменный логотип (облако с сердцем).
+ * @param {number} [size=44] — сторона в px
+ * @param {boolean} [decorative] — скрыть от скринридеров
+ * @param {string} [className]
+ * @param {string} [alt]
+ */
+export default function AppLogo({ size = 44, decorative = false, className = '', alt = 'burnout' }) {
+  const px = Math.max(16, Number(size) || 44);
 
-export default function AppLogo({ className = '', size = 40, alt = APP_LOGO_ALT, decorative = false }) {
   return (
     <img
       src={logoSrc}
       alt={decorative ? '' : alt}
-      aria-hidden={decorative ? true : undefined}
-      className={`app-logo${className ? ` ${className}` : ''}`}
-      width={size}
-      height={size}
-      style={{ width: size, height: size }}
+      width={px}
+      height={px}
+      className={`app-logo ${className}`.trim()}
+      style={{ width: px, height: px }}
       decoding="async"
       draggable={false}
+      {...(decorative ? { 'aria-hidden': true } : {})}
     />
   );
 }

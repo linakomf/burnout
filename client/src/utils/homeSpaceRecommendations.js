@@ -260,6 +260,22 @@ const CONTENT_PREF_TO_CARD_TYPES = {
   events: ['event']
 };
 
+const CARD_TYPE_TO_CONTENT_PREF = {
+  film: 'movies',
+  music: 'music',
+  meditation: 'meditation',
+  article: 'reading',
+  book: 'reading',
+  podcast: 'podcasts',
+  event: 'events'
+};
+
+function isAllowedByContentPrefs(candidate, prefs) {
+  if (!prefs?.length) return true;
+  const pref = CARD_TYPE_TO_CONTENT_PREF[candidate.type];
+  return Boolean(pref && prefs.includes(pref));
+}
+
 function bestCandidateForContentPref(candidates, pref) {
   const types = CONTENT_PREF_TO_CARD_TYPES[pref];
   if (!types?.length) return null;
@@ -290,11 +306,15 @@ function sectionBucket(cardType) {
 
 /**
  * Не больше одной карточки на раздел (фильмы / музыка / …).
- * Сначала — по выбору в Q1 (по одной лучшей на тег), затем добор по score в свободные разделы, до 6.
+ * Если в Q1 выбраны категории — только они (без добора фильмов/событий по скорингу настроения).
  */
 function pickHomeCards(candidates, spacePreferences) {
   const prefs = dedupeContentPrefs(spacePreferences?.contentPreferences);
-  const sorted = [...candidates].sort((a, b) => b.score - a.score);
+  const hasContentPrefs = prefs.length > 0;
+  const pool = hasContentPrefs
+    ? candidates.filter((c) => isAllowedByContentPrefs(c, prefs))
+    : candidates;
+  const sorted = [...pool].sort((a, b) => b.score - a.score);
   const picked = [];
   const usedKeys = new Set();
   const usedBuckets = new Set();
@@ -311,11 +331,12 @@ function pickHomeCards(candidates, spacePreferences) {
     return true;
   };
 
-  if (prefs.length) {
+  if (hasContentPrefs) {
     for (const pref of prefs) {
       const best = bestCandidateForContentPref(sorted, pref);
       pushIfNewBucket(best);
     }
+    return picked.slice(0, 6).map(({ score, ...rest }) => rest);
   }
 
   for (const c of sorted) {

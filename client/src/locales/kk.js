@@ -167,6 +167,7 @@ export default {
       loading: 'Хабарландырулар жүктелуде...',
       loadError: 'Хабарландыруларды жүктеу мүмкін болмады',
       empty: 'Хабарландырулар әлі жоқ',
+      disabled: 'Хабарландырулар профиль баптауларында өшірілген. Еске салулар алу үшін қосыңыз.',
       new: 'Жаңа',
       confirmYes: 'Иә, хабарласты',
       confirmNo: 'Жоқ, болмады',
@@ -282,7 +283,7 @@ export default {
     psychologistRequests: 'Өтініштер'
   },
   landing: {
-    brandName: 'MindTrack',
+    brandName: 'burnout',
     logoSub: 'Академиялық нұсқа',
     toCabinet: 'Кабинетке',
     login: 'Кіру',
@@ -393,6 +394,10 @@ export default {
     linkLogin: 'Кіру',
     labelName: 'Толық аты-жөні',
     phName: 'Атыңыз',
+    labelFirstName: 'Аты',
+    phFirstName: 'Аты',
+    labelLastName: 'Тегі',
+    phLastName: 'Тегі',
     labelAge: 'Жас',
     phAge: 'Жасыңыз',
     labelRole: 'Рөлі',

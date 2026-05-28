@@ -67,16 +67,23 @@
 .logo-icon {
   width: 40px;
   height: 40px;
-  border-radius: 0;
+  border-radius: 12px;
   background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+}
+
+.logo-icon .app-logo {
+  width: 100%;
+  height: 100%;
 }
 
 .logo-text {
   font-family: var(--font-sans);
   font-weight: var(--font-weight-bold, 700);
   font-size: 18px;
-  color: #111111;
   letter-spacing: -0.02em;
   white-space: nowrap;
 }
@@ -361,8 +368,8 @@
   background: transparent;
 }
 
-[data-theme='dark'] .logo-text {
-  color: #f0f0f0;
+[data-theme='dark'] .logo-text.brand-wordmark {
+  color: var(--brand-blue-mid, #82a5eb);
 }
 
 [data-theme='dark'] .nav-item-main {

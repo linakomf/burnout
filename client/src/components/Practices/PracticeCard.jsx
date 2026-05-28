@@ -84,24 +84,38 @@ function PracticeCard({
               )}
               <div className="practice-card-cover-actions">
                 {isSoundsCard ? (
-                  <span className="practice-card-duration practice-card-duration--cover">
-                    <Clock size={14} strokeWidth={2} aria-hidden />
-                    {t('pages.meditationCardDuration', { min: practice.durationMin })}
-                  </span>
+                  <>
+                    <span className="practice-card-duration practice-card-duration--cover">
+                      <Clock size={14} strokeWidth={2} aria-hidden />
+                      {t('pages.meditationCardDuration', { min: practice.durationMin })}
+                    </span>
+                    <button
+                      type="button"
+                      className={`practice-card-fav practice-card-fav--cover ${isFavorite ? 'is-on' : ''}`}
+                      aria-label={t('pages.meditationModalFavorite')}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onToggleFavorite(practice.id);
+                      }}>
+                      <Heart size={18} strokeWidth={2} fill={isFavorite ? 'currentColor' : 'none'} />
+                    </button>
+                  </>
                 ) : (
-                  <button
-                    type="button"
-                    className={`practice-card-fav practice-card-fav--cover ${isFavorite ? 'is-on' : ''}`}
-                    aria-label={t('pages.meditationModalFavorite')}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onToggleFavorite(practice.id);
-                    }}>
-                    <Heart size={18} strokeWidth={2} fill={isFavorite ? 'currentColor' : 'none'} />
-                  </button>
-                )}
-                {topicLabelKey && !isSoundsCard && (
-                  <span className="practice-card-topic">{t(`pages.${topicLabelKey}`)}</span>
+                  <>
+                    <button
+                      type="button"
+                      className={`practice-card-fav practice-card-fav--cover ${isFavorite ? 'is-on' : ''}`}
+                      aria-label={t('pages.meditationModalFavorite')}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onToggleFavorite(practice.id);
+                      }}>
+                      <Heart size={18} strokeWidth={2} fill={isFavorite ? 'currentColor' : 'none'} />
+                    </button>
+                    {topicLabelKey ? (
+                      <span className="practice-card-topic">{t(`pages.${topicLabelKey}`)}</span>
+                    ) : null}
+                  </>
                 )}
               </div>
             </div>

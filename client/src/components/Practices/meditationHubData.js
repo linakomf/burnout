@@ -34,6 +34,10 @@ export const MEDITATION_LEVEL_LABEL_KEYS = {
   advanced: 'meditationModalLevelAdvanced',
 };
 
+export function isRemoteMeditationId(id) {
+  return /^meditation-\d+$/.test(String(id || ''));
+}
+
 export function practiceHasPlayableAudio(practice) {
   if (!practice) return false;
   if (practice.embedUrl || practice.audioUrl) return true;

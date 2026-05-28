@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Heart } from 'lucide-react';
+import { Heart, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import api from '../../utils/api';
@@ -8,34 +8,32 @@ import { backendPublicUrl } from '../../utils/assetUrl';
 import PracticeCard from './PracticeCard';
 import PracticeModal from './PracticeModal';
 import PracticeCoverFavorite from './PracticeCoverFavorite';
-import { PRACTICES } from './practicesData';
 import {
-  ARTICLES_LIBRARY,
-  BOOKS_LIBRARY,
+  isRemoteArticleId,
+  isRemoteBookId,
   mapRemoteArticlePayload,
   mapRemoteBookPayload,
   readingItemCategoryLabel,
   readingItemTitle,
 } from './articlesHubData';
-import { ALL_EVENTS, mapRemoteEventPayload } from './eventsHubData';
-import { FILMS } from './filmsCatalogData';
+import { isRemoteEventId, mapRemoteEventPayload } from './eventsHubData';
+import { isRemoteFilmId } from './filmsCatalogData';
 import {
   findPlayableById,
+  isRemoteMusicId,
   mapRemoteMusicTrack,
   mapRemoteQuickSound,
-  MOOD_PLAYLISTS,
-  MUSIC_TRACKS,
   musicArtist,
   musicGenre,
   musicTitle,
-  QUICK_SOUNDS,
 } from './musicHubData';
 import { loadMeditationFavorites, saveMeditationFavorites } from './meditationFavorites';
-import { mapRemoteMeditationPayload } from './meditationHubData';
+import { isRemoteMeditationId, mapRemoteMeditationPayload } from './meditationHubData';
 import { EventGridCard } from './EventsPracticeHubParts';
 import {
   episodeToPracticeCard,
   findEpisodeById,
+  isRemotePodcastId,
   mapRemotePodcastPayload,
 } from './podcastHubData';
 import { spaceSectionHref } from './practiceSpaceConfig';
@@ -63,10 +61,6 @@ const FAVORITE_CATEGORIES = [
   { id: 'events', labelKey: 'practicesPocketEventsTitle' },
   { id: 'articles', labelKey: 'practicesPocketArticlesTitle' },
 ];
-
-function isMeditationPractice(practice) {
-  return practice.category === 'focus' || practice.category === 'grounding';
-}
 
 function normalizeRemoteFilm(f) {
   return {
@@ -154,31 +148,54 @@ function PracticesFavorites() {
     };
   }, [reloadFavorites]);
 
-  const filmCatalog = useMemo(() => [...FILMS, ...remoteFilms], [remoteFilms]);
-  const meditationList = useMemo(
-    () => [...PRACTICES.filter(isMeditationPractice), ...remoteMeditations],
-    [remoteMeditations]
-  );
+  const filmCatalog = remoteFilms;
+  const meditationList = remoteMeditations;
   const readingCatalog = useMemo(
-    () => [...ARTICLES_LIBRARY, ...BOOKS_LIBRARY, ...remoteArticles, ...remoteBooks],
+    () => [...remoteArticles, ...remoteBooks],
     [remoteArticles, remoteBooks]
   );
-  const allTracks = useMemo(() => [...MUSIC_TRACKS, ...remoteTracks], [remoteTracks]);
-  const allQuick = useMemo(() => [...QUICK_SOUNDS, ...remoteQuick], [remoteQuick]);
-  const podcastCatalog = useMemo(() => remotePodcasts, [remotePodcasts]);
-  const eventCatalog = useMemo(() => [...ALL_EVENTS, ...remoteEvents], [remoteEvents]);
+  const allTracks = remoteTracks;
+  const allQuick = remoteQuick;
+  const podcastCatalog = remotePodcasts;
+  const eventCatalog = remoteEvents;
+
+  const pruneSectionFavoriteKey = useCallback((key, isValidId) => {
+    setSectionFavs((prev) => {
+      const pruned = [...prev[key]].filter((id) => isValidId(id));
+      if (pruned.length === prev[key].size) return prev;
+      const nextSet = new Set(pruned);
+      saveSectionFavorites(FAVORITES_KEYS[key], nextSet);
+      return { ...prev, [key]: nextSet };
+    });
+  }, []);
 
   useEffect(() => {
-    if (remotePodcasts.length === 0) return;
-    const validIds = new Set(remotePodcasts.map((ep) => ep.id));
-    setSectionFavs((prev) => {
-      const pruned = [...prev.podcasts].filter((id) => validIds.has(id));
-      if (pruned.length === prev.podcasts.size) return prev;
-      const nextSet = new Set(pruned);
-      saveSectionFavorites(FAVORITES_KEYS.podcasts, nextSet);
-      return { ...prev, podcasts: nextSet };
+    pruneSectionFavoriteKey('films', isRemoteFilmId);
+  }, [remoteFilms, pruneSectionFavoriteKey]);
+
+  useEffect(() => {
+    pruneSectionFavoriteKey('reading', (id) => isRemoteArticleId(id) || isRemoteBookId(id));
+  }, [remoteArticles, remoteBooks, pruneSectionFavoriteKey]);
+
+  useEffect(() => {
+    pruneSectionFavoriteKey('music', isRemoteMusicId);
+  }, [remoteTracks, remoteQuick, pruneSectionFavoriteKey]);
+
+  useEffect(() => {
+    pruneSectionFavoriteKey('podcasts', isRemotePodcastId);
+  }, [remotePodcasts, pruneSectionFavoriteKey]);
+
+  useEffect(() => {
+    pruneSectionFavoriteKey('events', isRemoteEventId);
+  }, [remoteEvents, pruneSectionFavoriteKey]);
+
+  useEffect(() => {
+    setMeditationFavs((prev) => {
+      const pruned = [...prev].filter((id) => isRemoteMeditationId(id));
+      if (pruned.length === prev.size) return prev;
+      return new Set(pruned);
     });
-  }, [remotePodcasts]);
+  }, [remoteMeditations]);
 
   const favoriteFilms = useMemo(
     () =>
@@ -204,11 +221,7 @@ function PracticesFavorites() {
   const favoriteMusic = useMemo(() => {
     const items = [];
     for (const id of sectionFavs.music) {
-      const mood = MOOD_PLAYLISTS.find((m) => m.id === id);
-      if (mood) {
-        items.push({ type: 'mood', data: mood });
-        continue;
-      }
+      if (!isRemoteMusicId(id)) continue;
       const track = findPlayableById(id, allTracks, allQuick);
       if (track) items.push({ type: 'track', data: track });
     }
@@ -337,56 +350,49 @@ function PracticesFavorites() {
       case 'music':
         if (favoriteMusic.length === 0) return null;
         return (
-          <div className="practices-favorites-music">
-            {favoriteMusic.map((entry) =>
-              entry.type === 'mood' ? (
-                <button
-                  key={entry.data.id}
-                  type="button"
-                  className="music-hub-mood-card practices-favorites-mood-card"
-                  onClick={() => navigate(spaceSectionHref('music'))}
-                >
-                  <span
-                    className="music-hub-mood-media"
-                    style={{ backgroundImage: `url(${entry.data.image})` }}
-                  />
-                  <PracticeCoverFavorite
-                    isFavorite
-                    onToggle={() => toggleSectionFavorite('music', entry.data.id)}
-                    ariaLabel={t('pages.meditationModalFavorite')}
-                  />
-                  <span className="music-hub-mood-overlay" />
-                  <span className="music-hub-mood-body">
-                    <span className="music-hub-mood-label">{t(`pages.${entry.data.labelKey}`)}</span>
-                  </span>
-                </button>
-              ) : (
-                <button
-                  key={entry.data.id}
-                  type="button"
-                  className="practices-favorites-music-track"
-                  onClick={() => navigate(spaceSectionHref('music'))}
-                >
-                  <span className="music-hub-rec-thumb-wrap">
-                    <span
-                      className="music-hub-rec-thumb"
-                      style={{ backgroundImage: `url(${entry.data.poster})` }}
-                    />
-                    <PracticeCoverFavorite
-                      isFavorite
-                      onToggle={() => toggleSectionFavorite('music', entry.data.id)}
-                      ariaLabel={t('pages.meditationModalFavorite')}
-                    />
-                  </span>
-                  <span className="practices-favorites-music-track-meta">
-                    <strong>{musicTitle(entry.data, t)}</strong>
-                    <span>
-                      {musicArtist(entry.data, t)} · {musicGenre(entry.data, t)}
-                    </span>
-                  </span>
-                </button>
-              )
-            )}
+          <div className="music-hub music-hub--favorites-strip">
+            <ul className="music-hub-rec-list">
+              {favoriteMusic.map((entry) => {
+                const item = entry.data;
+                return (
+                  <li key={item.id} className="music-hub-rec-row">
+                    <button
+                      type="button"
+                      className="music-hub-rec-cover"
+                      onClick={() =>
+                        navigate(`${spaceSectionHref('music')}?play=${encodeURIComponent(item.id)}`)
+                      }
+                      aria-label={t('pages.musicPlay')}
+                    >
+                      <span
+                        className="music-hub-rec-thumb"
+                        style={{ backgroundImage: `url(${item.poster})` }}
+                        aria-hidden
+                      />
+                      <span className="music-hub-rec-cover-play" aria-hidden>
+                        <Play size={20} fill="currentColor" strokeWidth={0} />
+                      </span>
+                    </button>
+                    <div className="music-hub-rec-meta">
+                      <strong className="music-hub-rec-title">{musicTitle(item, t)}</strong>
+                      <span className="music-hub-rec-sub">
+                        {musicArtist(item, t)} · {musicGenre(item, t)}
+                      </span>
+                    </div>
+                    <span className="music-hub-rec-dur">{item.durationShort || '—'}</span>
+                    <button
+                      type="button"
+                      className="music-hub-rec-fav is-on"
+                      aria-label={t('pages.meditationModalFavorite')}
+                      aria-pressed
+                      onClick={() => toggleSectionFavorite('music', item.id)}
+                    >
+                      <Heart size={18} strokeWidth={2} fill="currentColor" />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         );
 

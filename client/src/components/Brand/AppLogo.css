@@ -1,16 +1,18 @@
-.app-logo {
-  display: block;
-  object-fit: contain;
-  background: transparent;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
 .app-logo-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: transparent;
-  overflow: visible;
+}
+
+.app-logo {
+  display: block;
+  object-fit: contain;
+  user-select: none;
+}
+
+.brand-wordmark {
+  color: var(--brand-blue, #6a8ad6);
+  font-weight: var(--font-weight-bold, 700);
+  letter-spacing: -0.02em;
 }
