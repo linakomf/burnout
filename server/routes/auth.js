@@ -10,7 +10,14 @@ function normalizeEmail(raw) {
     .toLowerCase();
 }
 
+function ensureJwtSecretOr503(res) {
+  if (process.env.JWT_SECRET?.trim()) return true;
+  res.status(503).json({ message: 'Сервер временно не настроен: отсутствует JWT_SECRET' });
+  return false;
+}
+
 router.post('/register', async (req, res) => {
+  if (!ensureJwtSecretOr503(res)) return;
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const name = String(
     body.firstName ?? body.first_name ?? body.name ?? ''
@@ -98,6 +105,7 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
+  if (!ensureJwtSecretOr503(res)) return;
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const email = normalizeEmail(body.email);
   const password = body.password != null && body.password !== '' ? String(body.password) : '';
