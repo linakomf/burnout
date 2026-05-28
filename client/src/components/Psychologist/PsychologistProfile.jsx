@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  Camera,
   Save,
   AlertCircle,
   CheckCircle,
@@ -17,7 +18,7 @@ import {
   areNotificationsEnabled,
   writeLocalNotificationsEnabled,
 } from '../../utils/notificationPreferences';
-import { backendPublicUrl, parseMediaPathsText } from '../../utils/assetUrl';
+import { backendPublicUrl } from '../../utils/assetUrl';
 import { ACCOUNT_STATUS_LABELS } from './psychConstants';
 import SidebarCollapseButton from '../Layout/SidebarCollapseButton';
 import '../Profile/Profile.css';
@@ -40,11 +41,12 @@ export default function PsychologistProfile() {
     whatsapp: '',
     work_phone: ''
   });
-  const [avatarPath, setAvatarPath] = useState('');
-  const [newDocsText, setNewDocsText] = useState('');
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [newDocs, setNewDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState(null);
   const [notifOn, setNotifOn] = useState(() => areNotificationsEnabled(user));
   const [notifSaving, setNotifSaving] = useState(false);
 
@@ -96,27 +98,39 @@ export default function PsychologistProfile() {
     }
   };
 
+  useEffect(() => {
+    if (!avatarFile) {
+      setAvatarPreviewUrl(null);
+      return undefined;
+    }
+    const url = URL.createObjectURL(avatarFile);
+    setAvatarPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [avatarFile]);
+
+  const handleAvatarPick = (e) => {
+    const file = e.target.files?.[0];
+    if (file) setAvatarFile(file);
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
     setMsg(null);
     try {
-      const documents = parseMediaPathsText(newDocsText).map((path) => ({
-        path,
-        original_name: path.split('/').pop() || 'document',
-      }));
-      const payload = { ...form };
-      if (avatarPath.trim()) payload.avatar = avatarPath.trim();
-      if (documents.length) payload.documents = documents;
-      const { data } = await api.put('/psychologists/me/profile', payload);
+      const fd = new FormData();
+      Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+      if (avatarFile) fd.append('avatar', avatarFile);
+      newDocs.forEach((f) => fd.append('documents', f));
+      const { data } = await api.put('/psychologists/me/profile', fd);
       setProfile(data.profile);
       setDocuments(data.documents || []);
       updateUser({
         name: data.profile?.name,
         avatar: data.profile?.avatar
       });
-      setAvatarPath('');
-      setNewDocsText('');
+      setAvatarFile(null);
+      setNewDocs([]);
       setMsg({ type: 'success', text: 'Профиль успешно обновлён' });
     } catch (err) {
       setMsg({ type: 'error', text: err?.response?.data?.message || 'Ошибка сохранения' });
@@ -141,9 +155,7 @@ export default function PsychologistProfile() {
   }
 
   const avatarUrl = profile?.avatar ? backendPublicUrl(profile.avatar) : null;
-  const avatarPreview = avatarPath.trim()
-    ? backendPublicUrl(avatarPath.trim())
-    : avatarUrl;
+  const avatarPreview = avatarPreviewUrl || avatarUrl;
   const statusLabel =
     ACCOUNT_STATUS_LABELS[profile?.account_status] || profile?.account_status || 'Психолог';
 
@@ -169,15 +181,15 @@ export default function PsychologistProfile() {
                 {profile?.name?.charAt(0)?.toUpperCase() || '?'}
               </div>
             )}
-          </div>
-          <div className="form-group" style={{ marginTop: 12, width: '100%' }}>
-            <label>Путь к фото</label>
+            <label className="avatar-upload-btn" htmlFor="psychAvatarInput">
+              <Camera size={16} />
+            </label>
             <input
-              className="input"
-              type="text"
-              value={avatarPath}
-              onChange={(e) => setAvatarPath(e.target.value)}
-              placeholder={profile?.avatar || '/uploads/avatar.jpg'}
+              id="psychAvatarInput"
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleAvatarPick}
             />
           </div>
           <h2 className="profile-name">{profile?.name}</h2>
@@ -271,14 +283,19 @@ export default function PsychologistProfile() {
             </div>
 
             <div className="form-group">
-              <label>Добавить документы (пути)</label>
-              <textarea
+              <label>Добавить документы</label>
+              <input
                 className="input"
-                rows={3}
-                value={newDocsText}
-                onChange={(e) => setNewDocsText(e.target.value)}
-                placeholder="/uploads/cert.pdf"
+                type="file"
+                multiple
+                accept="image/*,.pdf"
+                onChange={(e) => setNewDocs(Array.from(e.target.files || []))}
               />
+              {newDocs.length > 0 ? (
+                <p className="profile-settings-hint" style={{ marginTop: 8 }}>
+                  К сохранению: {newDocs.length} файл(ов)
+                </p>
+              ) : null}
             </div>
 
             {documents.length > 0 ? (

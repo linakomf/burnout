@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Edit2, Plus, Trash2, X } from 'lucide-react';
 import api from '../../utils/api';
-import AdminMediaPathInput from './AdminMediaPathInput';
+import { backendPublicUrl } from '../../utils/assetUrl';
 import { useLanguage } from '../../context/LanguageContext';
 import { PODCAST_AUDIO_SOURCE_OPTIONS } from '../Practices/podcastHubData';
 import {
@@ -45,8 +45,8 @@ const initialForm = () => ({
   audio_source: 'youtube',
   youtube_url: '',
   audio_external_url: '',
-  cover_url: '',
-  audio_file_url: '',
+  coverFile: null,
+  audioFile: null,
   ...emptyAudienceFields(),
 });
 
@@ -98,7 +98,9 @@ export default function AdminPodcasts({ embedded = false }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [coverBlobUrl, setCoverBlobUrl] = useState('');
   const errorBannerRef = useRef(null);
+  const fileInputsKey = useRef(0);
 
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
@@ -118,11 +120,31 @@ export default function AdminPodcasts({ embedded = false }) {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (!form.coverFile) {
+      setCoverBlobUrl('');
+      return undefined;
+    }
+    const u = URL.createObjectURL(form.coverFile);
+    setCoverBlobUrl(u);
+    return () => URL.revokeObjectURL(u);
+  }, [form.coverFile]);
+
+  const coverPreview = useMemo(() => {
+    if (coverBlobUrl) return coverBlobUrl;
+    if (editingId) {
+      const row = items.find((p) => p.id === editingId);
+      if (row?.coverImage) return backendPublicUrl(row.coverImage);
+    }
+    return '';
+  }, [coverBlobUrl, editingId, items]);
+
   const closeModal = () => {
     setModalOpen(false);
     setEditingId(null);
     setForm(initialForm());
     setError('');
+    fileInputsKey.current += 1;
   };
 
   const openCreate = () => {
@@ -173,8 +195,8 @@ export default function AdminPodcasts({ embedded = false }) {
       audio_source: row.audioSource || 'youtube',
       youtube_url,
       audio_external_url,
-      cover_url: row.coverImage || '',
-      audio_file_url: row.audioSource === 'file' ? row.audioUrl || '' : '',
+      coverFile: null,
+      audioFile: null,
       target_role: row.target_role || 'all',
       target_gender: row.target_gender || 'all',
     });
@@ -192,52 +214,49 @@ export default function AdminPodcasts({ embedded = false }) {
       return;
     }
 
-    const cover_url = form.cover_url.trim();
-    if (!cover_url) {
-      setError('Укажите путь к обложке.');
-      errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      return;
-    }
-
-    const payload = {
-      title,
-      show_name: form.show_name.trim(),
-      description_short: form.description_short.trim(),
-      meta_line: form.meta_line.trim(),
-      tags: form.tags,
-      episode_num: form.episode_num.trim() || '1',
-      duration_min: form.duration_min.trim() || '24',
-      is_featured_pick: form.is_featured_pick,
-      target_role: form.target_role || 'all',
-      target_gender: form.target_gender || 'all',
-      audio_source: form.audio_source,
-      cover_url,
-    };
-
-    if (form.audio_source === 'youtube') {
-      payload.youtube_url = form.youtube_url.trim();
-    }
-    if (form.audio_source === 'url') {
-      const u = form.audio_external_url.trim();
-      payload.audio_external_url = /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : '';
-    }
-    if (form.audio_source === 'file') {
-      const audioPath = form.audio_file_url.trim();
-      if (!audioPath && !editingId) {
-        setError('Укажите путь к аудиофайлу.');
-        errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        return;
-      }
-      if (audioPath) payload.audio_file_url = audioPath;
-    }
-
     const wasEdit = Boolean(editingId);
     setSaving(true);
     try {
+      const fd = new FormData();
+      fd.append('title', title);
+      fd.append('show_name', form.show_name.trim());
+      fd.append('description_short', form.description_short.trim());
+      fd.append('meta_line', form.meta_line.trim());
+      fd.append('tags', JSON.stringify(form.tags));
+      fd.append('episode_num', form.episode_num.trim() || '1');
+      fd.append('duration_min', form.duration_min.trim() || '24');
+      fd.append('is_featured_pick', form.is_featured_pick ? '1' : '0');
+      fd.append('target_role', form.target_role || 'all');
+      fd.append('target_gender', form.target_gender || 'all');
+      fd.append('audio_source', form.audio_source);
+
+      if (form.audio_source === 'youtube') {
+        fd.append('youtube_url', form.youtube_url.trim());
+      }
+      if (form.audio_source === 'url') {
+        const u = form.audio_external_url.trim();
+        const withProto = /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : '';
+        fd.append('audio_external_url', withProto);
+      }
+
       if (!editingId) {
-        await api.post('/podcasts', payload);
+        if (!form.coverFile) {
+          setError('Загрузите обложку.');
+          setSaving(false);
+          return;
+        }
+        fd.append('cover', form.coverFile);
+        if (form.audio_source === 'file' && !form.audioFile) {
+          setError('Загрузите аудиофайл.');
+          setSaving(false);
+          return;
+        }
+        if (form.audio_source === 'file') fd.append('audio', form.audioFile);
+        await api.post('/podcasts', fd);
       } else {
-        await api.patch(`/podcasts/${editingId}`, payload);
+        if (form.coverFile) fd.append('cover', form.coverFile);
+        if (form.audio_source === 'file' && form.audioFile) fd.append('audio', form.audioFile);
+        await api.patch(`/podcasts/${editingId}`, fd);
       }
 
       closeModal();
@@ -459,12 +478,17 @@ export default function AdminPodcasts({ embedded = false }) {
                 <span>Показать в блоке «Подборка для вас»</span>
               </label>
 
-              <AdminMediaPathInput
-                label={`Обложка${editingId ? '' : ' *'}`}
-                value={form.cover_url}
-                onChange={(v) => setForm((f) => ({ ...f, cover_url: v }))}
-                required={!editingId}
-              />
+              <label className="admin-field">
+                <span>Обложка{editingId ? '' : ' *'}</span>
+                <input
+                  key={`cover-${fileInputsKey.current}`}
+                  type="file"
+                  accept="image/*"
+                  required={!editingId}
+                  onChange={(e) => setForm({ ...form, coverFile: e.target.files?.[0] || null })}
+                />
+                {coverPreview ? <img src={coverPreview} alt="" className="admin-film-poster-preview" /> : null}
+              </label>
 
               <label className="admin-field">
                 <span>Краткое описание</span>
@@ -501,13 +525,15 @@ export default function AdminPodcasts({ embedded = false }) {
               </label>
 
               {form.audio_source === 'file' ? (
-                <AdminMediaPathInput
-                  label={`Аудиофайл${editingId ? ' (оставьте пустым, чтобы не менять)' : ' *'}`}
-                  value={form.audio_file_url}
-                  onChange={(v) => setForm((f) => ({ ...f, audio_file_url: v }))}
-                  required={!editingId}
-                  hint="Например: /uploads/episode.mp3"
-                />
+                <label className="admin-field">
+                  <span>Аудиофайл{editingId ? ' (оставьте пустым, чтобы не менять)' : ' *'}</span>
+                  <input
+                    key={`audio-${fileInputsKey.current}`}
+                    type="file"
+                    accept="audio/*,.mp3,.m4a,.wav,.ogg"
+                    onChange={(e) => setForm({ ...form, audioFile: e.target.files?.[0] || null })}
+                  />
+                </label>
               ) : null}
 
               {form.audio_source === 'youtube' ? (

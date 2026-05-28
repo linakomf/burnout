@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import {
+  Camera,
   Save,
   AlertCircle,
   CheckCircle,
@@ -94,15 +95,19 @@ const Profile = () => {
     }
   };
 
-  const handleAvatarPathApply = async (avatarPath) => {
-    const path = String(avatarPath || '').trim();
-    if (!path) return;
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('avatar', file);
     try {
-      const res = await api.post('/users/avatar', { avatar: path });
+      const res = await api.post('/users/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       updateUser({ avatar: res.data.avatar });
       setMsg({ type: 'success', text: 'Фото обновлено' });
     } catch {
-      setMsg({ type: 'error', text: 'Укажите путь /uploads/... или /images/...' });
+      setMsg({ type: 'error', text: 'Ошибка загрузки фото' });
     }
   };
 
@@ -155,16 +160,16 @@ const Profile = () => {
                 {(displayName || user?.name)?.charAt(0)?.toUpperCase()}
               </div>
             }
-          </div>
-          <div className="form-group" style={{ marginTop: 12, width: '100%' }}>
-            <label>Путь к фото</label>
+            <label className="avatar-upload-btn" htmlFor="avatarInput">
+              <Camera size={16} />
+            </label>
             <input
-              className="input"
-              type="text"
-              placeholder="/uploads/avatar.jpg"
-              defaultValue={user?.avatar || ''}
-              onBlur={(e) => handleAvatarPathApply(e.target.value)}
-            />
+              id="avatarInput"
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleAvatarChange} />
+            
           </div>
           <h2 className="profile-name">{displayName || user?.name}</h2>
           <span className="profile-role-badge">{roleLabel[user?.role]}</span>

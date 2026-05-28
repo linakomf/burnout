@@ -1,4 +1,6 @@
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
 const pool = require('../db');
 const { authMiddleware, adminOnly, optionalAuthMiddleware } = require('../middleware/auth');
 const { pickTargetRole, pickTargetGender, appendAudienceFilter } = require('../utils/audienceTargeting');
@@ -6,17 +8,57 @@ const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { sanitizeTopics, KINDS, DIFFICULTY, AUDIO_SOURCES } = require('../utils/meditationTopics');
 const { parseYoutubeUrl } = require('../utils/youtubeUrl');
 const { unlinkMeditationAssets, safeUnlinkUploadPath } = require('../utils/meditationUploadCleanup');
-const {
-  requirePublicImagePath,
-  normalizePublicMediaPath,
-  getPublicUploadsDir,
-} = require('../utils/publicMediaPath');
 
 const router = express.Router();
-const uploadsAbs = getPublicUploadsDir();
+const uploadsAbs = path.join(__dirname, '..', 'uploads');
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsAbs),
+  filename: (req, file, cb) => {
+    const ext =
+      path.extname(file.originalname) ||
+      (file.fieldname === 'audio' ? '.mp3' : String(file.mimetype || '').toLowerCase().startsWith('video/') ? '.mp4' : '.jpg');
+    cb(null, `meditation_${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 48 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const name = String(file.originalname || '').toLowerCase();
+    if (file.fieldname === 'cover') {
+      const mime = String(file.mimetype || '').toLowerCase();
+      const byExt = /\.(jpe?g|png|gif|webp|avif|bmp|heic|heif|mp4)$/i.test(name);
+      const byMime = mime.startsWith('image/') || mime === 'video/mp4';
+      if (byMime || byExt) return cb(null, true);
+      return cb(new Error('Обложка: изображения или MP4'));
+    }
+    if (file.fieldname === 'audio') {
+      const byExt = /\.(mp3|m4a|wav|ogg|webm|aac|flac)$/i.test(name);
+      const byMime = String(file.mimetype || '').toLowerCase().startsWith('audio/');
+      if (byMime || byExt) return cb(null, true);
+      return cb(new Error('Аудио: MP3, M4A, WAV, OGG и др.'));
+    }
+    cb(new Error('Неизвестное поле файла'));
+  },
+});
 
 function apiErrorMessage(e) {
   return dbErrorToMessage(e) || e?.message || 'Ошибка сервера';
+}
+
+function withUpload(fields) {
+  const mw = upload.fields(fields);
+  return (req, res, next) => {
+    mw(req, res, (err) => {
+      if (!err) return next();
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ message: 'Файл слишком большой (макс. 48 МБ)' });
+      }
+      return res.status(400).json({ message: err.message || 'Ошибка загрузки файла' });
+    });
+  };
 }
 
 function parseMeditationPublicId(param) {
@@ -69,31 +111,30 @@ function parseDurationMin(raw) {
   return 10;
 }
 
-function parseAudioPayload(body, existingRow) {
+function parseAudioPayload(body, files, existingRow) {
   const source = String(body.audio_source || existingRow?.audio_source || 'youtube').trim();
   if (!AUDIO_SOURCES.has(source)) {
     return { error: 'Некорректный тип аудио' };
   }
 
+  const audioFile = files?.audio?.[0];
   const out = { audio_source: source };
 
   if (source === 'file') {
-    const fromBody = normalizePublicMediaPath(body.audio_file_url);
-    if (fromBody) {
-      out.audio_file_url = fromBody;
+    if (audioFile) {
+      out.audio_file_url = `/uploads/${audioFile.filename}`;
       out.audio_external_url = '';
       out.youtube_embed_url = '';
       out.youtube_video_id = '';
-      return out;
-    }
-    if (existingRow?.audio_file_url) {
+    } else if (existingRow?.audio_file_url) {
       out.audio_file_url = existingRow.audio_file_url;
       out.audio_external_url = '';
       out.youtube_embed_url = '';
       out.youtube_video_id = '';
-      return out;
+    } else {
+      return { error: 'Загрузите аудиофайл' };
     }
-    return { error: 'Укажите путь к аудио /uploads/file.mp3' };
+    return out;
   }
 
   if (source === 'url') {
@@ -157,188 +198,204 @@ router.get('/:meditationKey', optionalAuthMiddleware, async (req, res) => {
   }
 });
 
-router.post('/', authMiddleware, adminOnly, async (req, res) => {
-  try {
-    const coverImg = requirePublicImagePath(req.body, 'cover_url', {
-      required: true,
-      label: 'обложку',
-    });
-    if (coverImg.error) return res.status(400).json({ message: coverImg.error });
+router.post(
+  '/',
+  authMiddleware,
+  adminOnly,
+  withUpload([
+    { name: 'cover', maxCount: 1 },
+    { name: 'audio', maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const coverFile = req.files?.cover?.[0];
+      if (!coverFile) {
+        return res.status(400).json({ message: 'Загрузите обложку' });
+      }
 
-    const title = String(req.body.title || '').trim();
-    if (!title) return res.status(400).json({ message: 'Укажите название' });
-
-    let kind = String(req.body.kind || 'meditation').trim();
-    if (!KINDS.has(kind)) kind = 'meditation';
-
-    const topics = sanitizeTopics(req.body.topics, kind);
-    const description_short = String(req.body.description_short ?? '').trim();
-    const duration_min = parseDurationMin(req.body.duration_min);
-    const practice_focus = String(req.body.practice_focus ?? '').trim().slice(0, 120);
-
-    let difficulty_level = String(req.body.difficulty_level || 'beginner').trim();
-    if (!DIFFICULTY.has(difficulty_level)) difficulty_level = 'beginner';
-
-    const tip_before = String(req.body.tip_before ?? '').trim().slice(0, 2000);
-
-    const audio = parseAudioPayload(req.body, null);
-    if (audio.error) return res.status(400).json({ message: audio.error });
-
-    const target_role = pickTargetRole(req.body.target_role);
-    const target_gender = pickTargetGender(req.body.target_gender);
-
-    const ins = await pool.query(
-      `INSERT INTO meditations (
-        title, kind, topics, cover_url, description_short, duration_min, practice_focus,
-        difficulty_level, tip_before, audio_source, audio_file_url, audio_external_url,
-        youtube_embed_url, youtube_video_id, target_role, target_gender
-      ) VALUES ($1,$2,$3::jsonb,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
-      RETURNING meditation_id, title, kind, topics, cover_url, description_short, duration_min,
-                practice_focus, difficulty_level, tip_before, audio_source, audio_file_url,
-                audio_external_url, youtube_embed_url, youtube_video_id, target_role, target_gender,
-                created_at, updated_at`,
-      [
-        title,
-        kind,
-        JSON.stringify(topics),
-        coverImg.path,
-        description_short,
-        duration_min,
-        practice_focus,
-        difficulty_level,
-        tip_before,
-        audio.audio_source,
-        audio.audio_file_url || '',
-        audio.audio_external_url || '',
-        audio.youtube_embed_url || '',
-        audio.youtube_video_id || '',
-        target_role,
-        target_gender,
-      ]
-    );
-
-    res.status(201).json(rowToPublicMeditation(ins.rows[0]));
-  } catch (e) {
-    console.error('POST /meditations', e);
-    res.status(500).json({ message: apiErrorMessage(e) });
-  }
-});
-
-router.patch('/:meditationKey', authMiddleware, adminOnly, async (req, res) => {
-  try {
-    const id = parseMeditationPublicId(req.params.meditationKey);
-    if (!id) return res.status(404).json({ message: 'Медитация не найдена' });
-
-    const cur = await pool.query(
-      `SELECT meditation_id, cover_url, audio_file_url, kind, audio_source,
-              audio_external_url, youtube_embed_url, youtube_video_id
-       FROM meditations WHERE meditation_id=$1`,
-      [id]
-    );
-    if (cur.rows.length === 0) return res.status(404).json({ message: 'Медитация не найдена' });
-    const existing = cur.rows[0];
-    const patch = {};
-
-    if (Object.prototype.hasOwnProperty.call(req.body, 'title')) {
       const title = String(req.body.title || '').trim();
       if (!title) return res.status(400).json({ message: 'Укажите название' });
-      patch.title = title;
-    }
 
-    let kind = existing.kind;
-    if (Object.prototype.hasOwnProperty.call(req.body, 'kind')) {
-      kind = String(req.body.kind || 'meditation').trim();
+      let kind = String(req.body.kind || 'meditation').trim();
       if (!KINDS.has(kind)) kind = 'meditation';
-      patch.kind = kind;
-    }
 
-    if (Object.prototype.hasOwnProperty.call(req.body, 'topics') || Object.prototype.hasOwnProperty.call(req.body, 'kind')) {
-      patch.topics = JSON.stringify(sanitizeTopics(req.body.topics, kind));
-    }
+      const topics = sanitizeTopics(req.body.topics, kind);
+      const description_short = String(req.body.description_short ?? '').trim();
+      const duration_min = parseDurationMin(req.body.duration_min);
+      const practice_focus = String(req.body.practice_focus ?? '').trim().slice(0, 120);
 
-    if (Object.prototype.hasOwnProperty.call(req.body, 'description_short')) {
-      patch.description_short = String(req.body.description_short ?? '').trim();
-    }
-    if (Object.prototype.hasOwnProperty.call(req.body, 'duration_min')) {
-      patch.duration_min = parseDurationMin(req.body.duration_min);
-    }
-    if (Object.prototype.hasOwnProperty.call(req.body, 'practice_focus')) {
-      patch.practice_focus = String(req.body.practice_focus ?? '').trim().slice(0, 120);
-    }
-    if (Object.prototype.hasOwnProperty.call(req.body, 'difficulty_level')) {
       let difficulty_level = String(req.body.difficulty_level || 'beginner').trim();
       if (!DIFFICULTY.has(difficulty_level)) difficulty_level = 'beginner';
-      patch.difficulty_level = difficulty_level;
-    }
-    if (Object.prototype.hasOwnProperty.call(req.body, 'tip_before')) {
-      patch.tip_before = String(req.body.tip_before ?? '').trim().slice(0, 2000);
-    }
-    if (Object.prototype.hasOwnProperty.call(req.body, 'target_role')) {
-      patch.target_role = pickTargetRole(req.body.target_role);
-    }
-    if (Object.prototype.hasOwnProperty.call(req.body, 'target_gender')) {
-      patch.target_gender = pickTargetGender(req.body.target_gender);
-    }
 
-    const coverImg = requirePublicImagePath(req.body, 'cover_url', { label: 'обложку' });
-    if (coverImg.error) return res.status(400).json({ message: coverImg.error });
-    if (coverImg.path) {
-      safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-      patch.cover_url = coverImg.path;
-    }
+      const tip_before = kind === 'sound' ? String(req.body.tip_before ?? '').trim().slice(0, 2000) : String(req.body.tip_before ?? '').trim().slice(0, 2000);
 
-    const audioTouched =
-      Object.prototype.hasOwnProperty.call(req.body, 'audio_source') ||
-      Object.prototype.hasOwnProperty.call(req.body, 'youtube_url') ||
-      Object.prototype.hasOwnProperty.call(req.body, 'audio_external_url') ||
-      Object.prototype.hasOwnProperty.call(req.body, 'audio_file_url');
-
-    if (audioTouched) {
-      const audio = parseAudioPayload(req.body, existing);
+      const audio = parseAudioPayload(req.body, req.files, null);
       if (audio.error) return res.status(400).json({ message: audio.error });
-      if (audio.audio_file_url && audio.audio_file_url !== existing.audio_file_url) {
-        safeUnlinkUploadPath(uploadsAbs, existing.audio_file_url);
-      }
-      Object.assign(patch, {
-        audio_source: audio.audio_source,
-        audio_file_url: audio.audio_file_url || '',
-        audio_external_url: audio.audio_external_url || '',
-        youtube_embed_url: audio.youtube_embed_url || '',
-        youtube_video_id: audio.youtube_video_id || '',
-      });
-    }
 
-    const keys = Object.keys(patch);
-    if (keys.length === 0) {
-      const full = await pool.query(
-        `SELECT meditation_id, title, kind, topics, cover_url, description_short, duration_min,
-                practice_focus, difficulty_level, tip_before, audio_source, audio_file_url,
-                audio_external_url, youtube_embed_url, youtube_video_id, created_at, updated_at
+      const target_role = pickTargetRole(req.body.target_role);
+      const target_gender = pickTargetGender(req.body.target_gender);
+
+      const ins = await pool.query(
+        `INSERT INTO meditations (
+          title, kind, topics, cover_url, description_short, duration_min, practice_focus,
+          difficulty_level, tip_before, audio_source, audio_file_url, audio_external_url,
+          youtube_embed_url, youtube_video_id, target_role, target_gender
+        ) VALUES ($1,$2,$3::jsonb,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+        RETURNING meditation_id, title, kind, topics, cover_url, description_short, duration_min,
+                  practice_focus, difficulty_level, tip_before, audio_source, audio_file_url,
+                  audio_external_url, youtube_embed_url, youtube_video_id, target_role, target_gender,
+                  created_at, updated_at`,
+        [
+          title,
+          kind,
+          JSON.stringify(topics),
+          `/uploads/${coverFile.filename}`,
+          description_short,
+          duration_min,
+          practice_focus,
+          difficulty_level,
+          tip_before,
+          audio.audio_source,
+          audio.audio_file_url || '',
+          audio.audio_external_url || '',
+          audio.youtube_embed_url || '',
+          audio.youtube_video_id || '',
+          target_role,
+          target_gender,
+        ]
+      );
+
+      res.status(201).json(rowToPublicMeditation(ins.rows[0]));
+    } catch (e) {
+      console.error('POST /meditations', e);
+      res.status(500).json({ message: apiErrorMessage(e) });
+    }
+  }
+);
+
+router.patch(
+  '/:meditationKey',
+  authMiddleware,
+  adminOnly,
+  withUpload([
+    { name: 'cover', maxCount: 1 },
+    { name: 'audio', maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const id = parseMeditationPublicId(req.params.meditationKey);
+      if (!id) return res.status(404).json({ message: 'Медитация не найдена' });
+
+      const cur = await pool.query(
+        `SELECT meditation_id, cover_url, audio_file_url, kind, audio_source,
+                audio_external_url, youtube_embed_url, youtube_video_id
          FROM meditations WHERE meditation_id=$1`,
         [id]
       );
-      return res.json(rowToPublicMeditation(full.rows[0]));
+      if (cur.rows.length === 0) return res.status(404).json({ message: 'Медитация не найдена' });
+      const existing = cur.rows[0];
+      const patch = {};
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'title')) {
+        const title = String(req.body.title || '').trim();
+        if (!title) return res.status(400).json({ message: 'Укажите название' });
+        patch.title = title;
+      }
+
+      let kind = existing.kind;
+      if (Object.prototype.hasOwnProperty.call(req.body, 'kind')) {
+        kind = String(req.body.kind || 'meditation').trim();
+        if (!KINDS.has(kind)) kind = 'meditation';
+        patch.kind = kind;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'topics') || Object.prototype.hasOwnProperty.call(req.body, 'kind')) {
+        patch.topics = JSON.stringify(sanitizeTopics(req.body.topics, kind));
+      }
+
+      if (Object.prototype.hasOwnProperty.call(req.body, 'description_short')) {
+        patch.description_short = String(req.body.description_short ?? '').trim();
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'duration_min')) {
+        patch.duration_min = parseDurationMin(req.body.duration_min);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'practice_focus')) {
+        patch.practice_focus = String(req.body.practice_focus ?? '').trim().slice(0, 120);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'difficulty_level')) {
+        let difficulty_level = String(req.body.difficulty_level || 'beginner').trim();
+        if (!DIFFICULTY.has(difficulty_level)) difficulty_level = 'beginner';
+        patch.difficulty_level = difficulty_level;
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'tip_before')) {
+        patch.tip_before = String(req.body.tip_before ?? '').trim().slice(0, 2000);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'target_role')) {
+        patch.target_role = pickTargetRole(req.body.target_role);
+      }
+      if (Object.prototype.hasOwnProperty.call(req.body, 'target_gender')) {
+        patch.target_gender = pickTargetGender(req.body.target_gender);
+      }
+
+      const coverFile = req.files?.cover?.[0];
+      if (coverFile) {
+        safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
+        patch.cover_url = `/uploads/${coverFile.filename}`;
+      }
+
+      const audioTouched =
+        Object.prototype.hasOwnProperty.call(req.body, 'audio_source') ||
+        Object.prototype.hasOwnProperty.call(req.body, 'youtube_url') ||
+        Object.prototype.hasOwnProperty.call(req.body, 'audio_external_url') ||
+        req.files?.audio?.[0];
+
+      if (audioTouched) {
+        const audio = parseAudioPayload(req.body, req.files, existing);
+        if (audio.error) return res.status(400).json({ message: audio.error });
+        if (audio.audio_file_url && audio.audio_file_url !== existing.audio_file_url) {
+          safeUnlinkUploadPath(uploadsAbs, existing.audio_file_url);
+        }
+        Object.assign(patch, {
+          audio_source: audio.audio_source,
+          audio_file_url: audio.audio_file_url || '',
+          audio_external_url: audio.audio_external_url || '',
+          youtube_embed_url: audio.youtube_embed_url || '',
+          youtube_video_id: audio.youtube_video_id || '',
+        });
+      }
+
+      const keys = Object.keys(patch);
+      if (keys.length === 0) {
+        const full = await pool.query(
+          `SELECT meditation_id, title, kind, topics, cover_url, description_short, duration_min,
+                  practice_focus, difficulty_level, tip_before, audio_source, audio_file_url,
+                  audio_external_url, youtube_embed_url, youtube_video_id, created_at, updated_at
+           FROM meditations WHERE meditation_id=$1`,
+          [id]
+        );
+        return res.json(rowToPublicMeditation(full.rows[0]));
+      }
+
+      const sets = keys.map((k, i) => `${k}=$${i + 1}`);
+      const vals = keys.map((k) => patch[k]);
+      vals.push(id);
+
+      const upd = await pool.query(
+        `UPDATE meditations SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP
+         WHERE meditation_id=$${keys.length + 1}
+         RETURNING meditation_id, title, kind, topics, cover_url, description_short, duration_min,
+                   practice_focus, difficulty_level, tip_before, audio_source, audio_file_url,
+                   audio_external_url, youtube_embed_url, youtube_video_id, created_at, updated_at`,
+        vals
+      );
+
+      res.json(rowToPublicMeditation(upd.rows[0]));
+    } catch (e) {
+      console.error('PATCH /meditations', e);
+      res.status(500).json({ message: apiErrorMessage(e) });
     }
-
-    const sets = keys.map((k, i) => `${k}=$${i + 1}`);
-    const vals = keys.map((k) => patch[k]);
-    vals.push(id);
-
-    const upd = await pool.query(
-      `UPDATE meditations SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP
-       WHERE meditation_id=$${keys.length + 1}
-       RETURNING meditation_id, title, kind, topics, cover_url, description_short, duration_min,
-                 practice_focus, difficulty_level, tip_before, audio_source, audio_file_url,
-                 audio_external_url, youtube_embed_url, youtube_video_id, created_at, updated_at`,
-      vals
-    );
-
-    res.json(rowToPublicMeditation(upd.rows[0]));
-  } catch (e) {
-    console.error('PATCH /meditations', e);
-    res.status(500).json({ message: apiErrorMessage(e) });
   }
-});
+);
 
 router.delete('/:meditationKey', authMiddleware, adminOnly, async (req, res) => {
   try {

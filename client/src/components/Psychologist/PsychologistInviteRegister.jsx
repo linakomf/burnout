@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { psychologistHomePath } from '../../utils/psychologistNav';
-import { parseMediaPathsText } from '../../utils/assetUrl';
 import './Psychologist.css';
 import '../Auth/Auth.css';
 
@@ -22,10 +21,10 @@ export default function PsychologistInviteRegister() {
     specialization: '',
     experience_years: '',
     bio: '',
-    whatsapp: '',
-    avatar: '',
-    documentsText: '',
+    whatsapp: ''
   });
+  const [avatar, setAvatar] = useState(null);
+  const [documents, setDocuments] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,7 +36,7 @@ export default function PsychologistInviteRegister() {
           setForm((f) => ({
             ...f,
             name: data.invite_name || '',
-            whatsapp: data.work_phone || '',
+            whatsapp: data.work_phone || ''
           }));
         }
       } catch (e) {
@@ -56,22 +55,19 @@ export default function PsychologistInviteRegister() {
     setSubmitError('');
     setSaving(true);
     try {
-      const documents = parseMediaPathsText(form.documentsText).map((path) => ({
-        path,
-        original_name: path.split('/').pop() || 'document',
-      }));
-      const { data } = await api.post('/psychologists/complete-invite', {
-        token,
-        name: form.name.trim(),
-        password: form.password,
-        education: form.education.trim(),
-        specialization: form.specialization.trim(),
-        experience_years: form.experience_years,
-        bio: form.bio.trim(),
-        whatsapp: form.whatsapp.trim(),
-        avatar: form.avatar.trim(),
-        documents,
-      });
+      const fd = new FormData();
+      fd.append('token', token);
+      fd.append('name', form.name.trim());
+      fd.append('password', form.password);
+      fd.append('education', form.education.trim());
+      fd.append('specialization', form.specialization.trim());
+      fd.append('experience_years', form.experience_years);
+      fd.append('bio', form.bio.trim());
+      fd.append('whatsapp', form.whatsapp.trim());
+      if (avatar) fd.append('avatar', avatar);
+      documents.forEach((f) => fd.append('documents', f));
+
+      const { data } = await api.post('/psychologists/complete-invite', fd);
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       updateUser(data.user);
@@ -122,13 +118,8 @@ export default function PsychologistInviteRegister() {
             <input className="input" type="password" required minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
           </div>
           <div className="form-group">
-            <label>Фото профиля (путь)</label>
-            <input
-              className="input"
-              value={form.avatar}
-              onChange={(e) => setForm({ ...form, avatar: e.target.value })}
-              placeholder="/uploads/avatar.jpg"
-            />
+            <label>Фото профиля</label>
+            <input className="input" type="file" accept="image/*" onChange={(e) => setAvatar(e.target.files?.[0] || null)} />
           </div>
           <div className="form-group">
             <label>Образование</label>
@@ -151,14 +142,8 @@ export default function PsychologistInviteRegister() {
             <input className="input" value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} placeholder="+7..." />
           </div>
           <div className="form-group">
-            <label>Документы (пути, по одному на строку)</label>
-            <textarea
-              className="input"
-              rows={3}
-              value={form.documentsText}
-              onChange={(e) => setForm({ ...form, documentsText: e.target.value })}
-              placeholder="/uploads/cert.pdf"
-            />
+            <label>Сертификаты и документы</label>
+            <input className="input" type="file" multiple accept="image/*,.pdf" onChange={(e) => setDocuments(Array.from(e.target.files || []))} />
           </div>
           <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 8 }} disabled={saving}>
             {saving ? 'Сохранение…' : 'Завершить регистрацию'}

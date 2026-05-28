@@ -10,44 +10,7 @@ function normalizeEmail(raw) {
     .toLowerCase();
 }
 
-function ensureJwtSecretOr503(res) {
-  if (process.env.JWT_SECRET?.trim()) return true;
-  res.status(503).json({ message: 'Сервер временно не настроен: отсутствует JWT_SECRET' });
-  return false;
-}
-
-function normalizeSpacePreferences(raw) {
-  if (raw == null) return null;
-  if (typeof raw === 'object') return raw;
-  try {
-    return JSON.parse(String(raw));
-  } catch {
-    return null;
-  }
-}
-
-async function queryUserForLogin(email) {
-  try {
-    return await pool.query(
-      `SELECT u.*, pp.account_status AS psychologist_account_status
-       FROM users u
-       LEFT JOIN psychologist_profiles pp ON pp.user_id = u.user_id
-       WHERE LOWER(TRIM(u.email)) = $1`,
-      [email]
-    );
-  } catch (err) {
-    if (err?.code !== '42P01') throw err;
-    return pool.query(
-      `SELECT u.*, NULL::text AS psychologist_account_status
-       FROM users u
-       WHERE LOWER(TRIM(u.email)) = $1`,
-      [email]
-    );
-  }
-}
-
 router.post('/register', async (req, res) => {
-  if (!ensureJwtSecretOr503(res)) return;
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const name = String(
     body.firstName ?? body.first_name ?? body.name ?? ''
@@ -112,7 +75,7 @@ router.post('/register', async (req, res) => {
         onboarding_burnout_completed: Boolean(user.onboarding_burnout_completed),
         onboarding_burnout_percent: user.onboarding_burnout_percent ?? null,
         onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
-        space_preferences: normalizeSpacePreferences(user.space_preferences),
+        space_preferences: user.space_preferences ?? null,
         has_completed_space_onboarding: Boolean(user.has_completed_space_onboarding),
         notifications_enabled: user.notifications_enabled !== false
       }
@@ -135,7 +98,6 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  if (!ensureJwtSecretOr503(res)) return;
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const email = normalizeEmail(body.email);
   const password = body.password != null && body.password !== '' ? String(body.password) : '';
@@ -145,7 +107,13 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const result = await queryUserForLogin(email);
+    const result = await pool.query(
+      `SELECT u.*, pp.account_status AS psychologist_account_status
+       FROM users u
+       LEFT JOIN psychologist_profiles pp ON pp.user_id = u.user_id
+       WHERE LOWER(TRIM(u.email)) = $1`,
+      [email]
+    );
     if (result.rows.length === 0) {
       return res.status(401).json({ message: 'Неверный email или пароль' });
     }
@@ -179,7 +147,7 @@ router.post('/login', async (req, res) => {
           Boolean(user.onboarding_burnout_completed),
         onboarding_burnout_percent: user.onboarding_burnout_percent ?? null,
         onboarding_burnout_completed_at: user.onboarding_burnout_completed_at ?? null,
-        space_preferences: normalizeSpacePreferences(user.space_preferences),
+        space_preferences: user.space_preferences ?? null,
         has_completed_space_onboarding: Boolean(user.has_completed_space_onboarding),
         psychologist_account_status: user.psychologist_account_status ?? null,
         notifications_enabled: user.notifications_enabled !== false

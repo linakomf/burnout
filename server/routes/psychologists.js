@@ -1,5 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
+const path = require('path');
+const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
@@ -15,40 +17,43 @@ const {
 } = require('../utils/enrichSupportRequest');
 const { createUserNotification } = require('../utils/userNotifications');
 const { maybeNotifyStatusVerification } = require('../utils/supportConfirmations');
-const { normalizePublicMediaPath } = require('../utils/publicMediaPath');
 
 const router = express.Router();
+const uploadsAbs = path.join(__dirname, '..', 'uploads');
 
 const REQUEST_STATUSES = ['new', 'contacted', 'online_consultation', 'in_progress', 'completed'];
 const ACCOUNT_STATUSES = ['pending_review', 'approved', 'rejected', 'blocked'];
 
-function parseDocumentEntries(body) {
-  let raw = body?.documents;
-  if (typeof raw === 'string' && raw.trim()) {
-    try {
-      raw = JSON.parse(raw);
-    } catch {
-      raw = [];
-    }
+const inviteStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsAbs),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '';
+    const kind = file.fieldname === 'avatar' ? 'psych_avatar' : 'psych_doc';
+    cb(null, `${kind}_${Date.now()}_${crypto.randomBytes(4).toString('hex')}${ext}`);
   }
-  if (!Array.isArray(raw)) raw = [];
-  const out = [];
-  for (const item of raw) {
-    if (typeof item === 'string') {
-      const p = normalizePublicMediaPath(item);
-      if (p) out.push({ file_path: p, original_name: p.split('/').pop() || 'document' });
-    } else if (item && typeof item === 'object') {
-      const p = normalizePublicMediaPath(item.path || item.file_path);
-      if (p) {
-        out.push({
-          file_path: p,
-          original_name: String(item.original_name || '').trim().slice(0, 255) || p.split('/').pop() || 'document',
-        });
-      }
+});
+
+const inviteUpload = multer({
+  storage: inviteStorage,
+  limits: { fileSize: 12 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'avatar') {
+      if (file.mimetype.startsWith('image/')) return cb(null, true);
+      return cb(new Error('Аватар: только изображения'));
     }
+    const ok =
+      file.mimetype.startsWith('image/') ||
+      file.mimetype === 'application/pdf' ||
+      file.mimetype.startsWith('application/');
+    if (ok) return cb(null, true);
+    cb(new Error('Документы: изображения или PDF'));
   }
-  return out.slice(0, 10);
-}
+});
+
+const profileUpload = multer({
+  storage: inviteStorage,
+  limits: { fileSize: 12 * 1024 * 1024 }
+});
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
@@ -104,7 +109,13 @@ router.get('/invitations/:token', async (req, res) => {
   }
 });
 
-router.post('/complete-invite', async (req, res) => {
+router.post(
+  '/complete-invite',
+  inviteUpload.fields([
+    { name: 'avatar', maxCount: 1 },
+    { name: 'documents', maxCount: 10 }
+  ]),
+  async (req, res) => {
     const body = req.body && typeof req.body === 'object' ? req.body : {};
     const token = String(body.token || '').trim();
     const name = String(body.name || '').trim().slice(0, 120);
@@ -150,7 +161,8 @@ router.post('/complete-invite', async (req, res) => {
         return res.status(409).json({ message: 'Пользователь с таким email уже зарегистрирован' });
       }
 
-      const avatarPath = normalizePublicMediaPath(body.avatar) || null;
+      const avatarFile = req.files?.avatar?.[0];
+      const avatarPath = avatarFile ? `/uploads/${avatarFile.filename}` : null;
 
       const userIns = await client.query(
         `INSERT INTO users (name, email, password, role, avatar)
@@ -180,12 +192,12 @@ router.post('/complete-invite', async (req, res) => {
         ]
       );
 
-      const docs = parseDocumentEntries(body);
-      for (const doc of docs) {
+      const docs = req.files?.documents || [];
+      for (const f of docs) {
         await client.query(
           `INSERT INTO psychologist_documents (user_id, file_path, original_name)
            VALUES ($1, $2, $3)`,
-          [user.user_id, doc.file_path, doc.original_name]
+          [user.user_id, `/uploads/${f.filename}`, f.originalname]
         );
       }
 
@@ -679,16 +691,25 @@ router.get('/me/profile', authMiddleware, psychologistOnly, async (req, res) => 
   res.json({ profile, documents });
 });
 
-router.put('/me/profile', authMiddleware, psychologistOnly, async (req, res) => {
+router.put(
+  '/me/profile',
+  authMiddleware,
+  psychologistOnly,
+  profileUpload.fields([
+    { name: 'avatar', maxCount: 1 },
+    { name: 'documents', maxCount: 10 }
+  ]),
+  async (req, res) => {
     const userId = req.user.user_id;
     const body = req.body && typeof req.body === 'object' ? req.body : {};
 
     try {
-      if (Object.prototype.hasOwnProperty.call(body, 'avatar')) {
-        const avatarUrl = normalizePublicMediaPath(body.avatar);
-        if (avatarUrl) {
-          await pool.query(`UPDATE users SET avatar = $1 WHERE user_id = $2`, [avatarUrl, userId]);
-        }
+      const avatarFile = req.files?.avatar?.[0];
+      if (avatarFile) {
+        await pool.query(`UPDATE users SET avatar = $1 WHERE user_id = $2`, [
+          `/uploads/${avatarFile.filename}`,
+          userId
+        ]);
       }
 
       if (body.name) {
@@ -721,12 +742,12 @@ router.put('/me/profile', authMiddleware, psychologistOnly, async (req, res) => 
         ]
       );
 
-      const docs = parseDocumentEntries(body);
-      for (const doc of docs) {
+      const docs = req.files?.documents || [];
+      for (const f of docs) {
         await pool.query(
           `INSERT INTO psychologist_documents (user_id, file_path, original_name)
            VALUES ($1, $2, $3)`,
-          [userId, doc.file_path, doc.original_name]
+          [userId, `/uploads/${f.filename}`, f.originalname]
         );
       }
 

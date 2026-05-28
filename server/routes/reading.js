@@ -1,22 +1,68 @@
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
 const pool = require('../db');
 const { authMiddleware, adminOnly, optionalAuthMiddleware } = require('../middleware/auth');
 const { pickTargetRole, pickTargetGender, appendAudienceFilter } = require('../utils/audienceTargeting');
 const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { pickCategory, pickKind } = require('../utils/readingCategories');
 const { unlinkReadingCover } = require('../utils/readingUploadCleanup');
-const { safeUnlinkUploadPath } = require('../utils/eventUploadCleanup');
-const {
-  requirePublicImagePath,
-  normalizePublicMediaPath,
-  getPublicUploadsDir,
-} = require('../utils/publicMediaPath');
 
 const router = express.Router();
-const uploadsAbs = getPublicUploadsDir();
+const uploadsAbs = path.join(__dirname, '..', 'uploads');
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsAbs),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '.jpg';
+    cb(null, `reading_${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 12 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const name = String(file.originalname || '').toLowerCase();
+    const byExt = /\.(jpe?g|png|gif|webp|avif|bmp|heic|heif)$/i.test(name);
+    const byMime = String(file.mimetype || '').toLowerCase().startsWith('image/');
+    if (byMime || byExt) cb(null, true);
+    else cb(new Error('Обложка: только изображения (JPG, PNG, WebP и т.д.)'));
+  },
+});
+
+const bodyImageStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsAbs),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '.jpg';
+    cb(null, `reading_body_${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`);
+  },
+});
+
+const bodyImageUpload = multer({
+  storage: bodyImageStorage,
+  limits: { fileSize: 12 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const name = String(file.originalname || '').toLowerCase();
+    const byExt = /\.(jpe?g|png|gif|webp|avif|bmp|heic|heif)$/i.test(name);
+    const byMime = String(file.mimetype || '').toLowerCase().startsWith('image/');
+    if (byMime || byExt) cb(null, true);
+    else cb(new Error('Только изображения (JPG, PNG, WebP и т.д.)'));
+  },
+});
 
 function apiErrorMessage(e) {
   return dbErrorToMessage(e) || e?.message || 'Ошибка сервера';
+}
+
+function withCoverUpload(req, res, next) {
+  upload.single('cover')(req, res, (err) => {
+    if (!err) return next();
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: 'Файл слишком большой (макс. 12 МБ)' });
+    }
+    return res.status(400).json({ message: err.message || 'Ошибка загрузки файла' });
+  });
 }
 
 function parseReadingPublicId(param) {
@@ -64,7 +110,7 @@ function rowToPublic(row) {
   };
 }
 
-function readBody(body, existing) {
+function readBody(body, files, existing) {
   const kind = pickKind(body.kind, existing);
   const fallbackCat = kind === 'book' ? 'psychology' : 'burnout';
   const category = pickCategory(kind, body.category, existing?.category || fallbackCat);
@@ -97,6 +143,7 @@ function readBody(body, existing) {
     description_short,
     body_full: kind === 'article' ? body_full : '',
     read_url: kind === 'book' ? read_url : read_url || existing?.read_url || '',
+    cover_url: files?.cover ? `/uploads/${files.cover.filename}` : undefined,
     target_role: Object.prototype.hasOwnProperty.call(body, 'target_role')
       ? pickTargetRole(body.target_role)
       : existing?.target_role || 'all',
@@ -126,16 +173,19 @@ router.get('/', optionalAuthMiddleware, async (req, res) => {
   }
 });
 
-router.post('/body-image', authMiddleware, adminOnly, async (req, res) => {
-  try {
-    const pathResult = normalizePublicMediaPath(req.body?.image_path);
-    if (!pathResult) {
-      return res.status(400).json({ message: 'Укажите image_path (/uploads/... или /images/...)' });
+router.post('/body-image', authMiddleware, adminOnly, (req, res) => {
+  bodyImageUpload.single('image')(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ message: 'Файл слишком большой (макс. 12 МБ)' });
+      }
+      return res.status(400).json({ message: err.message || 'Ошибка загрузки файла' });
     }
-    return res.status(201).json({ url: pathResult });
-  } catch (err) {
-    return res.status(400).json({ message: err?.message || 'Ошибка' });
-  }
+    if (!req.file) {
+      return res.status(400).json({ message: 'Выберите изображение' });
+    }
+    return res.status(201).json({ url: `/uploads/${req.file.filename}` });
+  });
 });
 
 router.get('/:readingKey', optionalAuthMiddleware, async (req, res) => {
@@ -156,18 +206,15 @@ router.get('/:readingKey', optionalAuthMiddleware, async (req, res) => {
   }
 });
 
-router.post('/', authMiddleware, adminOnly, async (req, res) => {
+router.post('/', authMiddleware, adminOnly, withCoverUpload, async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Загрузите обложку' });
+    }
     const title = String(req.body.title || '').trim();
     if (!title) return res.status(400).json({ message: 'Укажите название' });
 
-    const coverImg = requirePublicImagePath(req.body, 'cover_url', {
-      required: true,
-      label: 'обложку',
-    });
-    if (coverImg.error) return res.status(400).json({ message: coverImg.error });
-
-    const parsed = readBody(req.body, null);
+    const parsed = readBody(req.body, { cover: req.file }, null);
     if (parsed.error) return res.status(400).json({ message: parsed.error });
 
     const ins = await pool.query(
@@ -179,7 +226,7 @@ router.post('/', authMiddleware, adminOnly, async (req, res) => {
         parsed.kind,
         title,
         parsed.category,
-        coverImg.path,
+        parsed.cover_url,
         parsed.description_short,
         parsed.body_full,
         parsed.read_url,
@@ -195,7 +242,7 @@ router.post('/', authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
-router.patch('/:readingKey', authMiddleware, adminOnly, async (req, res) => {
+router.patch('/:readingKey', authMiddleware, adminOnly, withCoverUpload, async (req, res) => {
   try {
     const key = parseReadingPublicId(req.params.readingKey);
     if (!key) return res.status(404).json({ message: 'Материал не найден' });
@@ -207,7 +254,7 @@ router.patch('/:readingKey', authMiddleware, adminOnly, async (req, res) => {
       return res.status(400).json({ message: 'Нельзя сменить тип записи — создайте новую' });
     }
 
-    const parsed = readBody(req.body, existing);
+    const parsed = readBody(req.body, req.file ? { cover: req.file } : {}, existing);
     if (parsed.error) return res.status(400).json({ message: parsed.error });
 
     const patch = {};
@@ -222,18 +269,16 @@ router.patch('/:readingKey', authMiddleware, adminOnly, async (req, res) => {
     }
     if (Object.prototype.hasOwnProperty.call(req.body, 'body_full')) patch.body_full = parsed.body_full;
     if (Object.prototype.hasOwnProperty.call(req.body, 'read_url')) patch.read_url = parsed.read_url;
+    if (parsed.cover_url) {
+      const { safeUnlinkUploadPath } = require('../utils/eventUploadCleanup');
+      safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
+      patch.cover_url = parsed.cover_url;
+    }
     if (Object.prototype.hasOwnProperty.call(req.body, 'target_role')) {
       patch.target_role = parsed.target_role;
     }
     if (Object.prototype.hasOwnProperty.call(req.body, 'target_gender')) {
       patch.target_gender = parsed.target_gender;
-    }
-
-    const coverImg = requirePublicImagePath(req.body, 'cover_url', { label: 'обложку' });
-    if (coverImg.error) return res.status(400).json({ message: coverImg.error });
-    if (coverImg.path) {
-      safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-      patch.cover_url = coverImg.path;
     }
 
     const keys = Object.keys(patch);

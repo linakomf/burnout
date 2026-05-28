@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Edit2, Plus, Trash2, X } from 'lucide-react';
 import api from '../../utils/api';
-import AdminMediaPathInput from './AdminMediaPathInput';
+import { backendPublicUrl } from '../../utils/assetUrl';
 import { useLanguage } from '../../context/LanguageContext';
 import {
   MUSIC_AUDIO_SOURCE_OPTIONS,
@@ -38,8 +38,8 @@ const initialForm = () => ({
   audio_source: 'youtube',
   youtube_url: '',
   audio_external_url: '',
-  cover_url: '',
-  audio_file_url: '',
+  coverFile: null,
+  audioFile: null,
   is_featured_pick: false,
   ...emptyAudienceFields(),
 });
@@ -83,6 +83,7 @@ export default function AdminMusic({ embedded = false }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [coverBlobUrl, setCoverBlobUrl] = useState('');
   const [collections, setCollections] = useState([]);
   const [featuredPickId, setFeaturedPickId] = useState('');
   const [hubError, setHubError] = useState('');
@@ -91,13 +92,16 @@ export default function AdminMusic({ embedded = false }) {
   const [collectionForm, setCollectionForm] = useState({
     title: '',
     trackIds: [],
-    cover_url: '',
+    coverFile: null,
     sort_order: '0',
   });
+  const [collectionCoverBlob, setCollectionCoverBlob] = useState('');
   const [collectionSaving, setCollectionSaving] = useState(false);
   const errorBannerRef = useRef(null);
+  const fileInputsKey = useRef(0);
+  const collectionFileKey = useRef(0);
 
-  const trackItems = items.filter((r) => r.kind === 'track');
+  const trackItems = useMemo(() => items.filter((r) => r.kind === 'track'), [items]);
 
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
@@ -122,11 +126,41 @@ export default function AdminMusic({ embedded = false }) {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (!form.coverFile) {
+      setCoverBlobUrl('');
+      return undefined;
+    }
+    const u = URL.createObjectURL(form.coverFile);
+    setCoverBlobUrl(u);
+    return () => URL.revokeObjectURL(u);
+  }, [form.coverFile]);
+
+  useEffect(() => {
+    if (!collectionForm.coverFile) {
+      setCollectionCoverBlob('');
+      return undefined;
+    }
+    const u = URL.createObjectURL(collectionForm.coverFile);
+    setCollectionCoverBlob(u);
+    return () => URL.revokeObjectURL(u);
+  }, [collectionForm.coverFile]);
+
+  const coverPreview = useMemo(() => {
+    if (coverBlobUrl) return coverBlobUrl;
+    if (editingId) {
+      const row = items.find((m) => m.id === editingId);
+      if (row?.coverImage) return backendPublicUrl(row.coverImage);
+    }
+    return '';
+  }, [coverBlobUrl, editingId, items]);
+
   const closeModal = () => {
     setModalOpen(false);
     setEditingId(null);
     setForm(initialForm());
     setError('');
+    fileInputsKey.current += 1;
   };
 
   const openCreate = () => {
@@ -157,8 +191,8 @@ export default function AdminMusic({ embedded = false }) {
       audio_source: row.audioSource || 'youtube',
       youtube_url,
       audio_external_url,
-      cover_url: row.coverImage || '',
-      audio_file_url: row.audioSource === 'file' ? row.audioUrl || '' : '',
+      coverFile: null,
+      audioFile: null,
       target_role: row.target_role || 'all',
       target_gender: row.target_gender || 'all',
     });
@@ -176,51 +210,48 @@ export default function AdminMusic({ embedded = false }) {
       return;
     }
 
-    const cover_url = form.cover_url.trim();
-    if (!cover_url) {
-      setError('Укажите путь к обложке.');
-      errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      return;
-    }
-
-    const payload = {
-      kind: 'track',
-      title,
-      mood: form.mood,
-      genre_label: form.genre_label.trim(),
-      duration_min: form.duration_min.trim() || '3',
-      audio_source: form.audio_source,
-      artist: form.artist.trim(),
-      target_role: form.target_role || 'all',
-      target_gender: form.target_gender || 'all',
-      is_featured_pick: form.is_featured_pick,
-      cover_url,
-    };
-
-    if (form.audio_source === 'youtube') {
-      payload.youtube_url = form.youtube_url.trim();
-    }
-    if (form.audio_source === 'url') {
-      const u = form.audio_external_url.trim();
-      payload.audio_external_url = /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : '';
-    }
-    if (form.audio_source === 'file') {
-      const audioPath = form.audio_file_url.trim();
-      if (!audioPath && !editingId) {
-        setError('Укажите путь к аудиофайлу.');
-        errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        return;
-      }
-      if (audioPath) payload.audio_file_url = audioPath;
-    }
-
     const wasEdit = Boolean(editingId);
     setSaving(true);
     try {
+      const fd = new FormData();
+      fd.append('kind', 'track');
+      fd.append('title', title);
+      fd.append('mood', form.mood);
+      fd.append('genre_label', form.genre_label.trim());
+      fd.append('duration_min', form.duration_min.trim() || '3');
+      fd.append('audio_source', form.audio_source);
+      fd.append('artist', form.artist.trim());
+      fd.append('target_role', form.target_role || 'all');
+      fd.append('target_gender', form.target_gender || 'all');
+      fd.append('is_featured_pick', form.is_featured_pick ? '1' : '0');
+
+      if (form.audio_source === 'youtube') {
+        fd.append('youtube_url', form.youtube_url.trim());
+      }
+      if (form.audio_source === 'url') {
+        const u = form.audio_external_url.trim();
+        const withProto = /^https?:\/\//i.test(u) ? u : u ? `https://${u}` : '';
+        fd.append('audio_external_url', withProto);
+      }
+
       if (!editingId) {
-        await api.post('/music', payload);
+        if (!form.coverFile) {
+          setError('Загрузите обложку.');
+          setSaving(false);
+          return;
+        }
+        fd.append('cover', form.coverFile);
+        if (form.audio_source === 'file' && !form.audioFile) {
+          setError('Загрузите аудиофайл.');
+          setSaving(false);
+          return;
+        }
+        if (form.audio_source === 'file') fd.append('audio', form.audioFile);
+        await api.post('/music', fd);
       } else {
-        await api.patch(`/music/${editingId}`, payload);
+        if (form.coverFile) fd.append('cover', form.coverFile);
+        if (form.audio_source === 'file' && form.audioFile) fd.append('audio', form.audioFile);
+        await api.patch(`/music/${editingId}`, fd);
       }
 
       closeModal();
@@ -242,12 +273,13 @@ export default function AdminMusic({ embedded = false }) {
   const closeCollectionModal = () => {
     setCollectionModalOpen(false);
     setCollectionEditSlug(null);
-    setCollectionForm({ title: '', trackIds: [], cover_url: '', sort_order: '0' });
+    setCollectionForm({ title: '', trackIds: [], coverFile: null, sort_order: '0' });
+    collectionFileKey.current += 1;
   };
 
   const openCreateCollection = () => {
     setCollectionEditSlug(null);
-    setCollectionForm({ title: '', trackIds: [], cover_url: '', sort_order: String(collections.length) });
+    setCollectionForm({ title: '', trackIds: [], coverFile: null, sort_order: String(collections.length) });
     setHubError('');
     setCollectionModalOpen(true);
   };
@@ -257,7 +289,7 @@ export default function AdminMusic({ embedded = false }) {
     setCollectionForm({
       title: col.title || '',
       trackIds: [...(col.trackIds || [])],
-      cover_url: col.image || '',
+      coverFile: null,
       sort_order: String(col.sort_order ?? 0),
     });
     setHubError('');
@@ -283,16 +315,15 @@ export default function AdminMusic({ embedded = false }) {
     setCollectionSaving(true);
     setHubError('');
     try {
-      const payload = {
-        title,
-        sort_order: collectionForm.sort_order || '0',
-        track_ids: collectionForm.trackIds,
-        cover_url: collectionForm.cover_url.trim(),
-      };
+      const fd = new FormData();
+      fd.append('title', title);
+      fd.append('sort_order', collectionForm.sort_order || '0');
+      fd.append('track_ids', JSON.stringify(collectionForm.trackIds));
+      if (collectionForm.coverFile) fd.append('cover', collectionForm.coverFile);
       if (collectionEditSlug) {
-        await api.patch(`/music/collections/${collectionEditSlug}`, payload);
+        await api.patch(`/music/collections/${collectionEditSlug}`, fd);
       } else {
-        await api.post('/music/collections', payload);
+        await api.post('/music/collections', fd);
       }
       closeCollectionModal();
       await load({ silent: true });
@@ -316,12 +347,23 @@ export default function AdminMusic({ embedded = false }) {
     }
   };
 
+  const collectionCoverPreview = useMemo(() => {
+    if (collectionCoverBlob) return collectionCoverBlob;
+    if (collectionEditSlug) {
+      const col = collections.find((c) => c.slug === collectionEditSlug);
+      if (col?.image) return backendPublicUrl(col.image);
+    }
+    return '';
+  }, [collectionCoverBlob, collectionEditSlug, collections]);
+
   const setFeaturedPick = async (trackId) => {
     setFeaturedPickId(trackId);
     if (!trackId) return;
     setHubError('');
     try {
-      await api.patch(`/music/${trackId}`, { is_featured_pick: true });
+      const fd = new FormData();
+      fd.append('is_featured_pick', '1');
+      await api.patch(`/music/${trackId}`, fd);
       await load({ silent: true });
     } catch (e) {
       setHubError(extractApiError(e));
@@ -512,11 +554,20 @@ export default function AdminMusic({ embedded = false }) {
                     placeholder="Например: Спокойный вечер"
                   />
                 </label>
-                <AdminMediaPathInput
-                  label="Обложка карточки"
-                  value={collectionForm.cover_url}
-                  onChange={(v) => setCollectionForm((f) => ({ ...f, cover_url: v }))}
-                />
+                <label className="admin-field">
+                  <span>Обложка карточки</span>
+                  <input
+                    key={`coll-cover-${collectionFileKey.current}`}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setCollectionForm({ ...collectionForm, coverFile: e.target.files?.[0] || null })
+                    }
+                  />
+                  {collectionCoverPreview ? (
+                    <img src={collectionCoverPreview} alt="" className="admin-film-poster-preview" />
+                  ) : null}
+                </label>
                 <div className="admin-film-tag-group">
                   <div className="admin-film-tag-label">
                     Треки в подборке ({collectionForm.trackIds.length})
@@ -638,12 +689,17 @@ export default function AdminMusic({ embedded = false }) {
                 useLocale
               />
 
-              <AdminMediaPathInput
-                label={`Обложка${editingId ? '' : ' *'}`}
-                value={form.cover_url}
-                onChange={(v) => setForm((f) => ({ ...f, cover_url: v }))}
-                required={!editingId}
-              />
+              <label className="admin-field">
+                <span>Обложка{editingId ? '' : ' *'}</span>
+                <input
+                  key={`cover-${fileInputsKey.current}`}
+                  type="file"
+                  accept="image/*"
+                  required={!editingId}
+                  onChange={(e) => setForm({ ...form, coverFile: e.target.files?.[0] || null })}
+                />
+                {coverPreview ? <img src={coverPreview} alt="" className="admin-film-poster-preview" /> : null}
+              </label>
 
               <label className="admin-field">
                 <span>Длительность (мин) *</span>
@@ -673,13 +729,15 @@ export default function AdminMusic({ embedded = false }) {
               </label>
 
               {form.audio_source === 'file' ? (
-                <AdminMediaPathInput
-                  label={`Аудиофайл${editingId ? ' (оставьте пустым, чтобы не менять)' : ' *'}`}
-                  value={form.audio_file_url}
-                  onChange={(v) => setForm((f) => ({ ...f, audio_file_url: v }))}
-                  required={!editingId}
-                  hint="Например: /uploads/track.mp3"
-                />
+                <label className="admin-field">
+                  <span>Аудиофайл{editingId ? ' (оставьте пустым, чтобы не менять)' : ' *'}</span>
+                  <input
+                    key={`audio-${fileInputsKey.current}`}
+                    type="file"
+                    accept="audio/*,.mp3,.m4a,.wav,.ogg"
+                    onChange={(e) => setForm({ ...form, audioFile: e.target.files?.[0] || null })}
+                  />
+                </label>
               ) : null}
 
               {form.audio_source === 'youtube' ? (

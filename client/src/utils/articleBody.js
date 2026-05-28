@@ -28,7 +28,7 @@ function escapeHtml(text) {
 export function isSafeArticleImageSrc(src) {
   const s = String(src || '').trim();
   if (!s) return false;
-  if (s.startsWith('/uploads/') || s.startsWith('/images/')) return true;
+  if (s.startsWith('/uploads/')) return true;
   try {
     const u = new URL(s);
     return u.protocol === 'http:' || u.protocol === 'https:';

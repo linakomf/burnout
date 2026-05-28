@@ -1,29 +1,11 @@
 /**
- * Статические пути из client/public: /uploads/..., /images/..., /avatars/...
- * Возвращает относительный путь для CRA (тот же origin, что и фронт).
+ * URL для публичных файлов бэкенда (например /uploads/...).
+ * В разработке без REACT_APP_API_ORIGIN используем относительный путь - его проксирует dev-server (setupProxy.js).
+ * В проде при отдельном хосте API задайте REACT_APP_API_ORIGIN=https://api.example.com
  */
 export function backendPublicUrl(path) {
   if (path == null || path === '') return '';
-  const raw = String(path).trim();
-  if (!raw) return '';
-  if (/^https?:\/\//i.test(raw)) return raw;
-  return raw.startsWith('/') ? raw : `/${raw}`;
-}
-
-export function isStaticPublicAssetPath(path) {
-  const p = backendPublicUrl(path);
-  return Boolean(p);
-}
-
-/** Parse textarea: one path per line or comma-separated. */
-export function parseMediaPathsText(text) {
-  return String(text || '')
-    .split(/[\n,]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
-export function mediaPathsToText(paths) {
-  if (!Array.isArray(paths) || !paths.length) return '';
-  return paths.join('\n');
+  const p = String(path).startsWith('/') ? String(path) : `/${path}`;
+  const origin = (process.env.REACT_APP_API_ORIGIN || '').replace(/\/$/, '');
+  return origin ? `${origin}${p}` : p;
 }

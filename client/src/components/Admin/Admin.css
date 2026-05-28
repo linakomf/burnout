@@ -551,10 +551,8 @@
   color: var(--text-light, #64748b);
 }
 
-.article-body-editor__path-input {
-  flex: 1;
-  min-width: 180px;
-  max-width: 360px;
+.article-body-editor__file {
+  display: none;
 }
 
 .article-body-editor__textarea {
@@ -576,12 +574,4 @@
   margin: 8px 0 0;
   font-size: 13px;
   color: #b91c1c;
-}
-
-.admin-media-path__preview img {
-  max-width: 120px;
-  max-height: 80px;
-  object-fit: cover;
-  margin-top: 8px;
-  border-radius: 8px;
 }

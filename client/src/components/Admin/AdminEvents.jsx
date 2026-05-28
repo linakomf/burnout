@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Edit2, Plus, Trash2, X } from 'lucide-react';
 import api from '../../utils/api';
-import { mediaPathsToText } from '../../utils/assetUrl';
-import AdminMediaPathInput from './AdminMediaPathInput';
+import { backendPublicUrl } from '../../utils/assetUrl';
 import { useLanguage } from '../../context/LanguageContext';
 import {
   EVENT_FILTER_CAT_OPTIONS,
@@ -70,10 +69,11 @@ const initialForm = () => ({
   organizer_desc: '',
   suit_tags_text: '',
   important_notes_text: '',
-  cover_url: '',
-  hero_url: '',
-  venue_image_url: '',
-  gallery_urls: '',
+  coverFile: null,
+  heroFile: null,
+  venueImageFile: null,
+  galleryFiles: [],
+  galleryKeepUrls: [],
   ...emptyAudienceFields(),
 });
 
@@ -106,7 +106,9 @@ export default function AdminEvents({ embedded = false }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [coverBlobUrl, setCoverBlobUrl] = useState('');
   const errorBannerRef = useRef(null);
+  const fileInputsKey = useRef(0);
 
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
@@ -126,12 +128,32 @@ export default function AdminEvents({ embedded = false }) {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (!form.coverFile) {
+      setCoverBlobUrl('');
+      return undefined;
+    }
+    const u = URL.createObjectURL(form.coverFile);
+    setCoverBlobUrl(u);
+    return () => URL.revokeObjectURL(u);
+  }, [form.coverFile]);
+
+  const coverPreview = useMemo(() => {
+    if (coverBlobUrl) return coverBlobUrl;
+    if (editingId) {
+      const row = items.find((e) => e.id === editingId);
+      if (row?.image) return backendPublicUrl(row.image);
+    }
+    return '';
+  }, [coverBlobUrl, editingId, items]);
+
   const closeModal = () => {
     setModalOpen(false);
     setEditingId(null);
     setForm(initialForm());
     setError('');
     setSuccess('');
+    fileInputsKey.current += 1;
   };
 
   const openCreate = (kind = 'solo') => {
@@ -173,10 +195,7 @@ export default function AdminEvents({ embedded = false }) {
       organizer_desc: d.organizerDesc || '',
       suit_tags_text: (d.suitTags || []).join('\n'),
       important_notes_text: (d.importantNotes || []).join('\n'),
-      cover_url: row.image || '',
-      hero_url: d.heroImage || '',
-      venue_image_url: d.venueImage || '',
-      gallery_urls: mediaPathsToText(Array.isArray(d.gallery) ? d.gallery : []),
+      galleryKeepUrls: Array.isArray(d.gallery) ? [...d.gallery] : [],
       target_role: row.target_role || 'all',
       target_gender: row.target_gender || 'all',
     });
@@ -206,54 +225,56 @@ export default function AdminEvents({ embedded = false }) {
       return;
     }
 
-    const cover_url = form.cover_url.trim();
-    if (!cover_url) {
-      setError('Укажите путь к обложке карточки.');
-      errorBannerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      return;
-    }
-
-    const payload = {
-      kind: form.kind,
-      title,
-      filter_cat: form.filter_cat,
-      category_label: form.category_label.trim(),
-      price_key: priceLabel,
-      tf_loc: form.tf_loc,
-      tf_date: form.tf_date,
-      tf_time: form.tf_time,
-      tf_mood: form.tf_mood,
-      location_text: form.location_text.trim(),
-      when_text: form.when_text.trim(),
-      is_offline: form.is_offline,
-      ticket_url: ticket,
-      venue_line: form.venue_line.trim(),
-      teaser: form.teaser.trim(),
-      about_text: form.about_text.trim(),
-      duration_label: form.duration_label.trim(),
-      age_label: form.age_label.trim(),
-      genre_label: form.genre_label.trim(),
-      refund_label: form.refund_label.trim(),
-      venue_pin_text: form.venue_pin_text.trim(),
-      organizer_name: form.organizer_name.trim(),
-      organizer_desc: form.organizer_desc.trim(),
-      suit_tags: linesToArray(form.suit_tags_text),
-      important_notes: linesToArray(form.important_notes_text),
-      target_role: form.target_role || 'all',
-      target_gender: form.target_gender || 'all',
-      cover_url,
-      hero_url: form.hero_url.trim(),
-      venue_image_url: form.venue_image_url.trim(),
-      gallery_urls: form.gallery_urls.trim(),
-    };
-
     const wasEdit = Boolean(editingId);
     setSaving(true);
     try {
+      const fd = new FormData();
+      fd.append('kind', form.kind);
+      fd.append('title', title);
+      fd.append('filter_cat', form.filter_cat);
+      fd.append('category_label', form.category_label.trim());
+      fd.append('price_key', priceLabel);
+      fd.append('tf_loc', form.tf_loc);
+      fd.append('tf_date', form.tf_date);
+      fd.append('tf_time', form.tf_time);
+      fd.append('tf_mood', form.tf_mood);
+      fd.append('location_text', form.location_text.trim());
+      fd.append('when_text', form.when_text.trim());
+      fd.append('is_offline', form.is_offline);
+      fd.append('ticket_url', ticket);
+      fd.append('venue_line', form.venue_line.trim());
+      fd.append('teaser', form.teaser.trim());
+      fd.append('about_text', form.about_text.trim());
+      fd.append('duration_label', form.duration_label.trim());
+      fd.append('age_label', form.age_label.trim());
+      fd.append('genre_label', form.genre_label.trim());
+      fd.append('refund_label', form.refund_label.trim());
+      fd.append('venue_pin_text', form.venue_pin_text.trim());
+      fd.append('organizer_name', form.organizer_name.trim());
+      fd.append('organizer_desc', form.organizer_desc.trim());
+      fd.append('suit_tags', JSON.stringify(linesToArray(form.suit_tags_text)));
+      fd.append('important_notes', JSON.stringify(linesToArray(form.important_notes_text)));
+      fd.append('target_role', form.target_role || 'all');
+      fd.append('target_gender', form.target_gender || 'all');
+
       if (!editingId) {
-        await api.post('/events', payload);
+        if (!form.coverFile) {
+          setError('Загрузите обложку для карточки.');
+          setSaving(false);
+          return;
+        }
+        fd.append('cover', form.coverFile);
+        if (form.heroFile) fd.append('hero', form.heroFile);
+        if (form.venueImageFile) fd.append('venue_image', form.venueImageFile);
+        for (const f of form.galleryFiles) fd.append('gallery', f);
+        await api.post('/events', fd);
       } else {
-        await api.patch(`/events/${editingId}`, payload);
+        if (form.coverFile) fd.append('cover', form.coverFile);
+        if (form.heroFile) fd.append('hero', form.heroFile);
+        if (form.venueImageFile) fd.append('venue_image', form.venueImageFile);
+        fd.append('keep_gallery_urls', JSON.stringify(form.galleryKeepUrls));
+        for (const f of form.galleryFiles) fd.append('gallery', f);
+        await api.patch(`/events/${editingId}`, fd);
       }
 
       closeModal();
@@ -280,6 +301,13 @@ export default function AdminEvents({ embedded = false }) {
     } catch (e) {
       window.alert(extractApiError(e));
     }
+  };
+
+  const removeGalleryKeep = (url) => {
+    setForm((prev) => ({
+      ...prev,
+      galleryKeepUrls: prev.galleryKeepUrls.filter((u) => u !== url),
+    }));
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: 40 }}>Загрузка...</div>;
@@ -503,18 +531,26 @@ export default function AdminEvents({ embedded = false }) {
                 </select>
               </label>
 
-              <AdminMediaPathInput
-                label={`Обложка карточки${editingId ? '' : ' *'}`}
-                value={form.cover_url}
-                onChange={(v) => setForm((f) => ({ ...f, cover_url: v }))}
-                required={!editingId}
-              />
+              <label className="admin-field">
+                <span>Обложка карточки{editingId ? '' : ' *'}</span>
+                <input
+                  key={`cover-${fileInputsKey.current}`}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/*"
+                  required={!editingId}
+                  onChange={(e) => setForm({ ...form, coverFile: e.target.files?.[0] || null })}
+                />
+                {coverPreview ? <img src={coverPreview} alt="" className="admin-film-poster-preview" /> : null}
+              </label>
 
-              <AdminMediaPathInput
-                label="Герой детальной страницы (необязательно)"
-                value={form.hero_url}
-                onChange={(v) => setForm((f) => ({ ...f, hero_url: v }))}
-              />
+              <label className="admin-field">
+                <span>Герой детальной страницы (необязательно)</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setForm({ ...form, heroFile: e.target.files?.[0] || null })}
+                />
+              </label>
 
               <label className="admin-field">
                 <span>Ссылка на билеты / регистрацию *</span>
@@ -564,11 +600,14 @@ export default function AdminEvents({ embedded = false }) {
                   <input value={form.refund_label} onChange={(e) => setForm({ ...form, refund_label: e.target.value })} />
                 </label>
               </div>
-              <AdminMediaPathInput
-                label="Фото площадки"
-                value={form.venue_image_url}
-                onChange={(v) => setForm((f) => ({ ...f, venue_image_url: v }))}
-              />
+              <label className="admin-field">
+                <span>Фото площадки</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setForm({ ...form, venueImageFile: e.target.files?.[0] || null })}
+                />
+              </label>
               <label className="admin-field">
                 <span>Подпись на фото площадки</span>
                 <input
@@ -577,14 +616,28 @@ export default function AdminEvents({ embedded = false }) {
                 />
               </label>
               <label className="admin-field">
-                <span>Галерея (до 4 путей, по одному на строку или через запятую)</span>
-                <textarea
-                  rows={4}
-                  value={form.gallery_urls}
-                  onChange={(e) => setForm({ ...form, gallery_urls: e.target.value })}
-                  placeholder="/uploads/event-1.jpg"
+                <span>Галерея (до 4, необязательно)</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) =>
+                    setForm({ ...form, galleryFiles: Array.from(e.target.files || []).slice(0, 4) })
+                  }
                 />
               </label>
+              {editingId && form.galleryKeepUrls.length > 0 ? (
+                <ul className="admin-film-gallery-kept">
+                  {form.galleryKeepUrls.map((url) => (
+                    <li key={url}>
+                      <img src={backendPublicUrl(url)} alt="" />
+                      <button type="button" className="btn btn-danger btn-sm" onClick={() => removeGalleryKeep(url)}>
+                        Убрать
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
               <label className="admin-field">
                 <span>Организатор</span>
                 <input

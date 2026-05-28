@@ -9,7 +9,7 @@ client/build/
 .env.local
 .env.*.local
 
-# Legacy server/uploads (файлы перенесены в client/public/uploads)
+# Uploads (local dev)
 server/uploads/*
 !server/uploads/.gitkeep
 
