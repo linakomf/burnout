@@ -5,6 +5,7 @@
   "scripts": {
     "install:all": "npm install --prefix server && npm install --prefix client",
     "setup": "node scripts/setup-dev.js",
+    "seed:events": "node scripts/seed-events-almaty.js",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "server": "node server/index.js",
