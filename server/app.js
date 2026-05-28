@@ -32,6 +32,14 @@ if (!process.env.JWT_SECRET?.trim()) {
   console.warn(`⚠️ JWT_SECRET не задан - ${hint}.`);
 }
 
+const cloudinaryVarsReady =
+  Boolean(process.env.CLOUDINARY_CLOUD_NAME?.trim()) &&
+  Boolean(process.env.CLOUDINARY_API_KEY?.trim()) &&
+  Boolean(process.env.CLOUDINARY_API_SECRET?.trim());
+if (!cloudinaryVarsReady) {
+  console.warn('⚠️ Cloudinary env не полностью задан: новые uploads могут завершаться ошибкой.');
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
