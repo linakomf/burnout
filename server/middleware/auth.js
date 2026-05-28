@@ -1,7 +1,24 @@
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
 
-const authMiddleware = (req, res, next) => {
+/** JWT не содержит gender — подтягиваем актуальные role/gender из БД для фильтров каталога. */
+async function enrichUserFromDb(decoded) {
+  if (!decoded?.user_id) return decoded;
+  try {
+    const r = await pool.query('SELECT role, gender FROM users WHERE user_id = $1', [decoded.user_id]);
+    if (!r.rows.length) return decoded;
+    return {
+      ...decoded,
+      role: r.rows[0].role || decoded.role,
+      gender: r.rows[0].gender ?? null
+    };
+  } catch (err) {
+    console.warn('enrichUserFromDb:', err.message);
+    return decoded;
+  }
+}
+
+const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -11,7 +28,7 @@ const authMiddleware = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.user = await enrichUserFromDb(decoded);
     next();
   } catch (err) {
     return res.status(401).json({ message: 'Недействительный или просроченный токен. Войдите снова.' });
@@ -42,7 +59,7 @@ const adminOnly = async (req, res, next) => {
 };
 
 /** JWT необязателен — для публичных каталогов с фильтром аудитории. */
-const optionalAuthMiddleware = (req, res, next) => {
+const optionalAuthMiddleware = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) {
@@ -51,7 +68,7 @@ const optionalAuthMiddleware = (req, res, next) => {
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.user = await enrichUserFromDb(decoded);
     next();
   } catch {
     req.user = null;
@@ -59,4 +76,4 @@ const optionalAuthMiddleware = (req, res, next) => {
   }
 };
 
-module.exports = { authMiddleware, adminOnly, optionalAuthMiddleware };
+module.exports = { authMiddleware, adminOnly, optionalAuthMiddleware, enrichUserFromDb };

@@ -11,7 +11,8 @@ const { unlinkFilmAssets, safeUnlinkUploadPath } = require('../utils/filmUploadC
 
 const router = express.Router();
 
-const uploadsAbs = path.join(__dirname, '..', 'uploads');
+const { getUploadsDir } = require('../utils/uploadsDir');
+const uploadsAbs = getUploadsDir();
 
 const ALLOWED_CATEGORY_IDS = new Set([
   'burnout',

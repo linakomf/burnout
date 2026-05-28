@@ -1,5 +1,6 @@
 /** Чтение: статьи (темы) и книги (жанровые категории) */
 import { natureAt, spaceNature } from './spaceNatureImagery';
+import { coverWithFallback, seedFromMediaId } from '../../utils/mediaFallback';
 
 /** Для вкладки «Статьи» — плашки фильтрации */
 export const ARTICLE_CATEGORY_IDS = [
@@ -73,7 +74,7 @@ export function mapRemoteArticlePayload(row, toUrl) {
     descriptionShort: row.descriptionShort || '',
     bodyFull: row.bodyFull || '',
     url: row.sourceUrl || '',
-    image: urlFn(row.coverImage),
+    image: coverWithFallback(urlFn(row.coverImage), seedFromMediaId(row.id)),
     isRemoteReading: true,
   };
 }
@@ -88,7 +89,7 @@ export function mapRemoteBookPayload(row, toUrl) {
     titleKey: null,
     descriptionShort: row.descriptionShort || '',
     url: row.readUrl || '',
-    image: urlFn(row.coverImage),
+    image: coverWithFallback(urlFn(row.coverImage), seedFromMediaId(row.id)),
     isRemoteReading: true,
   };
 }

@@ -16,6 +16,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { spaceHubHref } from './practiceSpaceConfig';
 import api from '../../utils/api';
+import { apiGetCatalog } from '../../utils/apiCatalog';
 import { backendPublicUrl } from '../../utils/assetUrl';
 import { useLanguage } from '../../context/LanguageContext';
 import { mapRemoteEventPayload } from './eventsHubData';
@@ -64,19 +65,12 @@ export default function EventsPracticeHubView({ embedded = false }) {
 
   useEffect(() => {
     let cancelled = false;
-    api
-      .get('/events')
+    apiGetCatalog('/events', { events: [] }, 'events')
       .then((res) => {
         if (cancelled) return;
         const rows = (res.data?.events || []).map((row) => mapRemoteEventPayload(row, backendPublicUrl));
         setRemoteSolo(rows.filter((event) => event.kind === 'solo'));
         setRemoteGroup(rows.filter((event) => event.kind === 'group'));
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setRemoteSolo([]);
-          setRemoteGroup([]);
-        }
       });
     return () => {
       cancelled = true;

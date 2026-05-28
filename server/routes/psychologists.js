@@ -19,7 +19,8 @@ const { createUserNotification } = require('../utils/userNotifications');
 const { maybeNotifyStatusVerification } = require('../utils/supportConfirmations');
 
 const router = express.Router();
-const uploadsAbs = path.join(__dirname, '..', 'uploads');
+const { getUploadsDir } = require('../utils/uploadsDir');
+const uploadsAbs = getUploadsDir();
 
 const REQUEST_STATUSES = ['new', 'contacted', 'online_consultation', 'in_progress', 'completed'];
 const ACCOUNT_STATUSES = ['pending_review', 'approved', 'rejected', 'blocked'];

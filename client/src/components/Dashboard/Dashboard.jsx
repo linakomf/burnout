@@ -17,6 +17,7 @@ import {
   Zap } from
 'lucide-react';
 import api from '../../utils/api';
+import { apiGetCatalog } from '../../utils/apiCatalog';
 import {
   stressFromCatalogLevel,
   compositeStressPct,
@@ -182,8 +183,11 @@ const Dashboard = () => {
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-    api.get('/tests/results/my').then((r) => r.data).catch(() => []),
-    api.get('/tests').then((r) => r.data).catch(() => [])]).
+    api.get('/tests/results/my').then((r) => r.data).catch((err) => {
+      console.error('[catalog] tests/results/my failed', err.response?.status, err.message);
+      return [];
+    }),
+    apiGetCatalog('/tests', [], 'tests').then((r) => r.data)]).
     then(([results, catalog]) => {
       if (cancelled) return;
       setTestResults(results || []);
@@ -276,12 +280,12 @@ const Dashboard = () => {
     let cancelled = false;
     setSpaceCatalogLoading(true);
     Promise.all([
-      api.get('/films').catch(() => ({ data: { films: [] } })),
-      api.get('/music').catch(() => ({ data: { items: [] } })),
-      api.get('/podcasts').catch(() => ({ data: { episodes: [] } })),
-      api.get('/meditations').catch(() => ({ data: { meditations: [] } })),
-      api.get('/reading').catch(() => ({ data: { items: [] } })),
-      api.get('/events').catch(() => ({ data: { events: [] } }))
+      apiGetCatalog('/films', { films: [] }, 'films'),
+      apiGetCatalog('/music', { items: [] }, 'music'),
+      apiGetCatalog('/podcasts', { episodes: [] }, 'podcasts'),
+      apiGetCatalog('/meditations', { meditations: [] }, 'meditations'),
+      apiGetCatalog('/reading', { items: [] }, 'reading'),
+      apiGetCatalog('/events', { events: [] }, 'events')
     ])
       .then(([filmsRes, musicRes, podRes, medRes, readingRes, eventsRes]) => {
         if (cancelled) return;

@@ -17,7 +17,9 @@ import { useNavigate } from 'react-router-dom';
 import { spaceHubHref } from './practiceSpaceConfig';
 import { useLanguage } from '../../context/LanguageContext';
 import api from '../../utils/api';
+import { apiGetCatalog } from '../../utils/apiCatalog';
 import { backendPublicUrl } from '../../utils/assetUrl';
+import { coverWithFallback, seedFromMediaId } from '../../utils/mediaFallback';
 import filmsCatalogHeroPhoto from '../../assets/films-catalog-hero-clouds.png';
 import {
   FILMS_FILTER_ATMOS_OPTIONS,
@@ -36,9 +38,10 @@ import {
 import './FilmsPracticeHub.css';
 
 function normalizeRemoteFilm(f) {
+  const id = f.id ?? f.film_id;
   return {
     ...f,
-    poster: backendPublicUrl(f.poster),
+    poster: coverWithFallback(backendPublicUrl(f.poster), seedFromMediaId(id)),
     gallery: Array.isArray(f.gallery) ? f.gallery.map(backendPublicUrl) : [],
   };
 }
@@ -114,8 +117,8 @@ function FilmsPracticeHub({ embedded = false }) {
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      api.get('/films').catch(() => ({ data: { films: [] } })),
-      api.get('/films/collections').catch(() => ({ data: { collections: [] } })),
+      apiGetCatalog('/films', { films: [] }, 'films'),
+      apiGetCatalog('/films/collections', { collections: [] }, 'films/collections'),
     ]).then(([filmsRes, collectionsRes]) => {
       if (cancelled) return;
       setRemoteFilms((filmsRes.data?.films || []).map(normalizeRemoteFilm));
@@ -557,7 +560,16 @@ function FilmsPracticeHub({ embedded = false }) {
                   onClick={() => navigate(`/practices/films/${film.id}`)}
                 >
                   <div className="flix-film-card__poster-wrap">
-                    <img src={film.poster} alt="" className="flix-film-card__poster" loading="lazy" />
+                    <img
+                      src={film.poster}
+                      alt=""
+                      className="flix-film-card__poster"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = coverWithFallback('', seedFromMediaId(film.id));
+                      }}
+                    />
                     <PracticeCoverFavorite
                       isFavorite={favorites.has(film.id)}
                       onToggle={() => toggleFilmFavorite(film.id)}

@@ -3,6 +3,7 @@ import { Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { eventCardCategory, eventCardTitle, eventPriceDisplayLabel, eventTagLabel } from './eventsHubData';
 import PracticeCoverFavorite from './PracticeCoverFavorite';
+import { coverWithFallback, seedFromMediaId } from '../../utils/mediaFallback';
 
 export function ToolbarDropdown({ isOpen, options, value, t, onPick, alignEnd, tall }) {
   if (!isOpen) return null;
@@ -45,7 +46,16 @@ export function EventGridCard({ item, t, isFavorite = false, onToggleFavorite = 
       <div className="practice-card-inner practice-card-inner--with-cover">
         <div className="practice-card-cover">
           <div className="practice-card-cover-media">
-            <img src={item.image} alt="" className="practice-card-cover-img events-flix-card__poster" loading="lazy" />
+            <img
+              src={item.image}
+              alt=""
+              className="practice-card-cover-img events-flix-card__poster"
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = coverWithFallback('', seedFromMediaId(item.id));
+              }}
+            />
             <div className="practice-card-cover-actions">
               <PracticeCoverFavorite
                 isFavorite={isFavorite}

@@ -6,6 +6,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import PracticeCard from './PracticeCard';
 import PracticeModal from './PracticeModal';
 import api from '../../utils/api';
+import { apiGetCatalog } from '../../utils/apiCatalog';
 import filmsCatalogHeroPhoto from '../../assets/films-catalog-hero-clouds.png';
 import { loadMeditationFavorites, saveMeditationFavorites } from './meditationFavorites';
 import { mapRemoteMeditationPayload } from './meditationHubData';
@@ -35,14 +36,10 @@ export default function MeditationPracticeSection({ embedded = false }) {
 
   useEffect(() => {
     let cancelled = false;
-    api
-      .get('/meditations')
+    apiGetCatalog('/meditations', { meditations: [] }, 'meditations')
       .then((res) => {
         const rows = res.data?.meditations || [];
         if (!cancelled) setRemoteMeditations(rows.map(mapRemoteMeditationPayload));
-      })
-      .catch(() => {
-        if (!cancelled) setRemoteMeditations([]);
       });
     return () => {
       cancelled = true;

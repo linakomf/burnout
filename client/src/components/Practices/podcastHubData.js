@@ -1,6 +1,7 @@
 /** Подкасты - подборка, список выпусков, темы (ключи i18n pages.*) */
 
 import { backendPublicUrl } from '../../utils/assetUrl';
+import { coverWithFallback, seedFromMediaId } from '../../utils/mediaFallback';
 import { getEpisodeFilterTags } from './podcastHubFilters';
 import { natureAt } from './spaceNatureImagery';
 
@@ -72,7 +73,7 @@ export function isRemotePodcastId(id) {
 
 export function mapRemotePodcastPayload(row, toUrl) {
   const urlFn = toUrl || backendPublicUrl;
-  const poster = urlFn(row.poster || row.coverImage);
+  const poster = coverWithFallback(urlFn(row.poster || row.coverImage), seedFromMediaId(row.id));
   const audioUrl =
     row.audioSource === 'file' ? urlFn(row.audioUrl) : row.audioUrl || '';
   const durationDisplay = row.duration || row.totalDisplay || '24:00';

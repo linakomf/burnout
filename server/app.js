@@ -94,8 +94,8 @@ app.use('/api', (req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+const { getUploadsDir } = require('./utils/uploadsDir');
+const uploadsDir = getUploadsDir();
 app.use('/uploads', express.static(uploadsDir));
 
 app.use('/api/auth', require('./routes/auth'));
@@ -130,9 +130,7 @@ async function bootstrap() {
   await ensurePracticeSchema();
   await ensureOnboardingSchema();
   await ensureTestSchema();
-  if (!process.env.VERCEL) {
-    await ensureTestCatalog();
-  }
+  await ensureTestCatalog();
   await ensureSupportRequestsSchema();
   await ensurePsychologistSchema();
   await ensureFilmsSchema();

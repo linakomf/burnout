@@ -24,13 +24,21 @@ function skipAudienceFilter(user) {
   return user?.role === 'admin';
 }
 
+/** Включить SQL-фильтр каталога (по умолчанию выкл — все карточки видны). */
+function isStrictCatalogAudience() {
+  const v = String(process.env.CATALOG_STRICT_AUDIENCE || '').trim().toLowerCase();
+  return v === '1' || v === 'true' || v === 'yes';
+}
+
 /**
  * SQL-фрагмент AND … для фильтрации каталога.
- * @param {object|null} user — req.user (JWT); без пользователя — только universal.
- * @param {string} [alias] — префикс таблицы, напр. "f"
- * @param {number} [paramStart]
+ * По умолчанию не скрываем карточки — иначе на проде часто пустые разделы.
  */
 function appendAudienceFilter(user, alias = '', paramStart = 1) {
+  if (!isStrictCatalogAudience()) {
+    return { sql: '', params: [], nextIndex: paramStart };
+  }
+
   if (skipAudienceFilter(user)) {
     return { sql: '', params: [], nextIndex: paramStart };
   }
@@ -43,19 +51,19 @@ function appendAudienceFilter(user, alias = '', paramStart = 1) {
   const role = user?.role;
   if (role === 'student' || role === 'teacher') {
     params.push(role);
-    parts.push(`(${p}target_role = 'all' OR ${p}target_role = $${idx})`);
+    parts.push(
+      `(COALESCE(${p}target_role, 'all') = 'all' OR ${p}target_role = $${idx})`
+    );
     idx += 1;
-  } else {
-    parts.push(`${p}target_role = 'all'`);
   }
 
   const genderTag = userGenderTag(user);
   if (genderTag) {
     params.push(genderTag);
-    parts.push(`(${p}target_gender = 'all' OR ${p}target_gender = $${idx})`);
+    parts.push(
+      `(COALESCE(${p}target_gender, 'all') = 'all' OR ${p}target_gender = $${idx})`
+    );
     idx += 1;
-  } else {
-    parts.push(`${p}target_gender = 'all'`);
   }
 
   return {
@@ -67,6 +75,10 @@ function appendAudienceFilter(user, alias = '', paramStart = 1) {
 
 /** Фильтр тестов: категория + сам тест (оба условия). */
 function appendTestAudienceFilter(user, testAlias = 't', catAlias = 'c', paramStart = 1) {
+  if (!isStrictCatalogAudience()) {
+    return { sql: '', params: [], nextIndex: paramStart };
+  }
+
   if (skipAudienceFilter(user)) {
     return { sql: '', params: [], nextIndex: paramStart };
   }
@@ -82,11 +94,9 @@ function appendTestAudienceFilter(user, testAlias = 't', catAlias = 'c', paramSt
     params.push(role);
     const n = idx;
     parts.push(
-      `((${c}target_role = 'all' OR ${c}target_role = $${n}) AND (${t}target_role = 'all' OR ${t}target_role = $${n}))`
+      `((COALESCE(${c}target_role, 'all') = 'all' OR ${c}target_role = $${n}) AND (COALESCE(${t}target_role, 'all') = 'all' OR ${t}target_role = $${n}))`
     );
     idx += 1;
-  } else {
-    parts.push(`${c}target_role = 'all' AND ${t}target_role = 'all'`);
   }
 
   const genderTag = userGenderTag(user);
@@ -94,11 +104,9 @@ function appendTestAudienceFilter(user, testAlias = 't', catAlias = 'c', paramSt
     params.push(genderTag);
     const n = idx;
     parts.push(
-      `((${c}target_gender = 'all' OR ${c}target_gender = $${n}) AND (${t}target_gender = 'all' OR ${t}target_gender = $${n}))`
+      `((COALESCE(${c}target_gender, 'all') = 'all' OR ${c}target_gender = $${n}) AND (COALESCE(${t}target_gender, 'all') = 'all' OR ${t}target_gender = $${n}))`
     );
     idx += 1;
-  } else {
-    parts.push(`${c}target_gender = 'all' AND ${t}target_gender = 'all'`);
   }
 
   return {

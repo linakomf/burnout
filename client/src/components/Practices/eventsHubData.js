@@ -1,6 +1,7 @@
 /** Демо-карточки для страницы «События» (подборки одиночные / в компании) */
 
 import { natureAt, natureGallery } from './spaceNatureImagery';
+import { coverWithFallback, seedFromMediaId } from '../../utils/mediaFallback';
 
 const IMG = {
   flowers: natureAt(2),
@@ -226,7 +227,7 @@ export function mapRemoteEventPayload(row, backendUrl) {
     kind: row.kind || 'solo',
     filterCat: row.filterCat || 'other',
     tf: row.tf || { loc: 'almaty', date: 'this_month', time: 'evening', mood: 'calm' },
-    image: toUrl(row.image),
+    image: coverWithFallback(toUrl(row.image), seedFromMediaId(row.id)),
     categoryLabel: row.categoryLabel || '',
     title: row.title || '',
     tags: Array.isArray(row.tags) ? row.tags : [],

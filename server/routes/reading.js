@@ -9,7 +9,8 @@ const { pickCategory, pickKind } = require('../utils/readingCategories');
 const { unlinkReadingCover } = require('../utils/readingUploadCleanup');
 
 const router = express.Router();
-const uploadsAbs = path.join(__dirname, '..', 'uploads');
+const { getUploadsDir } = require('../utils/uploadsDir');
+const uploadsAbs = getUploadsDir();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsAbs),

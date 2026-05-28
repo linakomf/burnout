@@ -10,7 +10,8 @@ const { parseYoutubeUrl } = require('../utils/youtubeUrl');
 const { unlinkMeditationAssets, safeUnlinkUploadPath } = require('../utils/meditationUploadCleanup');
 
 const router = express.Router();
-const uploadsAbs = path.join(__dirname, '..', 'uploads');
+const { getUploadsDir } = require('../utils/uploadsDir');
+const uploadsAbs = getUploadsDir();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsAbs),

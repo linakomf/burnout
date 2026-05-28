@@ -1,4 +1,5 @@
 import { backendPublicUrl } from '../../utils/assetUrl';
+import { coverWithFallback, seedFromMediaId } from '../../utils/mediaFallback';
 import {
   MUSIC_FILTER_GENRE_OPTIONS,
   MUSIC_FILTER_MOOD_OPTIONS,
@@ -37,7 +38,7 @@ export function isRemoteMusicId(id) {
 
 export function mapRemoteMusicTrack(row, toUrl) {
   const urlFn = toUrl || backendPublicUrl;
-  const poster = urlFn(row.poster || row.coverImage);
+  const poster = coverWithFallback(urlFn(row.poster || row.coverImage), seedFromMediaId(row.id));
   const audioUrl =
     row.audioSource === 'file' ? urlFn(row.audioUrl) : row.audioUrl || '';
   return {

@@ -1,4 +1,5 @@
 import { backendPublicUrl } from '../../utils/assetUrl';
+import { coverWithFallback, seedFromMediaId } from '../../utils/mediaFallback';
 
 /** Как MEDITATION_FILTERS в Practices.jsx (без «all»). */
 export const MEDITATION_TOPIC_OPTIONS = [
@@ -47,7 +48,10 @@ export function practiceHasPlayableAudio(practice) {
 
 export function mapRemoteMeditationPayload(row) {
   const audioUrlRaw = row.audioUrl || '';
-  const cover = backendPublicUrl(row.coverImage || row.cover_url || '');
+  const cover = coverWithFallback(
+    backendPublicUrl(row.coverImage || row.cover_url || ''),
+    seedFromMediaId(row.id)
+  );
   const audioUrl =
     row.audioSource === 'file' ? backendPublicUrl(audioUrlRaw) : audioUrlRaw;
 

@@ -20,7 +20,8 @@ const {
 } = require('../utils/podcastTagWhitelist');
 
 const router = express.Router();
-const uploadsAbs = path.join(__dirname, '..', 'uploads');
+const { getUploadsDir } = require('../utils/uploadsDir');
+const uploadsAbs = getUploadsDir();
 
 const AUDIO_SOURCES = new Set(['file', 'youtube', 'url']);
 

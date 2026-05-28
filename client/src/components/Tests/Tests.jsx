@@ -11,6 +11,7 @@ import {
   Star
 } from 'lucide-react';
 import api from '../../utils/api';
+import { apiGetCatalog } from '../../utils/apiCatalog';
 import { useLanguage } from '../../context/LanguageContext';
 import { mergeTestRu } from '../../config/testDisplayRu';
 import testsHeroImg from '../../assets/tests-page-blossoms-hero.png';
@@ -222,11 +223,9 @@ export const TestsList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.
-    get('/tests').
-    then((res) => setTests(res.data || [])).
-    catch(() => setTests([])).
-    finally(() => setLoading(false));
+    apiGetCatalog('/tests', [], 'tests')
+      .then((res) => setTests(res.data || []))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {

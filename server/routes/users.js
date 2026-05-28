@@ -13,7 +13,8 @@ const { fetchConfirmationsByRequestIds } = require('../utils/supportConfirmation
 const multer = require('multer');
 const path = require('path');
 
-const uploadsAbs = path.join(__dirname, '..', 'uploads');
+const { getUploadsDir } = require('../utils/uploadsDir');
+const uploadsAbs = getUploadsDir();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsAbs),
