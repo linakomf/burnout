@@ -12,17 +12,36 @@ const handler = serverless(app, {
 });
 
 let bootstrapDone = false;
+let bootstrapPromise = null;
+
+function runBootstrap() {
+  if (!bootstrapPromise) {
+    bootstrapPromise = ensureBootstrap()
+      .then(() => {
+        bootstrapDone = true;
+      })
+      .catch((err) => {
+        bootstrapPromise = null;
+        throw err;
+      });
+  }
+  return bootstrapPromise;
+}
 
 async function ensureReady() {
   if (!bootstrapDone) {
-    await ensureBootstrap();
-    bootstrapDone = true;
+    await runBootstrap();
   }
 }
 
 function isHealthRequest(req) {
   const url = requestPath(req);
   return req.method === 'GET' && (url === '/api/health' || url.startsWith('/api/health?'));
+}
+
+function isWarmRequest(req) {
+  const url = requestPath(req);
+  return req.method === 'GET' && (url === '/api/warm' || url.startsWith('/api/warm?'));
 }
 
 /** Vercel иногда передаёт укороченный req.url — восстанавливаем путь /api/... */
@@ -63,15 +82,31 @@ async function buildHealthPayload() {
     timestamp: new Date().toISOString(),
     database,
     jwt: hasJwt ? 'configured' : 'missing',
+    ready: bootstrapDone,
     vercel: Boolean(process.env.VERCEL)
   };
+}
+
+if (process.env.VERCEL && process.env.DATABASE_URL?.trim()) {
+  runBootstrap().catch((err) => console.warn('Background bootstrap:', err.message));
 }
 
 module.exports = async (req, res) => {
   try {
     requestPath(req);
 
+    if (isWarmRequest(req)) {
+      await ensureReady();
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ status: 'ready', ready: bootstrapDone }));
+      return;
+    }
+
     if (isHealthRequest(req)) {
+      if (!bootstrapDone && process.env.DATABASE_URL?.trim()) {
+        runBootstrap().catch(() => {});
+      }
       const payload = await buildHealthPayload();
       res.statusCode = payload.database === 'connected' ? 200 : 503;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');

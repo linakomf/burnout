@@ -1,12 +1,22 @@
 import { getApiBaseURL } from './api';
 
-let warmed = false;
+let warmupPromise = null;
 
-/** Прогрев serverless API на Vercel (холодный старт). */
+/**
+ * Прогрев serverless на Vercel до отправки формы (избегаем 504 на регистрации).
+ */
 export function warmupApi() {
-  if (warmed || process.env.NODE_ENV !== 'production') return;
-  warmed = true;
-  const base = getApiBaseURL().replace(/\/$/, '');
-  const url = `${base}/health`;
-  fetch(url, { method: 'GET', credentials: 'same-origin' }).catch(() => {});
+  if (process.env.NODE_ENV !== 'production') return Promise.resolve(false);
+
+  if (!warmupPromise) {
+    const base = getApiBaseURL().replace(/\/$/, '');
+    warmupPromise = fetch(`${base}/warm`, {
+      method: 'GET',
+      credentials: 'same-origin',
+      signal: AbortSignal.timeout(55000)
+    })
+      .then((r) => r.ok)
+      .catch(() => false);
+  }
+  return warmupPromise;
 }

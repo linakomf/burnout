@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -8,6 +8,7 @@ import AppLogo from '../Brand/AppLogo';
 import { formatAuthAxiosError, mergeField, readFormField } from '../../utils/authFormRead';
 import { psychologistHomePath } from '../../utils/psychologistNav';
 import AuthFlowBackdrop from './AuthFlowBackdrop';
+import { warmupApi } from '../../utils/apiWarmup';
 import './Auth.css';
 
 const Login = () => {
@@ -15,9 +16,20 @@ const Login = () => {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [warming, setWarming] = useState(process.env.NODE_ENV === 'production');
   const { login } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    warmupApi().finally(() => {
+      if (!cancelled) setWarming(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleChange = (e) => {
     setError('');
@@ -36,6 +48,7 @@ const Login = () => {
     }
     setLoading(true);
     try {
+      await warmupApi();
       const user = await login(email, password);
       if (user.role === 'admin') navigate('/admin');
       else if (user.role === 'psychologist') navigate(psychologistHomePath(user), { replace: true });
@@ -107,8 +120,12 @@ const Login = () => {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
-            {loading ? t('auth.submitLoginL') : t('auth.submitLogin')}
+          <button type="submit" className="btn btn-primary auth-submit" disabled={loading || warming}>
+            {loading
+              ? t('auth.submitLoginL')
+              : warming
+                ? t('auth.submitRegWarming')
+                : t('auth.submitLogin')}
           </button>
         </form>
 

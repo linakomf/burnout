@@ -165,27 +165,37 @@ function startDeferredBootstrap() {
   });
 }
 
+/** На Vercel: не гоняем все миграции при каждом холодном старте (иначе 504). */
+async function bootstrapVercelFast() {
+  const pool = require('./db');
+  await pool.query('SELECT 1');
+  let hasUsers = false;
+  try {
+    hasUsers = await isDatabaseInitialized();
+  } catch (err) {
+    if (err.code === 'DB_NOT_CONFIGURED') throw err;
+    console.warn('⚠️ Vercel schema check:', err.message);
+  }
+  if (!hasUsers) {
+    console.log('⚠️ Vercel: пустая БД — минимальная схема для входа');
+    await ensureCoreSchema();
+    await ensureOnboardingSchema();
+    await ensureTestSchema();
+  } else {
+    console.log('✅ Vercel: быстрый старт (схема уже в Neon)');
+  }
+  startDeferredBootstrap();
+}
+
 function ensureBootstrap() {
   if (!bootstrapPromise) {
     bootstrapPromise = (async () => {
       if (process.env.VERCEL) {
-        try {
-          if (await isDatabaseInitialized()) {
-            console.log('✅ Vercel: схема БД уже есть — быстрый старт');
-            startDeferredBootstrap();
-            return;
-          }
-        } catch (err) {
-          if (err.code === 'DB_NOT_CONFIGURED') throw err;
-          console.warn('⚠️ Vercel db check:', err.message);
-        }
+        await bootstrapVercelFast();
+        return;
       }
       await bootstrapCritical();
-      if (process.env.VERCEL) {
-        startDeferredBootstrap();
-      } else {
-        await bootstrapDeferred();
-      }
+      await bootstrapDeferred();
     })().catch((err) => {
       bootstrapPromise = null;
       throw err;

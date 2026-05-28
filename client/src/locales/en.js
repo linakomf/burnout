@@ -376,6 +376,8 @@ export default {
       'Cannot reach the API. Wait a few seconds and try again. If it keeps failing, reload the page.',
     errApiUnreachable:
       'The API is not available at this URL. On Vercel, check DATABASE_URL and JWT_SECRET, then redeploy.',
+    errColdStart: 'The server is waking up (10–30 s). Wait and try again, or refresh the page.',
+    submitRegWarming: 'Connecting to server…',
     errServer: 'The server is temporarily unavailable. Try again later or check backend logs.',
     errRequired: 'Please enter your name, email, and password.',
     errRequiredLogin: 'Please enter your email and password.',

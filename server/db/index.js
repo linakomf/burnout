@@ -30,9 +30,13 @@ function createPool() {
     throw err;
   }
 
+  const serverless = Boolean(process.env.VERCEL);
   const nextPool = new Pool({
     connectionString,
-    ssl: resolveSsl(connectionString)
+    ssl: resolveSsl(connectionString),
+    max: serverless ? 1 : 10,
+    idleTimeoutMillis: serverless ? 5000 : 30000,
+    connectionTimeoutMillis: serverless ? 15000 : 10000
   });
 
   let pgLogOnce = false;

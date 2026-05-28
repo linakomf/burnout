@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -7,6 +7,7 @@ import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import AppLogo from '../Brand/AppLogo';
 import { formatAuthAxiosError, mergeField, readFormField } from '../../utils/authFormRead';
 import AuthFlowBackdrop from './AuthFlowBackdrop';
+import { warmupApi } from '../../utils/apiWarmup';
 import './Auth.css';
 
 const Register = () => {
@@ -14,9 +15,20 @@ const Register = () => {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [warming, setWarming] = useState(process.env.NODE_ENV === 'production');
   const { register } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    warmupApi().finally(() => {
+      if (!cancelled) setWarming(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleChange = (e) => {
     setError('');
@@ -43,6 +55,7 @@ const Register = () => {
     }
     setLoading(true);
     try {
+      await warmupApi();
       const payload = { firstName, lastName, email, password, role: 'student' };
       if (ageStr) {
         const ageNum = parseInt(String(ageStr).trim(), 10);
@@ -160,8 +173,12 @@ const Register = () => {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
-            {loading ? t('auth.submitRegL') : t('auth.submitReg')}
+          <button type="submit" className="btn btn-primary auth-submit" disabled={loading || warming}>
+            {loading
+              ? t('auth.submitRegL')
+              : warming
+                ? t('auth.submitRegWarming')
+                : t('auth.submitReg')}
           </button>
         </form>
 
