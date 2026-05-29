@@ -54,7 +54,10 @@ const Login = () => {
   };
 
   return (
-    <AuthFlowBackdrop>
+    <AuthFlowBackdrop variant="landing">
+        <Link to="/" className="auth-back-home">
+          ← {t('auth.backToLanding')}
+        </Link>
         <div className="auth-card-top">
           <div className="auth-lang-bar">
             <LanguageSwitcher className="lang-switch--on-light-bg" />

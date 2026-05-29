@@ -8,7 +8,7 @@ import AppLogo from '../Brand/AppLogo';
 import AuthFlowBackdrop from '../Auth/AuthFlowBackdrop';
 import api from '../../utils/api';
 import { savePendingOnboarding, clearPendingOnboarding } from '../../utils/onboardingLocalStorage';
-import { getAvatarForRoleGender, PROFILE_AVATAR_OPTIONS } from '../../config/registerAvatars';
+import { getAvatarForRoleGender } from '../../config/registerAvatars';
 import {
   ONBOARDING_OPTIONS,
   ONBOARDING_QUESTION_COUNT,
@@ -127,48 +127,6 @@ function OnboardingProfileStep({ user, updateUser, t }) {
             </button>
           </div>
           <p className="reg-hint">{t('auth.regGenderHint')}</p>
-        </div>
-
-        <div className="form-group">
-          <label>{t('auth.regPickAvatar')}</label>
-          <div className="reg-avatar-grid reg-avatar-grid--profile" role="list">
-            {PROFILE_AVATAR_OPTIONS.map((opt) => {
-              const av = getAvatarForRoleGender(opt.profileRole, opt.gender);
-              const selected = profileRole === opt.profileRole && gender === opt.gender;
-              return (
-                <button
-                  key={opt.key}
-                  type="button"
-                  role="listitem"
-                  className={`reg-avatar-btn ${selected ? 'reg-avatar-btn--selected' : ''}`}
-                  onClick={() => {
-                    setProfileRole(opt.profileRole);
-                    setGender(opt.gender);
-                  }}
-                  aria-pressed={selected}
-                  aria-label={`${opt.profileRole === 'teacher' ? t('auth.roleTeacher') : t('auth.roleStudent')} — ${opt.gender === 'girl' ? t('auth.regGenderGirl') : t('auth.regGenderBoy')}`}
-                >
-                  <span className="reg-avatar-ring">
-                    <span className="reg-avatar-circle-bg">
-                      <img
-                        src={av.src}
-                        alt=""
-                        className="reg-avatar-img"
-                        loading="eager"
-                        decoding="async"
-                        onError={(e) => {
-                          const fb = av.fallbackSrc;
-                          if (fb && e.currentTarget.src !== fb) {
-                            e.currentTarget.src = fb;
-                          }
-                        }}
-                      />
-                    </span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         <div className="reg-step2-actions">

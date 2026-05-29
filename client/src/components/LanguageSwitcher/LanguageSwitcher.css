@@ -40,6 +40,49 @@
   border-color: #e0e0e0;
 }
 
+.lang-switch--on-hero {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+.lang-switch--on-hero .lang-switch-btn {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.lang-switch--on-hero .lang-switch-btn.active {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--ref-blue-deep, #3d6fbe);
+}
+
+/* Внутри капсулы хедера лендинга — без фона и кружков */
+.lang-switch--in-pill {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  gap: 10px;
+}
+
+.lang-switch--in-pill .lang-switch-btn {
+  padding: 8px 4px;
+  border-radius: 0;
+  color: var(--v2-blue, #5b8fd9);
+  font-size: 13px;
+}
+
+.lang-switch--in-pill .lang-switch-btn:hover {
+  background: transparent;
+  color: var(--v2-blue-deep, #3d6fbe);
+}
+
+.lang-switch--in-pill .lang-switch-btn.active {
+  background: transparent;
+  color: #1a2438;
+  box-shadow: none;
+  font-weight: 800;
+}
+
 /* Выпадающий список (настройки профиля) */
 .lang-dropdown {
   position: relative;

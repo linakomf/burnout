@@ -63,7 +63,10 @@ const Register = () => {
   };
 
   return (
-    <AuthFlowBackdrop cardClassName="auth-card--wide">
+    <AuthFlowBackdrop variant="landing" cardClassName="auth-card--wide">
+        <Link to="/" className="auth-back-home">
+          ← {t('auth.backToLanding')}
+        </Link>
         <div className="auth-card-top">
           <div className="auth-lang-bar">
             <LanguageSwitcher className="lang-switch--on-light-bg" />

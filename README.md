@@ -1,4 +1,4 @@
-# Burnout / MindTrack
+# Burnout
 
 ## Деплой на Vercel (важно)
 

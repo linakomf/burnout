@@ -135,7 +135,7 @@ const AdminPortal = () => {
       <div className="admin-portal-inner">
         <header className="admin-portal-header">
           <div className="admin-portal-brand">
-            <h1>Статистика MindTrack</h1>
+            <h1>Статистика Burnout</h1>
             <p>
               Пользователи, тесты, дневник, практики и динамика за 14 дней. Данные с сервера в режиме
               реального времени.

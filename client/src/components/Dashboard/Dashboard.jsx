@@ -202,6 +202,20 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const supportFlag = params.get('support');
+    if (supportFlag !== 'open' && supportFlag !== '1') return;
+
+    const timer = window.setTimeout(() => {
+      document.querySelector('.dash-support-nearby')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setSupportModalOpen(true);
+      navigate('/dashboard', { replace: true });
+    }, 200);
+
+    return () => window.clearTimeout(timer);
+  }, [location.search, navigate]);
+
+  useEffect(() => {
     const el = heroBgVideoRef.current;
     if (!el) return;
     const play = () => {

@@ -10,13 +10,13 @@ if not exist "server\.env" (
 )
 
 echo Запуск API (порт 5000^)...
-start "MindTrack API" cmd /k call "%~dp0server\run-api.cmd"
+start "Burnout API" cmd /k call "%~dp0server\run-api.cmd"
 
 echo Ожидание сервера (5 с^)...
 timeout /t 5 /nobreak >nul
 
 echo Запуск веб-клиента (порт 3000^)...
-start "MindTrack Web" cmd /k call "%~dp0client\run-web.cmd"
+start "Burnout Web" cmd /k call "%~dp0client\run-web.cmd"
 
 echo.
 echo Откройте: http://127.0.0.1:3000

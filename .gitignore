@@ -1,8 +1,13 @@
 # Dependencies
 node_modules/
+scripts/bin/
 
 # Build
 client/build/
+
+# Design mocks (not used in app)
+client/src/assets/*-design-ref.png
+client/public/landing/hero-reference.png
 
 # Environment & secrets
 .env

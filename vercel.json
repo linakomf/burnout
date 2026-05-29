@@ -12,7 +12,7 @@
       "destination": "/api"
     },
     {
-      "source": "/((?!api/|uploads/|static/|avatars/|media/|photos/|images/|meditation/|music/|films/|articles/|space/|burnout-logo\\.png|mindtrack-logo\\.png|asset-manifest\\.json|favicon\\.ico).*)",
+      "source": "/((?!api/|uploads/|static/|avatars/|media/|photos/|images/|meditation/|music/|films/|articles/|space/|burnout-logo\\.png|asset-manifest\\.json|favicon\\.ico).*)",
       "destination": "/index.html"
     }
   ],

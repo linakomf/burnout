@@ -74,7 +74,7 @@ const AIChat = () => {
             <div className="ai-header-info">
               <div className="ai-avatar"><Bot size={18} /></div>
               <div>
-                <span className="ai-name">MindTrack · ChatGPT</span>
+                <span className="ai-name">Burnout · ChatGPT</span>
                 <span className="ai-status">Онлайн</span>
               </div>
             </div>

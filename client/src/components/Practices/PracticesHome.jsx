@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
@@ -102,6 +102,7 @@ function PracticesPocketTileFace({ cat, t }) {
 
 function PracticesHome() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
   const gridRef = useRef(null);
   const heroRef = useRef(null);
@@ -161,6 +162,15 @@ function PracticesHome() {
   const scrollToGrid = () => {
     gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
+  useEffect(() => {
+    if (!location.state?.scrollToSpaceGrid) return;
+    const timer = window.setTimeout(() => {
+      gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      navigate('/practices', { replace: true, state: null });
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [location.state, navigate]);
 
   const openCategory = (catId) => {
     navigate(spaceSectionHref(catId));

@@ -14,6 +14,92 @@
   box-sizing: border-box;
 }
 
+/* Вход / регистрация — тот же визуальный язык, что landing v2 */
+.auth-page--landing-v2 {
+  background: #fff;
+}
+
+.auth-bg--landing-v2 {
+  background-image: url('../../assets/landing-hero-meadow.png');
+  background-size: cover;
+  background-position: center 42%;
+  background-repeat: no-repeat;
+}
+
+.auth-bg--landing-v2::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0.08) 36%,
+    transparent 52%
+  );
+  pointer-events: none;
+}
+
+.auth-page--landing-v2 .auth-bg--blobs {
+  display: none;
+}
+
+.auth-page--landing-v2 .auth-card {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow:
+    0 24px 56px rgba(91, 143, 217, 0.14),
+    0 8px 20px rgba(26, 36, 56, 0.06);
+}
+
+.auth-page--landing-v2 .auth-logo .brand-wordmark {
+  color: #3d6fbe;
+}
+
+.auth-page--landing-v2 .reg-grad-line {
+  background: linear-gradient(90deg, #5b8fd9, #9bbd90, #5b8fd9);
+}
+
+.auth-page--landing-v2 .btn-primary,
+.auth-page--landing-v2 .auth-submit.btn-primary {
+  border: none;
+  color: #fff;
+  background: linear-gradient(135deg, #5b8fd9 0%, #3d6fbe 100%);
+  box-shadow: 0 8px 24px rgba(91, 143, 217, 0.35);
+}
+
+.auth-page--landing-v2 .btn-primary:hover:not(:disabled),
+.auth-page--landing-v2 .auth-submit.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.auth-page--landing-v2 .auth-switch a {
+  color: #3d6fbe;
+  font-weight: 700;
+}
+
+.auth-back-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #5b8fd9;
+  background: rgba(255, 255, 255, 0.65);
+  color: #3d6fbe;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.auth-back-home:hover {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: #3d6fbe;
+}
+
 /* Фон как на главной (холмы дашборда) */
 .auth-page--dashboard {
   background-color: #e5f0f5;
