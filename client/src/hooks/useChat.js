@@ -26,7 +26,8 @@ export function useChat({ userFirstName = 'друг', onUserMessageSent } = {}) 
   }, [messages]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length === 0 && !loading) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [messages, loading]);
 
   const sendMessage = useCallback(async () => {

@@ -18,6 +18,8 @@ const {
   pickTfMood,
 } = require('../utils/eventFilters');
 const { unlinkEventAssets, safeUnlinkUploadPath } = require('../utils/eventUploadCleanup');
+const { resolveMediaUrl, resolveMediaUrlList } = require('../utils/resolveMediaUrl');
+const { publicUploadPath } = require('../utils/mirrorUpload');
 
 const router = express.Router();
 const { getUploadsDir } = require('../utils/uploadsDir');
@@ -70,7 +72,9 @@ function parseEventPublicId(param) {
 
 function rowToPublicEvent(row) {
   const tags = Array.isArray(row.card_tags) ? row.card_tags : [];
-  const gallery = Array.isArray(row.gallery_urls) ? row.gallery_urls : [];
+  const gallery = resolveMediaUrlList(
+    Array.isArray(row.gallery_urls) ? row.gallery_urls : []
+  );
   const suitTags = Array.isArray(row.suit_tags) ? row.suit_tags : [];
   const important = Array.isArray(row.important_notes) ? row.important_notes : [];
 
@@ -89,10 +93,10 @@ function rowToPublicEvent(row) {
       mood: row.tf_mood || 'calm',
     },
     tags,
-    image: row.cover_url || '',
+    image: resolveMediaUrl(row.cover_url),
     detail: {
       ticketUrl: row.ticket_url || '',
-      heroImage: row.hero_url || row.cover_url || '',
+      heroImage: resolveMediaUrl(row.hero_url || row.cover_url),
       venueLine: row.venue_line || '',
       teaser: row.teaser || '',
       aboutText: row.about_text || '',
@@ -100,7 +104,7 @@ function rowToPublicEvent(row) {
       ageLabel: row.age_label || '',
       genreLabel: row.genre_label || '',
       refundLabel: row.refund_label || '',
-      venueImage: row.venue_image_url || '',
+      venueImage: resolveMediaUrl(row.venue_image_url),
       venuePinText: row.venue_pin_text || '',
       organizerName: row.organizer_name || '',
       organizerDesc: row.organizer_desc || '',
@@ -188,11 +192,9 @@ function readEventBody(body, files, existing) {
         ? parseJsonArray(body.important_notes, 12)
         : existing?.important_notes || []
     ),
-    cover_url: files?.cover?.[0] ? `/uploads/${files.cover[0].filename}` : undefined,
-    hero_url: files?.hero?.[0] ? `/uploads/${files.hero[0].filename}` : undefined,
-    venue_image_url: files?.venue_image?.[0]
-      ? `/uploads/${files.venue_image[0].filename}`
-      : undefined,
+    cover_url: files?.cover?.[0] ? publicUploadPath(files.cover[0]) : undefined,
+    hero_url: files?.hero?.[0] ? publicUploadPath(files.hero[0]) : undefined,
+    venue_image_url: files?.venue_image?.[0] ? publicUploadPath(files.venue_image[0]) : undefined,
     gallery_urls: undefined,
     target_role: Object.prototype.hasOwnProperty.call(body, 'target_role')
       ? pickTargetRole(body.target_role)
@@ -265,7 +267,7 @@ router.post(
       if (parsed.error) return res.status(400).json({ message: parsed.error });
 
       const galleryFiles = req.files?.gallery || [];
-      const gallery_urls = galleryFiles.slice(0, 4).map((f) => `/uploads/${f.filename}`);
+      const gallery_urls = galleryFiles.slice(0, 4).map((f) => publicUploadPath(f));
 
       const ins = await pool.query(
         `INSERT INTO events (
@@ -431,7 +433,7 @@ router.patch(
           const set = new Set(existingGallery);
           kept = Array.isArray(arr) ? arr.filter((u) => typeof u === 'string' && set.has(u)) : [];
         }
-        const appended = galleryFiles.map((f) => `/uploads/${f.filename}`);
+        const appended = galleryFiles.map((f) => publicUploadPath(f));
         const nextGallery = [...kept, ...appended].slice(0, 4);
         const removed = existingGallery.filter((u) => !nextGallery.includes(u));
         for (const u of removed) safeUnlinkUploadPath(uploadsAbs, u);

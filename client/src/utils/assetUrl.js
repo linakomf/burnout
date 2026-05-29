@@ -7,7 +7,19 @@ import { getApiOrigin } from './api';
 
 export function backendPublicUrl(path) {
   if (path == null || path === '') return '';
-  const p = String(path).startsWith('/') ? String(path) : `/${path}`;
+
+  const s = String(path).trim();
+  if (!s) return '';
+
+  if (/^https?:\/\//i.test(s)) return s;
+  if (s.startsWith('//')) return `https:${s}`;
+
+  let p = s;
+  if (!p.startsWith('/')) {
+    if (p.startsWith('uploads/')) p = `/${p}`;
+    else p = `/${p}`;
+  }
+
   const origin = getApiOrigin();
-  return origin ? `${origin}${p}` : p;
+  return origin ? `${origin.replace(/\/$/, '')}${p}` : p;
 }

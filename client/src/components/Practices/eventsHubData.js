@@ -2,6 +2,7 @@
 
 import { natureAt, natureGallery } from './spaceNatureImagery';
 import { coverWithFallback, seedFromMediaId } from '../../utils/mediaFallback';
+import { getEventCoverByTitle } from '../../config/eventSoloCoverImages';
 
 const IMG = {
   flowers: natureAt(2),
@@ -222,12 +223,14 @@ export function mapRemoteEventPayload(row, backendUrl) {
   const toUrl = backendUrl || ((p) => p);
   const d = row.detail || {};
   const gallery = Array.isArray(d.gallery) ? d.gallery.map(toUrl).filter(Boolean) : [];
+  const localCover = getEventCoverByTitle(row.title);
+  const heroSrc = localCover || toUrl(d.heroImage || row.image);
   return {
     id: row.id,
     kind: row.kind || 'solo',
     filterCat: row.filterCat || 'other',
     tf: row.tf || { loc: 'almaty', date: 'this_month', time: 'evening', mood: 'calm' },
-    image: coverWithFallback(toUrl(row.image), seedFromMediaId(row.id)),
+    image: localCover || coverWithFallback(toUrl(row.image), seedFromMediaId(row.id)),
     categoryLabel: row.categoryLabel || '',
     title: row.title || '',
     tags: Array.isArray(row.tags) ? row.tags : [],
@@ -235,7 +238,7 @@ export function mapRemoteEventPayload(row, backendUrl) {
     isRemoteEvent: true,
     detail: {
       ticketUrl: d.ticketUrl || '',
-      heroImage: toUrl(d.heroImage || row.image),
+      heroImage: heroSrc,
       venueLine: d.venueLine || '',
       teaser: d.teaser || '',
       aboutText: d.aboutText || '',

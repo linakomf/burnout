@@ -7,6 +7,8 @@ const { pickTargetRole, pickTargetGender, appendAudienceFilter } = require('../u
 const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { pickCategory, pickKind } = require('../utils/readingCategories');
 const { unlinkReadingCover } = require('../utils/readingUploadCleanup');
+const { resolveMediaUrl } = require('../utils/resolveMediaUrl');
+const { publicUploadPath } = require('../utils/mirrorUpload');
 
 const router = express.Router();
 const { getUploadsDir } = require('../utils/uploadsDir');
@@ -90,7 +92,7 @@ function rowToPublic(row) {
     kind,
     title: row.title,
     category: row.category,
-    coverImage: row.cover_url || '',
+    coverImage: resolveMediaUrl(row.cover_url),
     descriptionShort: row.description_short || '',
     isRemoteReading: true,
     target_role: row.target_role || 'all',
@@ -144,7 +146,7 @@ function readBody(body, files, existing) {
     description_short,
     body_full: kind === 'article' ? body_full : '',
     read_url: kind === 'book' ? read_url : read_url || existing?.read_url || '',
-    cover_url: files?.cover ? `/uploads/${files.cover.filename}` : undefined,
+    cover_url: files?.cover ? publicUploadPath(files.cover) : undefined,
     target_role: Object.prototype.hasOwnProperty.call(body, 'target_role')
       ? pickTargetRole(body.target_role)
       : existing?.target_role || 'all',
@@ -185,7 +187,7 @@ router.post('/body-image', authMiddleware, adminOnly, (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: 'Выберите изображение' });
     }
-    return res.status(201).json({ url: `/uploads/${req.file.filename}` });
+    return res.status(201).json({ url: publicUploadPath(req.file) });
   });
 });
 

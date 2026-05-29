@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Briefcase, Check, ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
@@ -47,7 +47,6 @@ function ForWhomShowcase({ t }) {
           t('landing.forWhomStudentItem3'),
           t('landing.forWhomStudentItem4'),
         ],
-        poster: `${publicBase}/avatars/onb-char-girl.png`,
         videoSrc: getHomeBannerVideoSrc('student', 'girl'),
         mediaAlt: t('landing.forWhomStudentsTitle'),
         tone: 'student',
@@ -61,7 +60,6 @@ function ForWhomShowcase({ t }) {
           t('landing.forWhomTeacherItem3'),
           t('landing.forWhomTeacherItem4'),
         ],
-        poster: `${publicBase}/avatars/onb-char-man.png`,
         videoSrc: getHomeBannerVideoSrc('teacher', 'boy'),
         mediaAlt: t('landing.forWhomTeachersTitle'),
         tone: 'teacher',
@@ -70,7 +68,17 @@ function ForWhomShowcase({ t }) {
     [t]
   );
   const [activeIndex, setActiveIndex] = useState(0);
+  const [videoReady, setVideoReady] = useState(false);
+  const videoRef = useRef(null);
   const active = audiences[activeIndex];
+
+  useEffect(() => {
+    setVideoReady(false);
+    const video = videoRef.current;
+    if (video && video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      setVideoReady(true);
+    }
+  }, [active.videoSrc]);
 
   const selectAudience = useCallback((index) => {
     setActiveIndex(index);
@@ -152,28 +160,20 @@ function ForWhomShowcase({ t }) {
               className="land-forwhom-showcase__media"
               {...(reduceMotion ? {} : photoMotion)}
             >
-              {!reduceMotion ? (
-                <video
-                  className="land-forwhom-showcase__video"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  poster={active.poster}
-                  aria-label={active.mediaAlt}
-                >
-                  <source src={active.videoSrc} type="video/mp4" />
-                </video>
-              ) : (
-                <img
-                  className="land-forwhom-showcase__photo"
-                  src={active.poster}
-                  alt={active.mediaAlt}
-                  loading="lazy"
-                  decoding="async"
-                />
-              )}
+              <video
+                ref={videoRef}
+                key={active.videoSrc}
+                className={`land-forwhom-showcase__video${videoReady ? ' is-ready' : ''}`}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+                aria-label={active.mediaAlt}
+                onCanPlay={() => setVideoReady(true)}
+              >
+                <source src={active.videoSrc} type="video/mp4" />
+              </video>
             </motion.div>
           </AnimatePresence>
         </div>

@@ -8,6 +8,8 @@ const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { sanitizeTopics, KINDS, DIFFICULTY, AUDIO_SOURCES } = require('../utils/meditationTopics');
 const { parseYoutubeUrl } = require('../utils/youtubeUrl');
 const { unlinkMeditationAssets, safeUnlinkUploadPath } = require('../utils/meditationUploadCleanup');
+const { resolveMediaUrl } = require('../utils/resolveMediaUrl');
+const { publicUploadPath } = require('../utils/mirrorUpload');
 
 const router = express.Router();
 const { getUploadsDir } = require('../utils/uploadsDir');
@@ -80,7 +82,7 @@ function rowToPublicMeditation(row) {
     title: row.title,
     kind: row.kind || 'meditation',
     meditationTopics: topics,
-    coverImage: row.cover_url || '',
+    coverImage: resolveMediaUrl(row.cover_url),
     description: row.description_short || '',
     durationMin: Math.max(1, parseInt(row.duration_min, 10) || 10),
     format: row.practice_focus || '',
@@ -123,7 +125,7 @@ function parseAudioPayload(body, files, existingRow) {
 
   if (source === 'file') {
     if (audioFile) {
-      out.audio_file_url = `/uploads/${audioFile.filename}`;
+      out.audio_file_url = publicUploadPath(audioFile);
       out.audio_external_url = '';
       out.youtube_embed_url = '';
       out.youtube_video_id = '';
@@ -250,7 +252,7 @@ router.post(
           title,
           kind,
           JSON.stringify(topics),
-          `/uploads/${coverFile.filename}`,
+          publicUploadPath(coverFile),
           description_short,
           duration_min,
           practice_focus,
@@ -341,7 +343,7 @@ router.patch(
       const coverFile = req.files?.cover?.[0];
       if (coverFile) {
         safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-        patch.cover_url = `/uploads/${coverFile.filename}`;
+        patch.cover_url = publicUploadPath(coverFile);
       }
 
       const audioTouched =

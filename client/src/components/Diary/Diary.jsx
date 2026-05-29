@@ -209,7 +209,7 @@ const Diary = () => {
   calMonth.getFullYear() === today.getFullYear();
 
   return (
-    <div className="ai-diary fade-in">
+    <div className="ai-diary" data-no-scroll-reveal>
 
       <div className="diary-grid">
 

@@ -6,6 +6,8 @@ const { authMiddleware, adminOnly, optionalAuthMiddleware } = require('../middle
 const { pickTargetRole, pickTargetGender, appendAudienceFilter } = require('../utils/audienceTargeting');
 const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { parseYoutubeUrl } = require('../utils/youtubeUrl');
+const { resolveMediaUrl } = require('../utils/resolveMediaUrl');
+const { publicUploadPath } = require('../utils/mirrorUpload');
 const { safeUnlinkUploadPath } = require('../utils/meditationUploadCleanup');
 const {
   pickKind,
@@ -99,7 +101,7 @@ function rowToCollection(row, trackIds = []) {
     title: row.title || row.label_key || '',
     labelKey: row.label_key || '',
     mood: row.mood || 'calm_down',
-    image: row.cover_url || '',
+    image: resolveMediaUrl(row.cover_url),
     trackIds: ids,
     tracksCount: ids.length,
     isActive: row.is_active !== false,
@@ -191,8 +193,8 @@ function rowToPublicMusic(row) {
     durationMin: Math.max(1, parseInt(row.duration_min, 10) || 3),
     durationShort: row.duration_display || formatDurationDisplay(row.duration_min),
     icon: row.icon_name || 'Music2',
-    poster: row.cover_url || '',
-    coverImage: row.cover_url || '',
+    poster: resolveMediaUrl(row.cover_url),
+    coverImage: resolveMediaUrl(row.cover_url),
     audioSource,
     audioUrl,
     embedUrl: row.youtube_embed_url || '',
@@ -229,7 +231,7 @@ function parseAudioPayload(body, files, existingRow) {
 
   if (source === 'file') {
     if (audioFile) {
-      out.audio_file_url = `/uploads/${audioFile.filename}`;
+      out.audio_file_url = publicUploadPath(audioFile);
       out.audio_external_url = '';
       out.youtube_embed_url = '';
       out.youtube_video_id = '';
@@ -354,7 +356,7 @@ router.post(
       const mood = pickMood(req.body.mood, 'calm_down');
       const sort_order = parseInt(req.body.sort_order, 10) || 0;
       const coverFile = req.files?.cover?.[0];
-      const cover_url = coverFile ? `/uploads/${coverFile.filename}` : '';
+      const cover_url = coverFile ? publicUploadPath(coverFile) : '';
 
       const ins = await pool.query(
         `INSERT INTO music_collections (slug, title, label_key, mood, cover_url, sort_order, is_active)
@@ -419,7 +421,7 @@ router.patch(
       const coverFile = req.files?.cover?.[0];
       if (coverFile) {
         safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-        patch.cover_url = `/uploads/${coverFile.filename}`;
+        patch.cover_url = publicUploadPath(coverFile);
       }
 
       if (Object.keys(patch).length > 0) {
@@ -539,7 +541,7 @@ router.post(
           duration_min,
           duration_display,
           kind === 'quick' ? pickIcon(req.body.icon_name) : 'Music2',
-          `/uploads/${coverFile.filename}`,
+          publicUploadPath(coverFile),
           audio.audio_source,
           audio.audio_file_url || '',
           audio.audio_external_url || '',
@@ -621,7 +623,7 @@ router.patch(
       const coverFile = req.files?.cover?.[0];
       if (coverFile) {
         safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-        patch.cover_url = `/uploads/${coverFile.filename}`;
+        patch.cover_url = publicUploadPath(coverFile);
       }
 
       const audioTouched =

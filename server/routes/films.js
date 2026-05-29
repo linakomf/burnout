@@ -8,6 +8,8 @@ const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { parseFilmPublicId, parsePublicFilmIds, slugifyTitle } = require('../utils/filmCollectionItems');
 const { normalizeFilmTags } = require('../utils/filmTagWhitelist');
 const { unlinkFilmAssets, safeUnlinkUploadPath } = require('../utils/filmUploadCleanup');
+const { resolveMediaUrl, resolveMediaUrlList } = require('../utils/resolveMediaUrl');
+const { publicUploadPath } = require('../utils/mirrorUpload');
 
 const router = express.Router();
 
@@ -86,7 +88,7 @@ function rowToPublicFilm(row) {
     psychTag: row.psych_tag || 'light',
     genres: row.genres_display || '',
     tags,
-    poster: row.poster_url || '',
+    poster: resolveMediaUrl(row.poster_url),
     gallery,
     embedUrl: row.embed_url || '',
     watchUrl: row.watch_url || '',
@@ -109,7 +111,7 @@ function rowToCollection(row, filmIds = []) {
     collectionId: row.collection_id,
     title: row.title || '',
     description: row.description || '',
-    image: row.cover_url || '',
+    image: resolveMediaUrl(row.cover_url),
     filmIds: ids,
     filmsCount: ids.length,
     isActive: row.is_active !== false,
@@ -291,7 +293,7 @@ router.post(
         `INSERT INTO film_collections (slug, title, description, cover_url, sort_order, is_active)
          VALUES ($1, $2, $3, $4, $5, true)
          RETURNING collection_id, slug, title, description, cover_url, sort_order, is_active`,
-        ['tmp', title.slice(0, 120), description, `/uploads/${coverFile.filename}`, sort_order]
+        ['tmp', title.slice(0, 120), description, publicUploadPath(coverFile), sort_order]
       );
       const row = ins.rows[0];
       const slug = slugifyTitle(title, row.collection_id);
@@ -352,7 +354,7 @@ router.patch(
       const coverFile = req.files?.cover?.[0];
       if (coverFile) {
         safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-        patch.cover_url = `/uploads/${coverFile.filename}`;
+        patch.cover_url = publicUploadPath(coverFile);
       }
 
       if (Object.keys(patch).length > 0) {
@@ -444,9 +446,9 @@ router.post(
       const country = String(req.body.country ?? '').trim().slice(0, 255);
       const quote = String(req.body.quote ?? '').trim().slice(0, 2000);
 
-      const poster_url = `/uploads/${posterFile.filename}`;
+      const poster_url = publicUploadPath(posterFile);
       const galleryFiles = req.files?.gallery || [];
-      const gallery_urls = galleryFiles.slice(0, 6).map((f) => `/uploads/${f.filename}`);
+      const gallery_urls = galleryFiles.slice(0, 6).map((f) => publicUploadPath(f));
 
       const target_role = pickTargetRole(req.body.target_role);
       const target_gender = pickTargetGender(req.body.target_gender);
@@ -587,7 +589,7 @@ router.patch(
       const posterFile = req.files?.poster?.[0];
       if (posterFile) {
         safeUnlinkUploadPath(uploadsAbs, existing.poster_url);
-        patch.poster_url = `/uploads/${posterFile.filename}`;
+        patch.poster_url = publicUploadPath(posterFile);
       }
 
       let nextGallery = existingGallery;
@@ -597,7 +599,7 @@ router.patch(
         const kept = hasGalleryDirective
           ? parseKeepGalleryUrls(req.body.keep_gallery_urls, existingGallery)
           : [...existingGallery];
-        const appended = galleryFiles.map((f) => `/uploads/${f.filename}`);
+        const appended = galleryFiles.map((f) => publicUploadPath(f));
         nextGallery = [...kept, ...appended].slice(0, 6);
         const removed = existingGallery.filter((u) => !nextGallery.includes(u));
         for (const u of removed) safeUnlinkUploadPath(uploadsAbs, u);

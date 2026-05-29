@@ -11,6 +11,27 @@ const pool = require('../server/db');
 const { ensureEventsSchema } = require('../server/ensureEventsSchema');
 const { buildCardTags } = require('../server/utils/eventFilters');
 
+const SOLO_COVER_IMAGES = {
+  'Мастер-класс по гончарному делу': '/images/events/solo-pottery.png',
+  'Арт-вечер Carpe Diem': '/images/events/solo-art-evening.png',
+  'Лекции в Art Society': '/images/events/solo-art-society.png',
+  'Stand Up концерт': '/images/events/solo-standup.png',
+  'Мастер-класс по живописи': '/images/events/solo-painting.png',
+  'Балет «Лебединое озеро»': '/images/events/solo-ballet.png',
+  'Органная музыка в филармонии': '/images/events/solo-organ.png',
+  'Спектакль в ARTiШОК': '/images/events/solo-artishok.png',
+};
+
+const GROUP_COVER_IMAGES = {
+  'Игровой вечер Catan Almaty': '/images/events/group-catan.png',
+  'Белые вина нового света': '/images/events/group-white-wine.png',
+  'New Vision Forum 2026': '/images/events/group-forum.png',
+  'Sparkling Wine Evening': '/images/events/group-sparkling.png',
+  'SATISFACTION Festival': '/images/events/group-festival.png',
+};
+
+const EVENT_COVER_IMAGES = { ...SOLO_COVER_IMAGES, ...GROUP_COVER_IMAGES };
+
 const COVER_IMAGES = [
   'https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=1200&q=85',
   'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=1200&q=85',
@@ -362,7 +383,7 @@ async function main() {
       continue;
     }
 
-    const cover = COVER_IMAGES[i % COVER_IMAGES.length];
+    const cover = EVENT_COVER_IMAGES[ev.title] || COVER_IMAGES[i % COVER_IMAGES.length];
     const tf_time = ev.tf_time || 'evening';
     const card_tags = tagsFor({ when: ev.when, kind: ev.kind });
 

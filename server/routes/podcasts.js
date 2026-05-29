@@ -18,6 +18,8 @@ const {
   parsePodcastTagsField,
   legacyTopicFromTags,
 } = require('../utils/podcastTagWhitelist');
+const { resolveMediaUrl } = require('../utils/resolveMediaUrl');
+const { publicUploadPath } = require('../utils/mirrorUpload');
 
 const router = express.Router();
 const { getUploadsDir } = require('../utils/uploadsDir');
@@ -106,8 +108,8 @@ function rowToPublicPodcast(row) {
     totalDisplay: durationDisplay,
     progressDisplay: '0:00',
     isFeaturedPick: Boolean(row.is_featured_pick),
-    poster: row.cover_url || '',
-    coverImage: row.cover_url || '',
+    poster: resolveMediaUrl(row.cover_url),
+    coverImage: resolveMediaUrl(row.cover_url),
     audioSource,
     audioUrl,
     embedUrl: row.youtube_embed_url || '',
@@ -137,7 +139,7 @@ function parseAudioPayload(body, files, existingRow) {
 
   if (source === 'file') {
     if (audioFile) {
-      out.audio_file_url = `/uploads/${audioFile.filename}`;
+      out.audio_file_url = publicUploadPath(audioFile);
       out.audio_external_url = '';
       out.youtube_embed_url = '';
       out.youtube_video_id = '';
@@ -261,7 +263,7 @@ router.post(
           duration_min,
           duration_display,
           parseBool(req.body.is_featured_pick),
-          `/uploads/${coverFile.filename}`,
+          publicUploadPath(coverFile),
           audio.audio_source,
           audio.audio_file_url || '',
           audio.audio_external_url || '',
@@ -340,7 +342,7 @@ router.patch(
       const coverFile = req.files?.cover?.[0];
       if (coverFile) {
         safeUnlinkUploadPath(uploadsAbs, existing.cover_url);
-        patch.cover_url = `/uploads/${coverFile.filename}`;
+        patch.cover_url = publicUploadPath(coverFile);
       }
 
       const audioTouched =

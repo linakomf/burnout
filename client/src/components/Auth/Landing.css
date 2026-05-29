@@ -4591,14 +4591,26 @@
   overflow: hidden;
 }
 
-.landing-v2 .land-forwhom-showcase__video,
-.landing-v2 .land-forwhom-showcase__photo {
+.landing-v2 .land-forwhom-showcase__video {
   width: 112%;
   height: 112%;
   margin-left: -6%;
   display: block;
   object-fit: cover;
   object-position: center 88%;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.landing-v2 .land-forwhom-showcase__video.is-ready {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-v2 .land-forwhom-showcase__video {
+    opacity: 1;
+    transition: none;
+  }
 }
 
 .landing-v2 .land-bottom-banner {

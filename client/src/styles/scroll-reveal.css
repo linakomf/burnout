@@ -1,0 +1,32 @@
+/* Спокойное появление блоков при прокрутке — wellness / premium */
+
+.scroll-reveal-root {
+  display: contents;
+}
+
+.scroll-reveal {
+  --reveal-y: 14px;
+  --reveal-duration: 1.05s;
+  --reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-y), 0) scale(0.994);
+  transition:
+    opacity var(--reveal-duration) var(--reveal-ease),
+    transform calc(var(--reveal-duration) * 1.08) var(--reveal-ease);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal.is-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

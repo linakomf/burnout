@@ -4,6 +4,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { PODCAST_THEME_LABEL_KEYS } from './podcastHubData';
 import { natureAt } from './spaceNatureImagery';
 import { isVideoCoverAsset } from './practiceMedia';
+import { coverWithFallback, seedFromMediaId } from '../../utils/mediaFallback';
 
 const COVER_CARD_VARIANTS = new Set(['meditation', 'podcast']);
 
@@ -73,7 +74,17 @@ function PracticeCard({
                   preload="metadata"
                 />
               ) : (
-                <img className="practice-card-cover-img" src={coverSrc} alt="" loading="lazy" decoding="async" />
+                <img
+                  className="practice-card-cover-img"
+                  src={coverSrc}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = coverWithFallback('', seedFromMediaId(practice.id));
+                  }}
+                />
               )}
               {isSoundsCard && (
                 <span className="practice-card-cover-play" aria-hidden>

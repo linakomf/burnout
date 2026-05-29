@@ -25,6 +25,8 @@ import { psychologistHomePath } from './utils/psychologistNav';
 import AdminDashboard from './components/Dashboards/AdminDashboard';
 import OnboardingBurnout from './components/Onboarding/OnboardingBurnout';
 import Personalization from './components/Personalization/Personalization';
+import ScrollRevealProvider from './components/ScrollReveal/ScrollRevealProvider';
+import './styles/scroll-reveal.css';
 import './styles/global.css';
 import { warmupApi } from './utils/apiWarmup';
 
@@ -142,6 +144,7 @@ const App = () => {
       <ScrollToTopOnRoute />
       <div className="app-fill">
       <AuthProvider>
+        <ScrollRevealProvider>
         <div className="app-routes-outlet">
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -261,6 +264,7 @@ const App = () => {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </div>
+        </ScrollRevealProvider>
       </AuthProvider>
       </div>
     </BrowserRouter>
