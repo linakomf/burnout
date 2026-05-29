@@ -14,7 +14,7 @@ import {
   ArrowRight,
   LayoutDashboard,
   MessageCircle,
-  Send } from
+} from
 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -140,7 +140,7 @@ const Landing = () => {
           <li><button type="button" className="land-nav-link" onClick={() => scrollToId('categories')}>{t('landing.navPlatform')}</button></li>
           <li><button type="button" className="land-nav-link" onClick={() => scrollToId('support-block')}>{t('landing.navSupportProgram')}</button></li>
           <li><button type="button" className="land-nav-link" onClick={() => scrollToId('quote-block')}>{t('landing.navCommunity')}</button></li>
-          <li><button type="button" className="land-nav-link" onClick={() => scrollToId('footer-newsletter')}>{t('landing.navBlog')}</button></li>
+          <li><button type="button" className="land-nav-link" onClick={() => scrollToId('how-it-works')}>{t('landing.navBlog')}</button></li>
           <li><button type="button" className="land-nav-link" onClick={() => scrollToId('footer-company')}>{t('landing.navAbout')}</button></li>
         </ul>
         <div className="land-nav-actions">
@@ -393,20 +393,8 @@ const Landing = () => {
             <h3 className="land-footer-col-title">{t('landing.footColCompany')}</h3>
             <ul className="land-footer-links">
               <li><button type="button" onClick={() => scrollToId('hero')}>{t('landing.footLinkAbout')}</button></li>
-              <li><button type="button" onClick={() => scrollToId('footer-newsletter')}>{t('landing.footLinkContact')}</button></li>
+              <li><button type="button" onClick={() => scrollToId('footer-company')}>{t('landing.footLinkContact')}</button></li>
             </ul>
-          </div>
-          <div className="land-footer-news" id="footer-newsletter">
-            <h3 className="land-footer-col-title">{t('landing.newsletterTitle')}</h3>
-            <form
-              className="land-newsletter"
-              onSubmit={(e) => {e.preventDefault();}}>
-
-              <input type="email" className="land-newsletter-input" placeholder={t('landing.newsletterPh')} autoComplete="email" />
-              <button type="submit" className="land-newsletter-btn" aria-label={t('landing.newsletterBtn')}>
-                <Send size={18} aria-hidden />
-              </button>
-            </form>
           </div>
         </div>
         <div className="land-footer-bottom">

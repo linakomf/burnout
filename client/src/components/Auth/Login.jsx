@@ -16,19 +16,12 @@ const Login = () => {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [warming, setWarming] = useState(process.env.NODE_ENV === 'production');
   const { login } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
-    let cancelled = false;
-    warmupApi().finally(() => {
-      if (!cancelled) setWarming(false);
-    });
-    return () => {
-      cancelled = true;
-    };
+    warmupApi();
   }, []);
 
   const handleChange = (e) => {
@@ -48,7 +41,6 @@ const Login = () => {
     }
     setLoading(true);
     try {
-      await warmupApi();
       const user = await login(email, password);
       if (user.role === 'admin') navigate('/admin');
       else if (user.role === 'psychologist') navigate(psychologistHomePath(user), { replace: true });
@@ -120,12 +112,8 @@ const Login = () => {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary auth-submit" disabled={loading || warming}>
-            {loading
-              ? t('auth.submitLoginL')
-              : warming
-                ? t('auth.submitRegWarming')
-                : t('auth.submitLogin')}
+          <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
+            {loading ? t('auth.submitLoginL') : t('auth.submitLogin')}
           </button>
         </form>
 

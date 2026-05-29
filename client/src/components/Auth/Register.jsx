@@ -15,19 +15,12 @@ const Register = () => {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [warming, setWarming] = useState(process.env.NODE_ENV === 'production');
   const { register } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
-    let cancelled = false;
-    warmupApi().finally(() => {
-      if (!cancelled) setWarming(false);
-    });
-    return () => {
-      cancelled = true;
-    };
+    warmupApi();
   }, []);
 
   const handleChange = (e) => {
@@ -55,7 +48,6 @@ const Register = () => {
     }
     setLoading(true);
     try {
-      await warmupApi();
       const payload = { firstName, lastName, email, password, role: 'student' };
       if (ageStr) {
         const ageNum = parseInt(String(ageStr).trim(), 10);
@@ -85,7 +77,6 @@ const Register = () => {
         </div>
 
         <h1 className="auth-title">{t('auth.registerTitle')}</h1>
-        <p className="auth-subtitle auth-subtitle--tight">{t('auth.registerSubtitle')}</p>
         <div className="reg-grad-line" aria-hidden />
 
         {error && (
@@ -173,12 +164,8 @@ const Register = () => {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary auth-submit" disabled={loading || warming}>
-            {loading
-              ? t('auth.submitRegL')
-              : warming
-                ? t('auth.submitRegWarming')
-                : t('auth.submitReg')}
+          <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
+            {loading ? t('auth.submitRegL') : t('auth.submitReg')}
           </button>
         </form>
 

@@ -79,7 +79,6 @@ function OnboardingProfileStep({ user, updateUser, t }) {
       </div>
 
       <h1 className="auth-title">{t('burnoutOnb.profileTitle')}</h1>
-      <p className="auth-subtitle auth-subtitle--tight">{t('burnoutOnb.profileSubtitle')}</p>
       <div className="reg-grad-line" aria-hidden />
 
       {err && (
@@ -151,7 +150,19 @@ function OnboardingProfileStep({ user, updateUser, t }) {
                 >
                   <span className="reg-avatar-ring">
                     <span className="reg-avatar-circle-bg">
-                      <img src={av.src} alt="" className="reg-avatar-img" />
+                      <img
+                        src={av.src}
+                        alt=""
+                        className="reg-avatar-img"
+                        loading="eager"
+                        decoding="async"
+                        onError={(e) => {
+                          const fb = av.fallbackSrc;
+                          if (fb && e.currentTarget.src !== fb) {
+                            e.currentTarget.src = fb;
+                          }
+                        }}
+                      />
                     </span>
                   </span>
                 </button>

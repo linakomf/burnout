@@ -1,7 +1,11 @@
 const { app, ensureBootstrap } = require('../server/app');
+const { ensureCoreSchema } = require('../server/ensureCoreSchema');
+const { ensureOnboardingSchema } = require('../server/ensureOnboardingSchema');
+const { isDatabaseInitialized } = require('../server/dbReady');
 
 let bootstrapDone = false;
 let bootstrapPromise = null;
+let authSchemaReady = false;
 
 function runBootstrap() {
   if (!bootstrapPromise) {
@@ -51,6 +55,35 @@ function isWarmRequest(req) {
   return req.method === 'GET' && (url === '/api/warm' || url.startsWith('/api/warm?'));
 }
 
+function isAuthPost(req) {
+  if (req.method !== 'POST') return false;
+  const url = requestPath(req);
+  return url === '/api/auth/register' || url === '/api/auth/login';
+}
+
+/** Вход/регистрация: только пинг БД + минимальная схема, без тяжёлого bootstrap (504). */
+async function ensureAuthReady() {
+  const pool = require('../server/db');
+  await pool.query('SELECT 1');
+  if (authSchemaReady) {
+    if (!bootstrapDone) runBootstrap().catch(() => {});
+    return;
+  }
+  let hasUsers = false;
+  try {
+    hasUsers = await isDatabaseInitialized();
+  } catch (err) {
+    if (err.code === 'DB_NOT_CONFIGURED') throw err;
+    console.warn('Auth schema check:', err.message);
+  }
+  if (!hasUsers) {
+    await ensureCoreSchema();
+    await ensureOnboardingSchema();
+  }
+  authSchemaReady = true;
+  if (!bootstrapDone) runBootstrap().catch(() => {});
+}
+
 async function buildHealthPayload() {
   const hasUrl = Boolean(process.env.DATABASE_URL?.trim());
   const hasJwt = Boolean(process.env.JWT_SECRET?.trim());
@@ -85,10 +118,14 @@ module.exports = async (req, res) => {
     requestPath(req);
 
     if (isWarmRequest(req)) {
-      await ensureReady();
+      try {
+        await ensureAuthReady();
+      } catch (err) {
+        console.warn('Warm ping:', err.message);
+      }
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.end(JSON.stringify({ status: 'ready', ready: bootstrapDone }));
+      res.end(JSON.stringify({ status: 'ready', ready: authSchemaReady || bootstrapDone }));
       return;
     }
 
@@ -101,6 +138,11 @@ module.exports = async (req, res) => {
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify(payload));
       return;
+    }
+
+    if (isAuthPost(req)) {
+      await ensureAuthReady();
+      return app(req, res);
     }
 
     await ensureReady();

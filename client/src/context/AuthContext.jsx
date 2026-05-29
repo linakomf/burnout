@@ -12,6 +12,8 @@ import {
 
 const AuthContext = createContext(null);
 
+const AUTH_API_RETRY = { retries: 2, delayMs: 1200 };
+
 /** Устаревший ответ GET /users/me (запрос ушёл до PUT профиля) не должен затирать gender/avatar. */
 function mergeMeResponse(server, prev) {
   if (!prev) return server;
@@ -104,7 +106,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const res = await withApiRetry(() => api.post('/auth/login', { email, password }));
+    const res = await withApiRetry(() => api.post('/auth/login', { email, password }), AUTH_API_RETRY);
     const u = res.data.user;
     localStorage.setItem('token', res.data.token);
     localStorage.setItem('user', JSON.stringify(u));
@@ -114,7 +116,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (data) => {
-    const res = await withApiRetry(() => api.post('/auth/register', data));
+    const res = await withApiRetry(() => api.post('/auth/register', data), AUTH_API_RETRY);
     const newUser = res.data.user;
     clearPendingOnboarding(newUser?.user_id);
     localStorage.setItem('token', res.data.token);

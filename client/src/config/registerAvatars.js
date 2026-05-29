@@ -1,15 +1,25 @@
-const p = (path) => `${(process.env.PUBLIC_URL || '').replace(/\/$/, '')}${path}`;
-
 /**
- * Аватар в БД: путь /avatars/... (без PUBLIC_URL).
- * student/boy → onb-char-boy, student/girl → onb-char-girl,
- * teacher/boy → onb-char-man, teacher/girl → onb-char-woman.
+ * Аватар в БД: путь /avatars/onb-char-*.png (без PUBLIC_URL).
+ * Для UI — те же файлы; при ошибке загрузки — av-* (крупный портрет в круге).
  */
+const publicBase = () => (process.env.PUBLIC_URL || '').replace(/\/$/, '');
+
+function publicUrl(path) {
+  return `${publicBase()}${path}`;
+}
+
 const BY_KEY = {
   'student:boy': '/avatars/onb-char-boy.png',
   'student:girl': '/avatars/onb-char-girl.png',
   'teacher:boy': '/avatars/onb-char-man.png',
   'teacher:girl': '/avatars/onb-char-woman.png'
+};
+
+const FALLBACK_BY_KEY = {
+  'student:boy': '/avatars/av-student-boy.png',
+  'student:girl': '/avatars/av-student-girl.png',
+  'teacher:boy': '/avatars/av-teacher-boy.png',
+  'teacher:girl': '/avatars/av-teacher-woman.png'
 };
 
 /** Все 4 персонажа для выбора на экране после регистрации */
@@ -29,9 +39,11 @@ export function getAvatarForRoleGender(profileRole, gender) {
   const g = gender === 'girl' ? 'girl' : 'boy';
   const key = `${r}:${g}`;
   const path = BY_KEY[key];
+  const fallbackPath = FALLBACK_BY_KEY[key];
   return {
     id: key,
     path,
-    src: p(path)
+    src: publicUrl(path),
+    fallbackSrc: publicUrl(fallbackPath)
   };
 }
