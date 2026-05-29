@@ -1,3 +1,14 @@
+# Настройка Vercel + Neon
+
+| Проект | URL | Статус |
+|--------|-----|--------|
+| **burnout-6w43** (новый) | https://burnout-6w43.vercel.app | Нужны `DATABASE_URL` + `JWT_SECRET` |
+| burnout-1 | https://burnout-1.vercel.app | Рабочий (БД подключена) |
+
+> В адресе preview иногда путают `6w13` и `6w43` — актуальный проект: **burnout-6w43**.
+
+---
+
 # Настройка нового проекта Vercel (burnout-1)
 
 Продакшен: **https://burnout-1.vercel.app**
@@ -39,15 +50,34 @@ Preview-URL (`burnout-1-….vercel.app`) может требовать вход 
 
 Вставьте в Vercel как `DATABASE_URL` **без пробелов** в начале/конце.
 
-### `JWT_SECRET` (обязательно)
+### `JWT_SECRET` (обязательно — второй параметр)
 
-Любая длинная случайная строка, например сгенерированная:
+Любая длинная случайная строка (не оставляйте `your_super_secret...` в проде):
 
 ```text
 openssl rand -base64 32
 ```
 
-У вас уже может быть задан — health показывает `"jwt":"configured"`.
+Без `JWT_SECRET` регистрация и вход не работают. Health: `"jwt":"configured"`.
+
+**DIRECT_URL / NEXTAUTH** в этом проекте **не нужны** — только `DATABASE_URL` и `JWT_SECRET`.
+
+### Быстрая настройка из `server/.env` (CLI)
+
+```powershell
+cd путь\к\burnout
+.\scripts\setup-vercel-env.ps1
+npx vercel deploy --prod --yes
+```
+
+### Neon ↔ Vercel (интеграция)
+
+1. [console.neon.tech](https://console.neon.tech) → проект → **Connect** → **Vercel**
+2. Выберите проект `burnout-6w43` — Neon сам добавит `DATABASE_URL`
+3. Вручную добавьте `JWT_SECRET` в Vercel → Settings → Environment Variables
+4. **Redeploy** без кэша
+
+Строка из Neon (Pooled) совпадает с локальной в `server/.env`, если используете одну БД.
 
 ### Рекомендуется
 
