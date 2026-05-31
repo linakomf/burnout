@@ -9,6 +9,7 @@ import { MEDITATION_TOPIC_LABEL_KEYS, resolveMeditationTopic } from './PracticeC
 import { PODCAST_THEME_LABEL_KEYS } from './podcastHubData';
 import { MEDITATION_LEVEL_LABEL_KEYS, practiceHasPlayableAudio } from './meditationHubData';
 import { isVideoCoverAsset } from './practiceMedia';
+import { logPracticeCompleted } from '../../utils/practiceCompletionLog';
 
 const defaultMeditationCover = `${(process.env.PUBLIC_URL || '').replace(/\/$/, '')}/meditation/meditation-modal-cover.png`;
 
@@ -24,6 +25,11 @@ function PracticeModal({
   const [completed, setCompleted] = useState(false);
   const isMeditation = variant === 'meditation' || variant === 'podcast';
   const isPodcast = variant === 'podcast';
+
+  const handlePracticeComplete = useCallback(() => {
+    logPracticeCompleted(practice?.id || practice?.title || 'practice');
+    setCompleted(true);
+  }, [practice?.id, practice?.title]);
 
   const handleClose = useCallback(() => {
     onClose();
@@ -128,7 +134,7 @@ function PracticeModal({
           favorite={favorite}
           onToggleFavorite={() => onToggleFavorite?.(practice.id)}
           t={t}
-          onComplete={() => setCompleted(true)}
+          onComplete={handlePracticeComplete}
           onStop={handleClose}
         />
       )}
@@ -156,7 +162,7 @@ function PracticeModal({
       </h2>
       <p className="practices-modal-desc">{practice.description}</p>
 
-      <PracticeTimer practice={practice} onComplete={() => setCompleted(true)} onStop={handleClose} />
+      <PracticeTimer practice={practice} onComplete={handlePracticeComplete} onStop={handleClose} />
 
       <div className="practices-modal-note">
         {completed

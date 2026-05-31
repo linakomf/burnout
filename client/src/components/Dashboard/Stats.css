@@ -290,6 +290,138 @@
   line-height: 1.45;
 }
 
+.analytics-balance-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.analytics-balance-help-block {
+  border-left: 3px solid rgba(106, 159, 232, 0.5);
+}
+
+.analytics-balance-help-intro {
+  margin: 0 0 8px;
+}
+
+.analytics-balance-help-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: rgba(30, 45, 70, 0.88);
+}
+
+.analytics-balance-help-label {
+  font-weight: 600;
+  color: rgba(30, 45, 70, 0.95);
+}
+
+.analytics-burnout-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.analytics-burnout-insight-block {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px 18px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: var(--a-card-shadow);
+}
+
+.analytics-burnout-insight-title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--a-text);
+}
+
+.analytics-burnout-risk-badge {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 14px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.analytics-card--burnout-chart .analytics-burnout-risk-badge {
+  margin-bottom: 12px;
+}
+
+.analytics-burnout-risk-badge[data-level='low'] {
+  background: #e8f4ec;
+  color: #2d6a4a;
+}
+
+.analytics-burnout-risk-badge[data-level='medium'] {
+  background: #fff6e0;
+  color: #9a6b1a;
+}
+
+.analytics-burnout-risk-badge[data-level='high'] {
+  background: #fdeaea;
+  color: #9b4d4d;
+}
+
+.analytics-burnout-drivers {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--a-text-mid, #5a6578);
+  text-align: left;
+  max-width: none;
+}
+
+.analytics-burnout-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 20px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--a-text-soft);
+}
+
+.analytics-burnout-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.analytics-burnout-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.analytics-burnout-legend-swatch--low { background: #c8e6d0; }
+.analytics-burnout-legend-swatch--mid { background: #ffe8b8; }
+.analytics-burnout-legend-swatch--high { background: #f5c4c4; }
+
+.analytics-week-summary-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--a-text-mid, #4a5568);
+  position: relative;
+  z-index: 1;
+}
+
 .analytics-mood-chart-area {
   margin-top: 12px;
   margin-left: 0;
@@ -329,7 +461,15 @@
 
 .analytics-radar-wrap {
   margin: -4px -8px 0;
-  min-height: 280px;
+  min-height: 220px;
+}
+
+.analytics-card--radar {
+  padding: 18px 18px 14px;
+}
+
+.analytics-card--radar .analytics-card-head {
+  margin-bottom: 4px;
 }
 
 .analytics-section-title {

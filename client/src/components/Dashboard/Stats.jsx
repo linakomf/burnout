@@ -23,7 +23,9 @@ import {
   Radar,
   PolarGrid,
   PolarAngleAxis,
-  PolarRadiusAxis } from
+  PolarRadiusAxis,
+  ReferenceArea,
+} from
 'recharts';
 import {
   TrendingUp,
@@ -43,8 +45,21 @@ import {
   compositeMoodPct,
   compositeEnergyPct,
   compositeAnxietyPct,
-  moodPercentFromOnboardingBurnout } from
-'../../utils/wellnessComposite';
+  moodPercentFromOnboardingBurnout,
+} from '../../utils/wellnessComposite';
+import {
+  buildBurnoutTimeline,
+  averageBurnoutIndex,
+  burnoutRiskFromIndex,
+  buildBurnoutDrivers,
+  buildPersonalInsights,
+  buildWeekSummary,
+  buildWeekGoals,
+  buildBalanceChartHelp,
+} from '../../utils/burnoutAnalytics';
+import { countPracticesInRange, practiceDatesInRange } from '../../utils/practiceCompletionLog';
+import { getCheckinLog } from '../../utils/dailyCheckinStorage';
+import { loadAllSectionFavoriteSets } from '../Practices/sectionFavorites';
 import energyState1 from '../../assets/stats-states/energy-state-1.png';
 import energyState2 from '../../assets/stats-states/energy-state-2.png';
 import energyState3 from '../../assets/stats-states/energy-state-3.png';
@@ -309,71 +324,47 @@ const Stats = () => {
     return eachDayOfInterval({ start, end });
   }, [period, range.end]);
 
-  const areaData = useMemo(() => {
-    if (period === 'year') {
-      return chartDays.map((monthStart) => {
-        const mStart = startOfMonth(monthStart);
-        const mEnd = endOfMonth(monthStart);
-        const uniq = [];
-        const seen = new Set();
-        eachDayOfInterval({ start: mStart, end: mEnd }).forEach((x) => {
-          const key = format(x, 'yyyy-MM-dd');
-          const v = moodByDate.get(key);
-          if (v != null && !seen.has(key)) {
-            seen.add(key);
-            uniq.push(v);
-          }
-        });
-        const moodVal =
-        uniq.length > 0 ?
-        Math.round(uniq.reduce((a, b) => a + b, 0) / uniq.length) :
+  const burnoutChartData = useMemo(() => {
+    const onboardingDateKey =
+      onboardingPct != null && user?.onboarding_burnout_completed_at ?
+        format(new Date(user.onboarding_burnout_completed_at), 'yyyy-MM-dd') :
         null;
-        const stressVal =
-        moodVal != null ? Math.min(100, Math.round(100 - moodVal * 0.75 + 12)) : null;
-        return {
-          label: format(monthStart, 'LLL', { locale: ru }),
-          mood: moodVal,
-          stress: stressVal
-        };
-      });
-    }
-    return chartDays.map((day) => {
-      const key = format(day, 'yyyy-MM-dd');
-      const mood = moodByDate.get(key);
-      const moodVal = mood != null ? mood : null;
-      const stressVal =
-      moodVal != null ? Math.min(100, Math.round(100 - moodVal * 0.75 + 12)) : null;
-      let label;
-      if (period === 'week') {
-        label = format(day, 'EEE', { locale: ru });
-      } else {
-        label = format(day, 'd');
-      }
-      return {
-        label,
-        mood: moodVal,
-        stress: stressVal
-      };
+    const diaryKeys = diaryEntries.map((e) => format(new Date(e.created_at), 'yyyy-MM-dd'));
+    const practiceKeys = practiceDatesInRange(range.start, range.end);
+    return buildBurnoutTimeline({
+      chartDays,
+      period,
+      moodByDate,
+      diaryDateKeys: diaryKeys,
+      practiceDateKeys: practiceKeys,
+      results,
+      onboardingPct,
+      onboardingDateKey,
     });
-  }, [chartDays, moodByDate, period]);
+  }, [
+    chartDays,
+    period,
+    moodByDate,
+    diaryEntries,
+    results,
+    onboardingPct,
+    user?.onboarding_burnout_completed_at,
+    range.start,
+    range.end,
+  ]);
 
-  const moodLineData = useMemo(() => {
-    return areaData.map((row) => {
-      const cap = (s) => (s ? `${s.charAt(0).toUpperCase()}${s.slice(1)}` : s);
-      return {
-        label: cap(row.label),
-        mood: row.mood != null ? row.mood : null,
-        moodRaw: row.mood
-      };
-    });
-  }, [areaData]);
+  const currentBurnoutIndex = useMemo(() => averageBurnoutIndex(burnoutChartData), [burnoutChartData]);
+  const currentBurnoutRisk = useMemo(
+    () => (currentBurnoutIndex != null ? burnoutRiskFromIndex(currentBurnoutIndex) : null),
+    [currentBurnoutIndex]
+  );
 
-  const moodChartSubtitle =
-  period === 'week' ?
-  'Средние значения за последние 7 дней' :
-  period === 'month' ?
-  'Средние значения за последние 30 дней' :
-  'Средние значения по месяцам за год';
+  const burnoutChartSubtitle =
+    period === 'week' ?
+      'Индекс выгорания за последние 7 дней' :
+      period === 'month' ?
+        'Индекс выгорания за последние 30 дней' :
+        'Средний индекс выгорания по месяцам';
 
   const avgMoodPctRaw = useMemo(() => {
     const vals = diaryInPeriod.
@@ -511,16 +502,34 @@ const Stats = () => {
   const anxietyTrend = formatTrend(prevAnxietyValue, anxietyPctValue);
   const energyTrend = formatTrend(prevEnergy, energyPct);
 
+  const burnoutDriversText = useMemo(
+    () => buildBurnoutDrivers({ stressPct, anxietyPct, energyPct, moodPct: avgMoodPct }),
+    [stressPct, anxietyPct, energyPct, avgMoodPct]
+  );
+
+  const sleepPct = useMemo(
+    () => Math.min(100, Math.round(avgMoodPct * 0.55 + energyPct * 0.45)),
+    [avgMoodPct, energyPct]
+  );
+
+  const balanceChartHelp = useMemo(
+    () =>
+      buildBalanceChartHelp({
+        avgMoodPct,
+        stressPct,
+        anxietyPct,
+        energyPct,
+        sleepPct,
+      }),
+    [avgMoodPct, stressPct, anxietyPct, energyPct, sleepPct]
+  );
+
   const radarData = [
   { subject: 'Настроение', value: avgMoodPct, fullMark: 100 },
   { subject: 'Стресс', value: stressPct, fullMark: 100 },
   { subject: 'Тревога', value: anxietyPct, fullMark: 100 },
   { subject: 'Энергия', value: energyPct, fullMark: 100 },
-  {
-    subject: 'Сон',
-    value: Math.min(100, Math.round(avgMoodPct * 0.9 + (diaryInPeriod.length > 0 ? 8 : 0))),
-    fullMark: 100
-  }];
+  { subject: 'Сон', value: sleepPct, fullMark: 100 }];
 
 
   const diaryDateKeys = useMemo(
@@ -531,122 +540,117 @@ const Stats = () => {
   const streak = diaryStreak(diaryDateKeys);
   const entriesCount = diaryInPeriod.length;
   const testsCount = resultsInPeriod.length;
-  const practicesDone = Math.min(30, entriesCount + testsCount);
+  const practicesDone = countPracticesInRange(range.start, range.end);
+  const practiceDaysInPeriod = practiceDatesInRange(range.start, range.end).size;
   const diaryNotesCount = useMemo(
     () => diaryInPeriod.filter((e) => e.note && String(e.note).trim().length > 0).length,
     [diaryInPeriod]
   );
 
-  const insights = useMemo(() => {
-    const sourceParts = [
-    testsCount > 0 ? `тесты (${testsCount})` : null,
-    entriesCount > 0 ?
-    `дневник (${entriesCount}${diaryNotesCount ? `, из них ${diaryNotesCount} с заметкой` : ''})` :
-    null,
-    onboardingPct != null ? 'первичный скрининг выгорания' : null].
-    filter(Boolean);
-    const sourceLead =
-    sourceParts.length > 0 ?
-    `Сводка строится по: ${sourceParts.join(', ')}. Она обновляется после каждого теста и активности. ` :
-    '';
+  const favoritesCount = useMemo(() => {
+    const sets = loadAllSectionFavoriteSets();
+    return sets.films.size + sets.reading.size + sets.music.size + sets.podcasts.size + sets.events.size;
+  }, []);
 
-    const out = [];
-    if (avgMoodPct >= 55 && moodTrend.up !== false) {
-      out.push({
-        kind: 'good',
-        title: 'Отличный прогресс!',
-        text:
-        sourceLead + (
-        moodTrend.text && moodTrend.text !== '-' ?
-        `Настроение в динамике: ${moodTrend.text} к прошлому периоду. Продолжайте в том же духе.` :
-        'Вы регулярно отмечаете состояние в дневнике - это основа осознанности.')
-      });
-    } else if (avgMoodPct > 0) {
-      out.push({
-        kind: 'good',
-        title: 'Есть опора',
-        text:
-        sourceLead +
-        'Записи в дневнике помогают замечать закономерности. Даже небольшие шаги - это вклад в благополучие.'
-      });
-    } else {
-      out.push({
-        kind: 'good',
-        title: 'С чистого листа',
-        text:
-        sourceLead +
-        'Добавьте пару записей в ИИ-дневнике и пройдите тест из каталога - графики и обобщение станут точнее.'
-      });
-    }
+  const periodLabel = period === 'week' ? 'неделю' : period === 'month' ? 'месяц' : 'год';
 
-    if (anxietyPct >= 65 || anxietyTrend.up === true && anxietyPct >= 45) {
-      out.push({
-        kind: 'warn',
-        title: 'Обратите внимание',
-        text:
-        'По совокупности тестов, скрининга и дневника заметна повышенная нагрузка. Попробуйте короткие паузы и дыхание; при необходимости обсудите это со специалистом.'
-      });
-    } else {
-      out.push({
-        kind: 'warn',
-        title: 'Наблюдение',
-        text:
-        stressPct >= 60 ?
-        'Уровень стресса выше комфортного. Полезны прогулки, сон и делегирование задач.' :
-        'Следите за балансом нагрузки и отдыха - это снижает риск накопительной усталости.'
-      });
-    }
+  const diaryDaysWithCheckin = useMemo(() => {
+    const log = getCheckinLog();
+    return Object.keys(log).filter((dateKey) => {
+      const d = startOfDay(new Date(`${dateKey}T12:00:00`));
+      return isWithinInterval(d, { start: range.start, end: range.end });
+    }).length;
+  }, [range]);
 
-    out.push({
-      kind: 'tip',
-      title: 'Рекомендация',
-      text:
-      'Попробуйте дыхательную практику 4-6 перед важными делами или раздел «Пространство». Ответы и заметки в ИИ-дневнике тоже учитываются в общей картине активности.'
-    });
-    return out;
-  }, [
-  avgMoodPct,
-  moodTrend,
-  anxietyPct,
-  anxietyTrend,
-  stressPct,
-  testsCount,
-  entriesCount,
-  diaryNotesCount,
-  onboardingPct]
+  const insights = useMemo(
+    () =>
+      buildPersonalInsights({
+        entriesCount,
+        diaryNotesCount,
+        testsCount,
+        practicesCount: practicesDone,
+        avgMoodPct,
+        moodTrend,
+        stressPct,
+        stressTrend,
+        anxietyPct,
+        anxietyTrend,
+        energyPct,
+        energyTrend,
+        burnoutIndex: currentBurnoutIndex ?? stressPct,
+        diaryDaysWithCheckin,
+        practiceDaysCount: practiceDaysInPeriod,
+      }),
+    [
+      entriesCount,
+      diaryNotesCount,
+      testsCount,
+      practicesDone,
+      avgMoodPct,
+      moodTrend,
+      stressPct,
+      stressTrend,
+      anxietyPct,
+      anxietyTrend,
+      energyPct,
+      energyTrend,
+      currentBurnoutIndex,
+      diaryDaysWithCheckin,
+      practiceDaysInPeriod,
+    ]
   );
 
-  const weekGood = useMemo(() => {
-    const lines = [];
-    if (entriesCount >= 3) lines.push('Регулярные записи в дневнике');
-    if (diaryNotesCount >= 2) lines.push('Заметки в дневнике - материал для осмысленной поддержки ИИ');
-    if (avgMoodPct >= 50) lines.push('Стабильное или улучшающееся настроение (с учётом тестов и дневника)');
-    if (testsCount > 0) lines.push(`Пройдено тестов за период: ${testsCount}`);
-    if (onboardingPct != null && user?.onboarding_burnout_completed) {
-      lines.push('В аналитике учтён первичный скрининг выгорания');
-    }
-    if (moodTrend.up === false && moodTrend.text !== '-') {
-      lines.push(`Настроение: ${moodTrend.text} к прошлому отрезку`);
-    }
-    if (!lines.length) {
-      lines.push('Начните с одной короткой записи в дневнике');
-      lines.push('Пройдите тест из каталога - появится персональная динамика');
-    }
-    return lines;
-  }, [
-  entriesCount,
-  diaryNotesCount,
-  avgMoodPct,
-  testsCount,
-  moodTrend,
-  onboardingPct,
-  user?.onboarding_burnout_completed]
+  const weekSummaryText = useMemo(
+    () =>
+      buildWeekSummary({
+        periodLabel,
+        testsCount,
+        entriesCount,
+        practicesCount: practicesDone,
+        moodTrend,
+        stressTrend,
+        anxietyTrend,
+        energyTrend,
+        avgMoodPct,
+        stressPct,
+      }),
+    [
+      periodLabel,
+      testsCount,
+      entriesCount,
+      practicesDone,
+      moodTrend,
+      stressTrend,
+      anxietyTrend,
+      energyTrend,
+      avgMoodPct,
+      stressPct,
+    ]
   );
 
-  const weekGoals = [
-  'Увеличить число прогулок до 5 в неделю',
-  'Перед важными встречами - 1 минута спокойного дыхания',
-  'Пить воду регулярно в течение дня'];
+  const weekGoals = useMemo(
+    () =>
+      buildWeekGoals({
+        stressPct,
+        anxietyPct,
+        energyPct,
+        entriesCount,
+        testsCount,
+        practicesCount: practicesDone,
+        favoritesCount,
+        burnoutIndex: currentBurnoutIndex ?? stressPct,
+      }),
+    [
+      stressPct,
+      anxietyPct,
+      energyPct,
+      entriesCount,
+      testsCount,
+      practicesDone,
+      favoritesCount,
+      currentBurnoutIndex,
+    ]
+  );
 
 
   if (loading) {
@@ -658,11 +662,11 @@ const Stats = () => {
   }
 
   return (
-    <div className="analytics-page fade-in">
+    <div className="analytics-page fade-in" data-no-scroll-reveal>
       <header className="analytics-header">
         <div>
           <h1 className="analytics-title">{t('pages.statsTitle')}</h1>
-          <p className="analytics-subtitle">{t('pages.statsSub')}</p>
+          <p className="analytics-subtitle">Индекс выгорания, риски и мягкие шаги на основе вашей активности</p>
         </div>
         <div className="analytics-segment" role="tablist" aria-label={t('pages.statsPeriodAria')}>
           {periods.map((p) =>
@@ -760,21 +764,30 @@ const Stats = () => {
       </section>
 
       <section className="analytics-charts-row">
-        <div className="analytics-card analytics-card--mood-chart analytics-card--chart-wide">
-          <h2 className="analytics-mood-chart-title">Динамика настроения</h2>
-          <p className="analytics-mood-chart-sub">{moodChartSubtitle}</p>
-          <div className="analytics-mood-chart-area">
+        <div className="analytics-burnout-stack">
+          <div className="analytics-card analytics-card--burnout-chart analytics-card--chart-wide">
+            <h2 className="analytics-mood-chart-title">Динамика выгорания</h2>
+            <p className="analytics-mood-chart-sub">{burnoutChartSubtitle}</p>
+            {currentBurnoutRisk ? (
+              <p className="analytics-burnout-risk-badge" data-level={currentBurnoutRisk.level}>
+                Сейчас: {currentBurnoutRisk.label} ({currentBurnoutRisk.index}%)
+              </p>
+            ) : null}
+            <div className="analytics-mood-chart-area">
             <ResponsiveContainer width="100%" height={268}>
               <AreaChart
-                data={moodLineData}
-                margin={{ top: 12, right: 12, left: 4, bottom: 2 }}>
+                data={burnoutChartData}
+                margin={{ top: 12, right: 12, left: 8, bottom: 2 }}>
                 <defs>
-                  <linearGradient id="analyticsMoodArea" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6a9fe8" stopOpacity={0.42} />
-                    <stop offset="55%" stopColor="#8eb8f0" stopOpacity={0.12} />
-                    <stop offset="100%" stopColor="#bfd6fa" stopOpacity={0} />
+                  <linearGradient id="analyticsBurnoutArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#e8a87c" stopOpacity={0.45} />
+                    <stop offset="55%" stopColor="#f0c4a8" stopOpacity={0.14} />
+                    <stop offset="100%" stopColor="#fde8dc" stopOpacity={0} />
                   </linearGradient>
                 </defs>
+                <ReferenceArea y1={0} y2={34} fill="#e8f4ec" fillOpacity={0.55} />
+                <ReferenceArea y1={34} y2={64} fill="#fff6e0" fillOpacity={0.45} />
+                <ReferenceArea y1={64} y2={100} fill="#fdeaea" fillOpacity={0.4} />
                 <CartesianGrid
                   strokeDasharray="4 6"
                   stroke="rgba(91, 124, 186, 0.16)"
@@ -787,58 +800,102 @@ const Stats = () => {
                   axisLine={{ stroke: 'rgba(91, 124, 186, 0.25)', strokeWidth: 1 }}
                   tickLine={false}
                 />
-                <YAxis hide domain={[0, 100]} />
+                <YAxis
+                  domain={[0, 100]}
+                  ticks={[17, 50, 83]}
+                  width={78}
+                  tick={{ fontSize: 10, fill: '#5c6b82', fontWeight: 600 }}
+                  tickFormatter={(v) => {
+                    if (v <= 25) return 'Низкий';
+                    if (v <= 55) return 'Средний';
+                    return 'Высокий';
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
                 <Tooltip
-                  cursor={{ stroke: 'rgba(74, 130, 210, 0.35)', strokeWidth: 1 }}
+                  cursor={{ stroke: 'rgba(200, 120, 80, 0.35)', strokeWidth: 1 }}
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
                     const p = payload[0].payload;
+                    if (p.burnoutRaw == null) {
+                      return <div className="analytics-mood-tooltip">Нет данных</div>;
+                    }
                     return (
                       <div className="analytics-mood-tooltip">
-                        {p.moodRaw == null ? 'Нет данных' : `${Math.round(Number(p.moodRaw))}%`}
+                        {p.risk?.label || 'Риск'}: {Math.round(Number(p.burnoutRaw))}%
                       </div>
                     );
                   }}
                 />
                 <Area
                   type="monotone"
-                  dataKey="mood"
-                  name="Настроение"
-                  stroke="#4a82d4"
+                  dataKey="burnout"
+                  name="Индекс выгорания"
+                  stroke="#d4845c"
                   strokeWidth={2.6}
-                  fill="url(#analyticsMoodArea)"
+                  fill="url(#analyticsBurnoutArea)"
                   connectNulls={false}
-                  dot={{ r: 3.5, fill: '#fff', stroke: '#4a82d4', strokeWidth: 2 }}
-                  activeDot={{ r: 5, fill: '#4a82d4', stroke: '#fff', strokeWidth: 2 }}
+                  dot={{ r: 3.5, fill: '#fff', stroke: '#d4845c', strokeWidth: 2 }}
+                  activeDot={{ r: 5, fill: '#d4845c', stroke: '#fff', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
-        <div className="analytics-card analytics-card--radar">
-          <div className="analytics-card-head">
-            <h2 className="analytics-card-title">Баланс</h2>
-            <span className="analytics-card-meta">Общее состояние</span>
+          <ul className="analytics-burnout-legend" aria-hidden>
+            <li><span className="analytics-burnout-legend-swatch analytics-burnout-legend-swatch--low" /> Низкий риск</li>
+            <li><span className="analytics-burnout-legend-swatch analytics-burnout-legend-swatch--mid" /> Средний риск</li>
+            <li><span className="analytics-burnout-legend-swatch analytics-burnout-legend-swatch--high" /> Высокий риск</li>
+          </ul>
           </div>
-          <div className="analytics-radar-wrap">
-            <ResponsiveContainer width="100%" height={280}>
-              <RadarChart cx="50%" cy="50%" outerRadius="72%" data={radarData}>
-                <PolarGrid stroke="rgba(91, 124, 186, 0.22)" strokeWidth={1} />
-                <PolarAngleAxis
-                  dataKey="subject"
-                  tick={{ fontSize: 11, fill: '#3d4d66', fontWeight: 600 }}
-                />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar
-                  name="Показатели"
-                  dataKey="value"
-                  stroke="#4a82d4"
-                  fill="#6a9fe8"
-                  fillOpacity={0.42}
-                  strokeWidth={2.2}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+
+          <div className="analytics-burnout-insight-block">
+            <h3 className="analytics-burnout-insight-title">Что влияет</h3>
+            <p className="analytics-burnout-drivers">{burnoutDriversText}</p>
+          </div>
+        </div>
+        <div className="analytics-balance-stack">
+          <div className="analytics-card analytics-card--radar">
+            <div className="analytics-card-head">
+              <h2 className="analytics-card-title">Баланс</h2>
+              <span className="analytics-card-meta">5 показателей</span>
+            </div>
+            <div className="analytics-radar-wrap">
+              <ResponsiveContainer width="100%" height={220}>
+                <RadarChart cx="50%" cy="50%" outerRadius="72%" data={radarData}>
+                  <PolarGrid stroke="rgba(91, 124, 186, 0.22)" strokeWidth={1} />
+                  <PolarAngleAxis
+                    dataKey="subject"
+                    tick={{ fontSize: 11, fill: '#3d4d66', fontWeight: 600 }}
+                  />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar
+                    name="Показатели"
+                    dataKey="value"
+                    stroke="#4a82d4"
+                    fill="#6a9fe8"
+                    fillOpacity={0.42}
+                    strokeWidth={2.2}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="analytics-burnout-insight-block analytics-balance-help-block">
+            <h3 className="analytics-burnout-insight-title">Как читать график</h3>
+            <p className="analytics-burnout-drivers analytics-balance-help-intro">
+              {balanceChartHelp.intro}
+            </p>
+            <ul className="analytics-balance-help-list">
+              {balanceChartHelp.items.map((item) => (
+                <li key={item.label}>
+                  <span className="analytics-balance-help-label">{item.label}</span>
+                  {' — '}
+                  {item.text}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
@@ -891,17 +948,10 @@ const Stats = () => {
               <Check size={16} strokeWidth={2.5} />
             </span>
             <div className="analytics-summary-tile-head">
-              <h3 className="analytics-summary-heading">Итоги недели</h3>
-              <p className="analytics-summary-lead">Что получилось хорошо</p>
+              <h3 className="analytics-summary-heading">Итоги {period === 'week' ? 'недели' : 'периода'}</h3>
+              <p className="analytics-summary-lead">Факты и изменения</p>
             </div>
-            <ul className="analytics-summary-list">
-              {weekGood.map((line) => (
-                <li key={line}>
-                  <Check size={18} className="analytics-summary-check" strokeWidth={2.5} />
-                  {line}
-                </li>
-              ))}
-            </ul>
+            <p className="analytics-week-summary-text">{weekSummaryText}</p>
             <div className="analytics-summary-tile-deco" aria-hidden />
           </article>
           <article className="analytics-summary-tile analytics-summary-tile--goals">
