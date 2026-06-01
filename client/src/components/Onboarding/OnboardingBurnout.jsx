@@ -20,7 +20,7 @@ import {
 import '../Auth/Auth.css';
 import './OnboardingBurnout.css';
 
-function OnboardingProfileStep({ user, updateUser, t }) {
+function OnboardingProfileStep({ user, updateUser, t, onAfterSave }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [profileRole, setProfileRole] = useState(() => (user?.role === 'teacher' ? 'teacher' : 'student'));
@@ -57,6 +57,7 @@ function OnboardingProfileStep({ user, updateUser, t }) {
         gender: genderToSave,
         avatar: avatarToSave
       });
+      onAfterSave?.();
     } catch (e) {
       setErr(e.response?.data?.message || t('burnoutOnb.errSave'));
     } finally {
@@ -158,6 +159,7 @@ const OnboardingBurnout = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [surveyPhase, setSurveyPhase] = useState('test');
+  const [returnToProfile, setReturnToProfile] = useState(false);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState(() => Array(ONBOARDING_QUESTION_COUNT).fill(null));
   const [submitting, setSubmitting] = useState(false);
@@ -201,8 +203,17 @@ const OnboardingBurnout = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (needsProfile) {
-    return <OnboardingProfileStep user={user} updateUser={updateUser} t={t} />;
+  const showProfile = needsProfile || returnToProfile;
+
+  if (showProfile) {
+    return (
+      <OnboardingProfileStep
+        user={user}
+        updateUser={updateUser}
+        t={t}
+        onAfterSave={() => setReturnToProfile(false)}
+      />
+    );
   }
 
   const totalSteps = questions.length;
@@ -218,7 +229,9 @@ const OnboardingBurnout = () => {
   };
 
   const goBack = () => {
+    if (submitting) return;
     if (step > 0) setStep((s) => s - 1);
+    else setReturnToProfile(true);
   };
 
   const finishTest = async () => {
@@ -381,14 +394,15 @@ const OnboardingBurnout = () => {
       )}
 
       <div className="onb-actions">
-        {step > 0 ? (
-          <button type="button" className="onb-back-btn" onClick={goBack}>
-            <ChevronLeft size={18} aria-hidden />
-            Назад
-          </button>
-        ) : (
-          <span className="onb-actions-spacer" />
-        )}
+        <button
+          type="button"
+          className="onb-back-btn"
+          onClick={goBack}
+          disabled={submitting}
+        >
+          <ChevronLeft size={18} aria-hidden />
+          Назад
+        </button>
         <button
           type="button"
           className="btn btn-primary auth-submit reg-submit-primary onb-next-btn"
