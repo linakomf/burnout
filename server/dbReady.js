@@ -6,7 +6,7 @@ const pool = require('./db');
  */
 async function isDatabaseInitialized() {
   try {
-    await pool.query('SELECT user_id FROM users LIMIT 1');
+    await pool.query('SELECT user_id FROM public.users LIMIT 1');
     return true;
   } catch (err) {
     if (err.code === '42P01') return false;

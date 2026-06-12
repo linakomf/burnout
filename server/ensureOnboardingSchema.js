@@ -2,28 +2,28 @@ const pool = require('./db');
 
 async function runOnboardingMigration() {
   await pool.query(`
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS gender VARCHAR(20);
+    ALTER TABLE public.users ADD COLUMN IF NOT EXISTS gender VARCHAR(20);
   `);
   await pool.query(`
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_burnout_completed BOOLEAN DEFAULT FALSE;
+    ALTER TABLE public.users ADD COLUMN IF NOT EXISTS onboarding_burnout_completed BOOLEAN DEFAULT FALSE;
   `);
   await pool.query(`
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_burnout_percent INT;
+    ALTER TABLE public.users ADD COLUMN IF NOT EXISTS onboarding_burnout_percent INT;
   `);
   await pool.query(`
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_burnout_completed_at TIMESTAMP;
+    ALTER TABLE public.users ADD COLUMN IF NOT EXISTS onboarding_burnout_completed_at TIMESTAMP;
   `);
   await pool.query(`
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS space_preferences JSONB;
+    ALTER TABLE public.users ADD COLUMN IF NOT EXISTS space_preferences JSONB;
   `);
   await pool.query(`
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS has_completed_space_onboarding BOOLEAN DEFAULT FALSE;
+    ALTER TABLE public.users ADD COLUMN IF NOT EXISTS has_completed_space_onboarding BOOLEAN DEFAULT FALSE;
   `);
   await pool.query(`
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
+    ALTER TABLE public.users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
   `);
   await pool.query(`
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(120);
+    ALTER TABLE public.users ADD COLUMN IF NOT EXISTS last_name VARCHAR(120);
   `);
 }
 
@@ -31,7 +31,7 @@ async function ensureOnboardingSchema() {
   try {
     await runOnboardingMigration();
     await pool.query(`
-      UPDATE users SET onboarding_burnout_completed = TRUE WHERE role = 'admin';
+      UPDATE public.users SET onboarding_burnout_completed = TRUE WHERE role = 'admin';
     `);
     console.log('✅ onboarding_burnout columns готовы');
   } catch (err) {

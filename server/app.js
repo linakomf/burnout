@@ -20,6 +20,7 @@ const { ensureMusicSchema } = require('./ensureMusicSchema');
 const { ensurePodcastsSchema } = require('./ensurePodcastsSchema');
 const { ensureAudienceSchema } = require('./ensureAudienceSchema');
 const { isDatabaseInitialized } = require('./dbReady');
+const { ensureSerialSequences } = require('./ensureSerialSequences');
 
 if (!process.env.JWT_SECRET?.trim()) {
   const strictProd = process.env.NODE_ENV === 'production' && !process.env.VERCEL;
@@ -184,6 +185,7 @@ async function bootstrapVercelFast() {
   } else {
     console.log('✅ Vercel: быстрый старт (схема уже в Neon)');
   }
+  await ensureSerialSequences();
   startDeferredBootstrap();
 }
 

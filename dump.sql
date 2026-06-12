@@ -6,7 +6,8 @@
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
-
+CREATE SCHEMA IF NOT EXISTS public;
+SET search_path TO public;
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;

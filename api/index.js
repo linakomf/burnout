@@ -1,6 +1,7 @@
 const { app, ensureBootstrap } = require('../server/app');
 const { ensureCoreSchema } = require('../server/ensureCoreSchema');
 const { ensureOnboardingSchema } = require('../server/ensureOnboardingSchema');
+const { ensureSerialSequences } = require('../server/ensureSerialSequences');
 const { isDatabaseInitialized } = require('../server/dbReady');
 
 let bootstrapDone = false;
@@ -80,6 +81,7 @@ async function ensureAuthReady() {
     await ensureCoreSchema();
     await ensureOnboardingSchema();
   }
+  await ensureSerialSequences();
   authSchemaReady = true;
   if (!bootstrapDone) runBootstrap().catch(() => {});
 }

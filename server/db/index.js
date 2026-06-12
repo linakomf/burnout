@@ -20,6 +20,11 @@ function resolveSsl(connectionString) {
   return needsSsl ? { rejectUnauthorized: false } : undefined;
 }
 
+/** Neon pooler (PgBouncer) не держит search_path из startup options — задаём на каждом клиенте. */
+async function prepareClient(client) {
+  await client.query('SET search_path TO public');
+}
+
 function createPool() {
   const connectionString = process.env.DATABASE_URL?.trim();
   if (!connectionString) {
@@ -40,11 +45,14 @@ function createPool() {
   });
 
   let pgLogOnce = false;
-  nextPool.on('connect', () => {
+  nextPool.on('connect', (client) => {
     if (!pgLogOnce) {
       pgLogOnce = true;
       console.log('✅ Connected to PostgreSQL database');
     }
+    prepareClient(client).catch((err) => {
+      console.error('Failed to set search_path on connect:', err.message);
+    });
   });
 
   nextPool.on('error', (err) => {
@@ -60,11 +68,24 @@ function getPool() {
 }
 
 module.exports = {
-  query(...args) {
-    return getPool().query(...args);
+  async query(text, params) {
+    const client = await getPool().connect();
+    try {
+      await prepareClient(client);
+      return await client.query(text, params);
+    } finally {
+      client.release();
+    }
   },
-  connect(...args) {
-    return getPool().connect(...args);
+  async connect() {
+    const client = await getPool().connect();
+    try {
+      await prepareClient(client);
+      return client;
+    } catch (err) {
+      client.release();
+      throw err;
+    }
   },
   end(...args) {
     if (!pool) return Promise.resolve();
