@@ -6,7 +6,6 @@ import {
   Home,
   Calendar,
   BarChart2,
-  BarChart3,
   ClipboardList,
   Users,
   Tag,
@@ -78,7 +77,6 @@ const Sidebar = () => {
   const adminLinks = useMemo(
     () => [
     { path: '/admin', icon: <Home {...iconProps} />, label: t('nav.adminOverview') },
-    { path: '/admin-dashboard', icon: <BarChart3 {...iconProps} />, label: t('nav.adminCrmDashboard') },
     { path: '/admin/users', icon: <Users {...iconProps} />, label: t('nav.adminUsers') },
     { path: '/admin/categories', icon: <Tag {...iconProps} />, label: t('nav.adminCategories') },
     { path: '/admin/tests', icon: <Brain {...iconProps} />, label: t('nav.adminTests') },

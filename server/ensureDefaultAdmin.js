@@ -25,7 +25,7 @@ async function ensureDefaultAdmin() {
         [password, name, email, found.rows[0].user_id]
       );
     }
-    console.log(`✅ Администратор: ${email} (вход → /admin-dashboard)`);
+    console.log(`✅ Администратор: ${email} (вход → /admin)`);
   } catch (err) {
     console.error('❌ ensureDefaultAdmin:', err.message);
   }

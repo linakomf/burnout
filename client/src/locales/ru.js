@@ -267,7 +267,6 @@ export default {
     expand: 'Развернуть меню',
     collapse: 'Свернуть меню',
     adminOverview: 'Обзор',
-    adminCrmDashboard: 'CRM-дашборд',
     adminUsers: 'Пользователи',
     adminCategories: 'Категории',
     adminTests: 'Тесты',

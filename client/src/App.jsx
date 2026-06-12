@@ -22,7 +22,6 @@ import PsychologistProfile from './components/Psychologist/PsychologistProfile';
 import PsychologistPending from './components/Psychologist/PsychologistPending';
 import PsychologistInviteRegister from './components/Psychologist/PsychologistInviteRegister';
 import { psychologistHomePath } from './utils/psychologistNav';
-import AdminDashboard from './components/Dashboards/AdminDashboard';
 import OnboardingBurnout from './components/Onboarding/OnboardingBurnout';
 import Personalization from './components/Personalization/Personalization';
 import ScrollRevealProvider from './components/ScrollReveal/ScrollRevealProvider';
@@ -93,7 +92,7 @@ const PublicRoute = ({ children }) => {
     </div>);
 
   if (user) {
-    if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
+    if (user.role === 'admin') return <Navigate to="/admin" replace />;
     if (user.role === 'psychologist') return <Navigate to={psychologistHomePath(user)} replace />;
     if (!user.onboarding_burnout_completed) {
       return <Navigate to="/onboarding/burnout" replace />;
@@ -151,9 +150,7 @@ const App = () => {
 
           <Route path="/admin-portal" element={<AdminPortal />} />
 
-          <Route path="/admin-dashboard" element={
-                    <PrivateRoute adminOnly><Layout><AdminDashboard /></Layout></PrivateRoute>
-                    } />
+          <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
           <Route path="/user-dashboard" element={<Navigate to="/dashboard" replace />} />
 
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
