@@ -62,7 +62,7 @@ function isAuthPost(req) {
   return url === '/api/auth/register' || url === '/api/auth/login';
 }
 
-/** Вход/регистрация: только пинг БД + минимальная схема, без тяжёлого bootstrap (504). */
+
 async function ensureAuthReady() {
   const pool = require('../server/db');
   await pool.query('SELECT 1');
@@ -114,7 +114,7 @@ if (process.env.VERCEL && process.env.DATABASE_URL?.trim()) {
   runBootstrap().catch((err) => console.warn('Background bootstrap:', err.message));
 }
 
-/** Express напрямую (без serverless-http — на Vercel POST не зависает). */
+
 module.exports = async (req, res) => {
   try {
     requestPath(req);

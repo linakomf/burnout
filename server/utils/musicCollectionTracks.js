@@ -1,4 +1,4 @@
-/** Связь подборок с треками music_items */
+
 
 function parseMusicPublicId(param) {
   const s = String(param || '').trim();
@@ -17,10 +17,8 @@ function slugifyTitle(title, suffix) {
   return suffix ? `${safe}-${suffix}` : safe;
 }
 
-/**
- * @param {unknown} raw — JSON-массив или строка id через запятую
- * @returns {string[]}
- */
+
+
 function parsePublicTrackIds(raw) {
   if (raw == null || raw === '') return [];
   let arr = raw;

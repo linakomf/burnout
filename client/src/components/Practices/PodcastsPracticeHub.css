@@ -1,4 +1,4 @@
-/* Подкасты — шапка как у тестов/статей: фото, белый лист, вырез; контент — подборка и плеер */
+
 
 .podcast-hub {
   --ph-blue: #38bdf8;
@@ -75,7 +75,7 @@
   max-width: none;
 }
 
-/* Поиск и фильтры — та же колонка, что заголовок в листе и блок контента ниже */
+
 .podcast-hub--catalog .podcast-hub-catalog-header > *:not(.podcast-hub-mock) {
   max-width: calc(var(--ph-align-max) + var(--ph-align-pad) * 2);
   width: 100%;
@@ -502,7 +502,7 @@
   }
 }
 
-/* Избранное на карточках — как в медитации (цвет, плавность, лёгкий «поп») */
+
 .podcast-hub--catalog .hub-cover-cards .practice-card-fav--cover {
   transition:
     color 0.2s ease,

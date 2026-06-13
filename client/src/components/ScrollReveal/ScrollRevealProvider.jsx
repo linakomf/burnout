@@ -35,7 +35,7 @@ function collectRevealNodes(root) {
       if (!shouldSkip(el)) found.add(el);
     });
   } catch {
-    /* ignore */
+    
   }
   return [...found];
 }
@@ -114,7 +114,7 @@ export default function ScrollRevealProvider({ children }) {
         {
           root: null,
           threshold: [0, 0.06, 0.14],
-          /* Начинаем анимацию чуть раньше, пока блок только входит в экран */
+          
           rootMargin: '0px 0px 12% 0px',
         }
       );

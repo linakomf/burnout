@@ -1,4 +1,4 @@
-/** Чтение из DOM (автозаполнение часто не синхронизировано с React state). */
+
 export function readFormField(formEl, name) {
   const node = formEl.elements.namedItem(name);
   if (!node) return '';
@@ -15,7 +15,6 @@ export function mergeField(domVal, stateVal, trim) {
   return b;
 }
 
-/** Сообщение для формы входа/регистрации (сеть, ответ API). */
 export function formatAuthAxiosError(err, t) {
   const data = err?.response?.data;
   const msg = typeof data === 'object' && data != null && typeof data.message === 'string' ? data.message : null;

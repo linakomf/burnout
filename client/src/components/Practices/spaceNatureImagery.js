@@ -1,28 +1,21 @@
-/**
- * Спокойная природная эстетика для раздела «Пространство»:
- * поля, холмы, лес, небо - + локальный референс в public/space.
- */
+
 const publicBase = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
 
 const u = (id, w = 1600) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=85`;
 
-/** Герой с референсом пользователя (скопирован в public при сборке) */
+
 export const SPACE_NATURE_HERO_REF = `${publicBase}/space/nature-hero-ref.png`;
 
-/** Видео-фон героя «Пространство» (MP4 в public/space) */
 export const SPACE_PRACTICES_HERO_VIDEO = `${publicBase}/space/practices-space-hero.mp4`;
 
-/** Видео-фон баннера раздела «Медитации» */
 export const MEDITATION_HERO_BANNER_VIDEO = `${publicBase}/meditation/meditation-hero-banner.mp4`;
 
-/** Видео в первой капсуле («небо») в заголовке секции */
 export const SPACE_PRACTICES_PILL_SKY_VIDEO = `${publicBase}/space/practices-pill-sky.mp4`;
 
-/** Постер для капсулы при загрузке / reduced motion */
 export const SPACE_PRACTICES_PILL_SKY_POSTER = u('photo-1500382017468-9049fed747ef', 500);
 
-/** Видео во второй капсуле («туман») в заголовке секции */
+
 export const SPACE_PRACTICES_PILL_MIST_VIDEO = `${publicBase}/space/practices-pill-mist.mp4`;
 
 export const SPACE_PRACTICES_PILL_MIST_POSTER = u('photo-1499002238440-d264b2597d5b', 500);
@@ -45,14 +38,14 @@ const UNSPLASH_CALM = [
   u('photo-1551632811-561732d1e306', 1800),
 ];
 
-/** Все доступные кадры (референс первым - как на макете) */
+
 export const naturePool = [SPACE_NATURE_HERO_REF, ...UNSPLASH_CALM];
 
 export function natureAt(index) {
   return naturePool[Math.abs(index) % naturePool.length];
 }
 
-/** Несколько кадров подряд (галереи, сетки) */
+
 export function natureGallery(startIndex, count = 4) {
   return Array.from({ length: count }, (_, i) => natureAt(startIndex + i));
 }

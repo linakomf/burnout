@@ -1,4 +1,4 @@
-/** Разделы единой админ-страницы «Пространство» */
+
 
 export const ADMIN_SPACE_SECTIONS = [
   { id: 'films', labelKey: 'adminFilms' },

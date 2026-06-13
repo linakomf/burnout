@@ -1,4 +1,4 @@
-/** Опции фильтров на странице «Подкасты» (ключи локалей pages.*). */
+
 
 export const PODCAST_FILTER_THEME_OPTIONS = [
   { id: null, labelKey: 'podcastsFilterAny' },
@@ -39,7 +39,7 @@ const LEGACY_TOPIC_TO_THEMES = {
   motiv: ['motivation'],
 };
 
-/** @param {number} durationMin */
+
 export function inferFormatFromDuration(durationMin) {
   const min = Number(durationMin) || 0;
   if (min > 0 && min < 20) return 'short';
@@ -47,7 +47,7 @@ export function inferFormatFromDuration(durationMin) {
   return 'long';
 }
 
-/** @param {{ tags?: { theme?: string[], situation?: string[], format?: string[] }, topic?: string, durationMin?: number }} ep */
+
 export function getEpisodeFilterTags(ep) {
   const raw = ep.tags;
   if (raw && (raw.theme?.length || raw.situation?.length || raw.format?.length)) {
@@ -65,7 +65,7 @@ export function getEpisodeFilterTags(ep) {
   };
 }
 
-/** @param {string[] | null | undefined} selected */
+
 function tagDimensionPasses(tags, selected, tagKey) {
   if (!selected || selected.length === 0) return true;
   const arr = tags[tagKey];
@@ -73,10 +73,8 @@ function tagDimensionPasses(tags, selected, tagKey) {
   return selected.some((id) => arr.includes(id));
 }
 
-/**
- * @param {{ tags?: object, topic?: string, durationMin?: number }} episode
- * @param {{ themes?: string[], situations?: string[], formats?: string[] }} filters
- */
+
+
 export function episodePassesHubFilters(episode, { themes, situations, formats }) {
   const tags = getEpisodeFilterTags(episode);
   if (!tagDimensionPasses(tags, themes, 'theme')) return false;

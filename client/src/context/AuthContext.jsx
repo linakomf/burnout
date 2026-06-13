@@ -14,7 +14,7 @@ const AuthContext = createContext(null);
 
 const AUTH_API_RETRY = { retries: 2, delayMs: 1200 };
 
-/** Устаревший ответ GET /users/me (запрос ушёл до PUT профиля) не должен затирать gender/avatar. */
+
 function mergeMeResponse(server, prev) {
   if (!prev) return server;
   const profileStale =
@@ -68,8 +68,8 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        // Не помечаем опрос пройденным из localStorage до успешного POST - иначе новый user_id
-        // с «чужим» pending или тестовым ключом сразу уходит на /dashboard без опроса.
+        
+        
         setUser((prev) => {
           const merged = mergeMeResponse(server, prev);
           syncBannerProfileFromUser(merged);

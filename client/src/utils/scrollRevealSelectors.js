@@ -1,4 +1,4 @@
-/** Селекторы блоков, которые плавно появляются при прокрутке (вниз и вверх). */
+
 export const SCROLL_REVEAL_SELECTORS = [
   '[data-scroll-reveal]',
   '.dashboard-new > *',

@@ -1,6 +1,4 @@
-/**
- * Повтор запроса при холодном старте Vercel (504 / сеть / HTML вместо JSON).
- */
+
 export async function withApiRetry(requestFn, { retries = 4, delayMs = 2500 } = {}) {
   let lastError;
   for (let attempt = 0; attempt <= retries; attempt += 1) {

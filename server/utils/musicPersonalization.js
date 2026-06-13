@@ -1,4 +1,4 @@
-/** Связь лайков персонализации (daily_personalization) с mood треков. */
+
 
 const LIKE_TO_MUSIC_MOODS = {
   music: ['calm_down', 'rest', 'evening', 'motivation'],

@@ -13,7 +13,7 @@ function safeUnlinkUploadPath(uploadsAbs, urlPath) {
   try {
     if (fs.existsSync(abs)) fs.unlinkSync(abs);
   } catch {
-    /* ignore */
+    
   }
 }
 

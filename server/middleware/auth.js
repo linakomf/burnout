@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
 
-/** JWT не содержит gender — подтягиваем актуальные role/gender из БД для фильтров каталога. */
+
 async function enrichUserFromDb(decoded) {
   if (!decoded?.user_id) return decoded;
   try {
@@ -35,7 +35,7 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-/** Роль в JWT может устареть — сверяем с БД. */
+
 const adminOnly = async (req, res, next) => {
   if (req.user?.role === 'admin') return next();
 
@@ -58,7 +58,7 @@ const adminOnly = async (req, res, next) => {
   }
 };
 
-/** JWT необязателен — для публичных каталогов с фильтром аудитории. */
+
 const optionalAuthMiddleware = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];

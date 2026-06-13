@@ -1,4 +1,4 @@
-/** Кому показывать карточку: роль и пол (пол не показывается пользователям в UI). */
+
 
 const TARGET_ROLES = new Set(['all', 'student', 'teacher']);
 const TARGET_GENDERS = new Set(['all', 'female', 'male']);
@@ -24,16 +24,14 @@ function skipAudienceFilter(user) {
   return user?.role === 'admin';
 }
 
-/** Включить SQL-фильтр каталога (по умолчанию выкл — все карточки видны). */
+
 function isStrictCatalogAudience() {
   const v = String(process.env.CATALOG_STRICT_AUDIENCE || '').trim().toLowerCase();
   return v === '1' || v === 'true' || v === 'yes';
 }
 
-/**
- * SQL-фрагмент AND … для фильтрации каталога.
- * По умолчанию не скрываем карточки — иначе на проде часто пустые разделы.
- */
+
+
 function appendAudienceFilter(user, alias = '', paramStart = 1) {
   if (!isStrictCatalogAudience()) {
     return { sql: '', params: [], nextIndex: paramStart };
@@ -73,7 +71,6 @@ function appendAudienceFilter(user, alias = '', paramStart = 1) {
   };
 }
 
-/** Фильтр тестов: категория + сам тест (оба условия). */
 function appendTestAudienceFilter(user, testAlias = 't', catAlias = 'c', paramStart = 1) {
   if (!isStrictCatalogAudience()) {
     return { sql: '', params: [], nextIndex: paramStart };

@@ -1,4 +1,4 @@
-/** Разделы «Пространство» — отдельные маршруты /practices/:section */
+
 
 export const SPACE_SECTIONS = [
   { id: 'films', path: 'films', labelKey: 'practicesPocketFilmsTitle', pocketLabel: 'Films' },

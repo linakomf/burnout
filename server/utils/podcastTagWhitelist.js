@@ -1,4 +1,4 @@
-/** Совпадает с client/src/components/Practices/podcastHubFilters.js */
+
 
 const THEME_IDS = new Set([
   'psychology',
@@ -50,10 +50,8 @@ function sanitizeStringIds(raw, allowedSet, maxLen = 32) {
   return out;
 }
 
-/**
- * @param {unknown} raw
- * @returns {{ theme: string[], situation: string[], format: string[] }}
- */
+
+
 function normalizePodcastTags(raw) {
   let obj = raw;
   if (typeof raw === 'string') {

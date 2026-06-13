@@ -12,17 +12,14 @@ function getLegacyUploadMap() {
   return legacyUploadMap;
 }
 
-/**
- * Нормализует путь/URL обложки из БД для отдачи в API.
- * — https://… (Cloudinary и др.) без изменений
- * — /uploads/… → Cloudinary из карты миграции, если есть
- */
+
+
 function resolveMediaUrl(raw) {
   const s = String(raw || '').trim();
   if (!s) return '';
 
   if (/^https?:\/\//i.test(s)) return s;
-  if (s.startsWith('//')) return `https:${s}`;
+  if (s.startsWith('
 
   let p = s.startsWith('/') ? s : `/${s}`;
   if (p.includes('..')) return '';

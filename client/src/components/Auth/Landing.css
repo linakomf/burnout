@@ -23,7 +23,7 @@
   box-sizing: border-box;
 }
 
-/* ——— Nav ——— */
+
 .land-nav {
   display: flex;
   align-items: center;
@@ -259,7 +259,7 @@
   padding-left: 3px;
 }
 
-/* ——— Hero ——— */
+
 .land-hero-wrap {
   position: relative;
   min-height: min(72vh, 680px);
@@ -446,7 +446,7 @@
   letter-spacing: -0.03em;
 }
 
-/* ——— Stat bar ——— */
+
 .land-stat-bar {
   background: var(--land-glass-strong);
   backdrop-filter: blur(12px);
@@ -483,7 +483,7 @@
   color: var(--land-text);
 }
 
-/* ——— Categories ——— */
+
 .land-categories {
   padding: clamp(56px, 8vw, 100px) clamp(16px, 4vw, 48px);
 }
@@ -652,7 +652,7 @@
   box-shadow: 0 4px 12px rgba(40, 70, 120, 0.12);
 }
 
-/* ——— How it works (two-column + wavy path) ——— */
+
 .land-how {
   padding: clamp(52px, 8vw, 100px) clamp(16px, 4vw, 48px);
   background:
@@ -875,7 +875,7 @@
     display: none;
   }
 }
-/* ——— Support + quote ——— */
+
 .land-support-quote {
   padding: clamp(48px, 7vw, 88px) clamp(16px, 4vw, 48px);
   display: flex;
@@ -1026,7 +1026,7 @@
   background: rgba(79, 127, 212, 0.2);
 }
 
-/* ——— Bottom CTA ——— */
+
 .land-bottom-cta {
   padding: clamp(40px, 6vw, 64px) 24px;
   text-align: center;
@@ -1045,7 +1045,7 @@
   letter-spacing: -0.03em;
 }
 
-/* ——— Footer ——— */
+
 .land-footer {
   background: var(--land-glass-strong);
   backdrop-filter: blur(12px);
@@ -1182,7 +1182,7 @@
   background: rgba(79, 127, 212, 0.18);
 }
 
-/* ——— Responsive ——— */
+
 @media (max-width: 1024px) {
   .land-cat-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1350,7 +1350,7 @@
   color: var(--text-dark);
 }
 
-/* ——— Hero try (glass) ——— */
+
 .land-try-embed {
   min-width: 0;
   width: 100%;
@@ -1504,7 +1504,7 @@
   color: var(--land-blue-deep);
 }
 
-/* ——— Space grid ——— */
+
 .land-space {
   padding: clamp(40px, 6vw, 64px) clamp(18px, 4vw, 48px) clamp(48px, 7vw, 72px);
   max-width: 1100px;
@@ -1813,7 +1813,7 @@
   background: transparent;
 }
 
-/* ═══ Reference landing (hero + preview card) ═══ */
+
 .landing-ref {
   --ref-blue: #5b8fd9;
   --ref-blue-deep: #3d6fbe;
@@ -2152,7 +2152,7 @@
   flex-shrink: 0;
 }
 
-/* Preview card */
+
 .landing-ref .land-ref-card {
   position: relative;
   overflow: hidden;
@@ -2270,7 +2270,7 @@
   margin-top: 2px;
 }
 
-/* Sections */
+
 .landing-ref .land-ref-section {
   max-width: 1000px;
   margin: 0 auto;
@@ -2507,7 +2507,7 @@
   background: var(--bg-card);
 }
 
-/* ═══ Meadow hero landing ═══ */
+
 .landing.landing-mtn {
   --mtn-sage: #9bb896;
   --mtn-sage-deep: #7fa37a;
@@ -2949,7 +2949,7 @@
   }
 }
 
-/* ═══ Landing v2 — design mockup (2-col + glass card) ═══ */
+
 .landing.landing-v2 {
   --v2-blue: #5b8fd9;
   --v2-blue-deep: #3d6fbe;
@@ -3204,7 +3204,7 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* Glass card */
+
 .landing-v2 .land-glass-card {
   position: relative;
   width: 100%;
@@ -3919,7 +3919,7 @@
   }
 }
 
-/* ═══ Landing v2 — bottom section (cards + CTA + perks) ═══ */
+
 .landing-v2 .land-bottom {
   position: relative;
   z-index: 2;

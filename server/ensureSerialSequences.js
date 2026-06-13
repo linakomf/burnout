@@ -1,6 +1,6 @@
 const pool = require('./db');
 
-/** После pg_dump INSERT с явными id последовательности отстают — ломает регистрацию. */
+
 async function ensureSerialSequences() {
   const tables = [
     ['users', 'user_id'],

@@ -4,7 +4,7 @@ const { getUploadsDir } = require('./uploadsDir');
 
 const PUBLIC_UPLOADS_DIR = path.join(__dirname, '../../client/public/uploads');
 
-/** Дублирует файл в client/public/uploads — CRA отдаёт /uploads без прокси. */
+
 function mirrorUploadToPublic(filename) {
   const name = path.basename(String(filename || ''));
   if (!name) return;
@@ -23,7 +23,6 @@ function mirrorUploadToPublic(filename) {
   }
 }
 
-/** Путь для БД после multer + зеркало в public. */
 function publicUploadPath(file) {
   if (!file?.filename) return '';
   mirrorUploadToPublic(file.filename);

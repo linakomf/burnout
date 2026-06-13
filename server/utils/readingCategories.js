@@ -1,4 +1,4 @@
-/** Категории фильтров — как на ArticlesPracticeHub */
+
 
 const KINDS = new Set(['article', 'book']);
 

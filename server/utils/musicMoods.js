@@ -1,4 +1,4 @@
-/** Настроения треков — фильтры страницы «Музыка» */
+
 
 const KINDS = new Set(['track', 'quick']);
 
@@ -13,7 +13,7 @@ const MOODS = new Set([
   'motivation',
   'evening',
   'morning',
-  /* legacy */
+  
   'calm',
   'focus',
   'sleep',

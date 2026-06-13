@@ -1,7 +1,4 @@
-/**
- * Обновляет cover_url и hero_url для событий с локальными обложками.
- * Запуск: node scripts/update-events-covers.js
- */
+
 const path = require('path');
 
 require('dotenv').config({ path: path.join(__dirname, '..', 'server', '.env') });
@@ -10,7 +7,7 @@ const pool = require('../server/db');
 const { ensureEventsSchema } = require('../server/ensureEventsSchema');
 
 const EVENT_COVERS = {
-  // Один
+  
   'Мастер-класс по гончарному делу': '/images/events/solo-pottery.png',
   'Арт-вечер Carpe Diem': '/images/events/solo-art-evening.png',
   'Лекции в Art Society': '/images/events/solo-art-society.png',
@@ -19,7 +16,7 @@ const EVENT_COVERS = {
   'Балет «Лебединое озеро»': '/images/events/solo-ballet.png',
   'Органная музыка в филармонии': '/images/events/solo-organ.png',
   'Спектакль в ARTiШОК': '/images/events/solo-artishok.png',
-  // В компании
+  
   'Игровой вечер Catan Almaty': '/images/events/group-catan.png',
   'Белые вина нового света': '/images/events/group-white-wine.png',
   'New Vision Forum 2026': '/images/events/group-forum.png',

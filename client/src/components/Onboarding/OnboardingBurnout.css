@@ -1,4 +1,4 @@
-/* Онбординг: внутри auth-card (см. AuthFlowBackdrop + Auth.css) */
+
 
 .onb-profile-card .auth-card-top {
   margin-bottom: 22px;
@@ -53,7 +53,7 @@
   }
 }
 
-/* Опрос */
+
 .onb-survey-card {
   padding-bottom: clamp(20px, 4vw, 32px);
 }
@@ -248,7 +248,7 @@
   margin-bottom: 14px;
 }
 
-/* Результат */
+
 .onb-result-card .onb-result-head {
   text-align: center;
   margin-bottom: 20px;

@@ -16,7 +16,7 @@ import PracticesFavorites from './PracticesFavorites';
 import { isValidSpaceSection, spaceSectionHref } from './practiceSpaceConfig';
 import './Practices.css';
 
-/** Старые ссылки ?section=films → /practices/films */
+
 function PracticesIndex() {
   const { search } = useLocation();
   const params = new URLSearchParams(search);

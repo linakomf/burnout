@@ -21,7 +21,6 @@ function basenameFromUrl(url) {
   }
 }
 
-/** Cloudinary URL → /uploads/filename, если файл есть в client/public/uploads. */
 function cloudinaryUrlToLocalPath(url) {
   const name = basenameFromUrl(url);
   if (!name) return '';

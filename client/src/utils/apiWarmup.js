@@ -2,9 +2,8 @@ import { getApiBaseURL } from './api';
 
 let warmupPromise = null;
 
-/**
- * Фоновый прогрев serverless (не блокирует форму).
- */
+
+
 export function warmupApi() {
   if (process.env.NODE_ENV !== 'production') return Promise.resolve(false);
 

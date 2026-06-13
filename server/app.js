@@ -77,7 +77,7 @@ app.use(
             return cb(null, true);
           }
         } catch {
-          /* ignore */
+          
         }
       }
       return cb(new Error('Not allowed by CORS'));
@@ -126,7 +126,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-/** Схемы БД — нужны до любого API-запроса. */
+
 async function bootstrapCritical() {
   await ensureCoreSchema();
   await ensureDefaultAdmin();
@@ -144,7 +144,7 @@ async function bootstrapCritical() {
   await ensureAudienceSchema();
 }
 
-/** Синхронизация каталога тестов — тяжёлая, на Vercel не блокирует ответ. */
+
 async function bootstrapDeferred() {
   await ensureTestCatalog();
 }
@@ -166,7 +166,7 @@ function startDeferredBootstrap() {
   });
 }
 
-/** На Vercel: не гоняем все миграции при каждом холодном старте (иначе 504). */
+
 async function bootstrapVercelFast() {
   const pool = require('./db');
   await pool.query('SELECT 1');

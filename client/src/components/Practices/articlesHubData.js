@@ -1,8 +1,8 @@
-/** Чтение: статьи (темы) и книги (жанровые категории) */
+
 import { natureAt, spaceNature } from './spaceNatureImagery';
 import { coverWithFallback, seedFromMediaId } from '../../utils/mediaFallback';
 
-/** Для вкладки «Статьи» — плашки фильтрации */
+
 export const ARTICLE_CATEGORY_IDS = [
   'burnout',
   'stress',
@@ -14,7 +14,7 @@ export const ARTICLE_CATEGORY_IDS = [
   'communication',
 ];
 
-/** Для вкладки «Книги» */
+
 export const BOOK_CATEGORY_IDS = [
   'psychology',
   'selfgrowth',
@@ -26,7 +26,7 @@ export const BOOK_CATEGORY_IDS = [
   'inspire',
 ];
 
-/** Для админки — фильтры статей */
+
 export const ARTICLE_FILTER_OPTIONS = [
   { id: 'burnout', labelKey: 'articlesFilterBurnout' },
   { id: 'stress', labelKey: 'articlesFilterStress' },
@@ -38,7 +38,7 @@ export const ARTICLE_FILTER_OPTIONS = [
   { id: 'communication', labelKey: 'articlesFilterCommunication' },
 ];
 
-/** Для админки — фильтры книг */
+
 export const BOOK_FILTER_OPTIONS = [
   { id: 'psychology', labelKey: 'booksFilterPsychology' },
   { id: 'selfgrowth', labelKey: 'booksFilterSelfgrowth' },
@@ -339,7 +339,7 @@ export const BOOKS_LIBRARY = BOOKS_LIBRARY_CORE.map((row, index) => ({
 
 export const READING_LIBRARY = [...ARTICLES_LIBRARY, ...BOOKS_LIBRARY];
 
-/** @param {Array} pool @param {'article' | 'book'} contentKind @param {string} pillId */
+
 export function filterReadingList(pool, contentKind, pillId) {
   const items = pool.filter((item) => item.kind === contentKind);
   if (pillId === 'all') return items;
@@ -347,7 +347,7 @@ export function filterReadingList(pool, contentKind, pillId) {
   return items.filter((item) => item.bookCategory === pillId);
 }
 
-/** @param {'article' | 'book'} contentKind @param {string} pillId */
+
 export function filterReadingHub(contentKind, pillId) {
   return filterReadingList(READING_LIBRARY, contentKind, pillId);
 }
@@ -366,13 +366,11 @@ export function getBookById(rawId) {
   return BOOKS_LIBRARY.find((b) => b.id === id) || null;
 }
 
-/** По ключу заголовка: pages.articlesBook1Title → articlesBook1Summary */
 export function articleSummaryLocaleKey(titleKey) {
   if (!titleKey || typeof titleKey !== 'string') return '';
   return titleKey.endsWith('Title') ? `${titleKey.slice(0, -5)}Summary` : '';
 }
 
-/** pages.booksItemPsych1Title → booksItemPsych1Desc */
 export function bookDescLocaleKey(titleKey) {
   if (!titleKey || typeof titleKey !== 'string') return '';
   return titleKey.endsWith('Title') ? `${titleKey.slice(0, -5)}Desc` : '';
@@ -382,7 +380,6 @@ export const HERO_BG = spaceNature.articlesHero;
 
 export const BOOKS_PER_SHELF = 5;
 
-/** Убрать дубликаты по id (на случай дублей в API). */
 export function dedupeReadingItemsById(list) {
   if (!Array.isArray(list) || !list.length) return [];
   const seen = new Set();
@@ -397,10 +394,8 @@ export function dedupeReadingItemsById(list) {
   return out;
 }
 
-/**
- * Строки полок: до BOOKS_PER_SHELF карточек в строке, под каждой строкой — «полка» в разметке.
- * Без циклического повторения одной книги.
- */
+
+
 export function buildReadingShelfRows(list) {
   const unique = dedupeReadingItemsById(list);
   if (!unique.length) return [];
@@ -412,7 +407,7 @@ export function buildReadingShelfRows(list) {
   return rows;
 }
 
-/** @deprecated Используйте buildReadingShelfRows — старая логика дублировала элементы для 3×5 слотов. */
+
 export function buildShelves(list) {
   return buildReadingShelfRows(list);
 }

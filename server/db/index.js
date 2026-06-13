@@ -20,7 +20,7 @@ function resolveSsl(connectionString) {
   return needsSsl ? { rejectUnauthorized: false } : undefined;
 }
 
-/** Neon pooler (PgBouncer) не держит search_path из startup options — задаём на каждом клиенте. */
+
 async function prepareClient(client) {
   await client.query('SET search_path TO public');
 }

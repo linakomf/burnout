@@ -51,7 +51,6 @@ function filmApiErrorMessage(e) {
   return dbErrorToMessage(e) || e?.message || 'Ошибка сервера';
 }
 
-/** Multer должен отдавать JSON, иначе админка видит пустую ошибку. */
 function withUpload(fields) {
   const mw = upload.fields(fields);
   return (req, res, next) => {
@@ -201,7 +200,7 @@ function parseKeepGalleryUrls(raw, existingGallery) {
   return out;
 }
 
-/** GET список для каталога */
+
 router.get('/', optionalAuthMiddleware, async (req, res) => {
   try {
     const aud = appendAudienceFilter(req.user, '', 1);
@@ -253,7 +252,6 @@ router.get('/collections/:slug', optionalAuthMiddleware, async (req, res) => {
   }
 });
 
-/** GET один фильм по film-{id} */
 router.get('/:filmKey', optionalAuthMiddleware, async (req, res) => {
   try {
     const filmId = parseFilmPublicId(req.params.filmKey);

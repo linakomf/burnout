@@ -3,7 +3,7 @@ import { ChevronDown } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import './LanguageSwitcher.css';
 
-/** Полные названия языков в списке настроек (на русском). */
+
 const LANG_FULL_LABELS = {
   ru: 'Русский',
   kk: 'Казахский',

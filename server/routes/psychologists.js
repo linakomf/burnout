@@ -80,7 +80,6 @@ async function getPsychologistDocuments(userId) {
   return r.rows;
 }
 
-// —— Public: приглашение ——
 router.get('/invitations/:token', async (req, res) => {
   try {
     const token = String(req.params.token || '').trim();
@@ -237,7 +236,7 @@ router.post(
   }
 );
 
-// —— Admin ——
+
 router.get('/', authMiddleware, adminOnly, async (req, res) => {
   try {
     const q = await pool.query(`
@@ -344,7 +343,7 @@ router.post('/invitations', authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
-// Обращения для админа (маршруты до /:userId, чтобы не перехватывались параметром)
+
 router.get('/support-requests/all', authMiddleware, adminOnly, async (req, res) => {
   try {
     const q = await pool.query(
@@ -548,7 +547,7 @@ router.get('/:userId/documents', authMiddleware, adminOnly, async (req, res) => 
   }
 });
 
-// —— Psychologist cabinet ——
+
 router.get('/me/status', authMiddleware, psychologistOnly, async (req, res) => {
   const profile = await getPsychologistProfile(req.user.user_id);
   if (!profile) return res.status(404).json({ message: 'Профиль не найден' });

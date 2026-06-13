@@ -1,6 +1,6 @@
 @import '../Layout/StaffConsole.css';
 
-/* layout: StaffConsole.css (.admin-section) */
+
 
 .section-header {
   display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px;
@@ -283,7 +283,7 @@
   .admin-overview-grid { grid-template-columns: 1fr; }
 }
 
-/* —— Обращения «Мы рядом» на странице обзора (/admin) —— */
+
 .admin-support-overview {
   margin-top: 28px;
   padding: 22px 24px;
@@ -480,7 +480,7 @@
   font-weight: 700;
 }
 
-/* Единая админ-страница «Пространство» */
+
 
 .admin-space-chrome {
   margin-bottom: 20px;

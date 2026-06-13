@@ -14,7 +14,7 @@
   box-sizing: border-box;
 }
 
-/* Вход / регистрация — тот же визуальный язык, что landing v2 */
+
 .auth-page--landing-v2 {
   background: #fff;
 }
@@ -100,7 +100,7 @@
   border-color: #3d6fbe;
 }
 
-/* Фон как на главной (холмы дашборда) */
+
 .auth-page--dashboard {
   background-color: #e5f0f5;
 }
@@ -119,7 +119,7 @@
   background-attachment: fixed;
 }
 
-/* Лёгкая вуаль только снизу — фото холмов остаётся читаемым */
+
 .auth-bg--dashboard::after {
   content: '';
   position: absolute;
@@ -297,7 +297,7 @@
   margin-top: 6px;
 }
 
-/* 4 персонажа после регистрации — круглые плитки как в макете */
+
 .reg-avatar-grid--profile {
   grid-template-columns: repeat(2, 1fr);
   gap: 14px 16px;
@@ -379,7 +379,7 @@
   user-select: none;
 }
 
-/* onb-char: полный рост на белом фоне — contain + фон круга */
+
 .reg-avatar-grid--profile .reg-avatar-btn {
   min-width: 0;
 }

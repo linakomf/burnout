@@ -1,4 +1,4 @@
-/** Подкасты - подборка, список выпусков, темы (ключи i18n pages.*) */
+
 
 import { backendPublicUrl } from '../../utils/assetUrl';
 import { coverWithFallback, seedFromMediaId } from '../../utils/mediaFallback';
@@ -20,7 +20,7 @@ export const PODCAST_TOPIC_LABEL_KEYS = Object.fromEntries(
   PODCAST_TOPIC_OPTIONS.map(({ id, labelKey }) => [id, labelKey])
 );
 
-/** Бейдж темы на карточке (новые id фильтров + legacy topic). */
+
 export const PODCAST_THEME_LABEL_KEYS = {
   psychology: 'podcastsFilterThemePsychology',
   self_growth: 'podcastsFilterThemeSelfGrowth',
@@ -44,7 +44,6 @@ function parseDurationMin(ep) {
   return match ? parseInt(match[1], 10) : 24;
 }
 
-/** Форма карточки PracticeCard (variant podcast / meditation). */
 export function episodeToPracticeCard(ep, t) {
   const { theme } = getEpisodeFilterTags(ep);
   const topics = theme.length > 0 ? theme : ep.topic ? [ep.topic] : [];

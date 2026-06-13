@@ -129,10 +129,10 @@ export function findPlayableInPools(id, tracks, quickSounds) {
 }
 
 export const MUSIC_HERO_IMG = spaceNature.musicHero;
-/** Та же иллюстрация, что в герое - обложка «подборки дня» в плеере */
+
 export const MUSIC_FEATURED_POSTER = MUSIC_HERO_IMG;
 
-/** Основные треки / подборки */
+
 export const MUSIC_TRACKS = [
   {
     id: 'm1',
@@ -208,10 +208,10 @@ export const MUSIC_TRACKS = [
   },
 ];
 
-/** Подборка дня - тот же контент, что в макете (спокойствие) */
+
 export const FEATURED_TRACK_ID = 'm2';
 
-/** Карточки «под настроение» */
+
 export const MOOD_PLAYLISTS = [
   {
     id: 'mp-calm',
@@ -250,7 +250,7 @@ export const MOOD_PLAYLISTS = [
   },
 ];
 
-/** Подборки с API → карточки на странице */
+
 export function mapHubCollection(row) {
   if (!row) return null;
   const trackIds = Array.isArray(row.trackIds) ? row.trackIds : [];
@@ -266,7 +266,6 @@ export function mapHubCollection(row) {
   };
 }
 
-/** Быстрые звуки: иконка lucide-имени + embed */
 export const QUICK_SOUNDS = [
   {
     id: 'qs-rain',

@@ -1,4 +1,4 @@
-/** Темы подкастов — как PODCAST_TOPICS в podcastHubData */
+
 
 const TOPICS = new Set(['psych', 'mind', 'relations', 'growth', 'mental', 'motiv']);
 

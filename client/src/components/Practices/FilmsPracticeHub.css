@@ -1,4 +1,4 @@
-/* Films hub: legacy Flix blocks + MindWell light catalog */
+
 
 .flix-scope {
   position: relative;
@@ -226,7 +226,7 @@
   margin-right: 6px;
 }
 
-/* Featured hero row */
+
 .flix-hero-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -310,7 +310,7 @@
   opacity: 0.95;
 }
 
-/* Genre chips — charcoal glass bar, #CAE4BF active (Flix.id) */
+
 .flix-genre-row {
   display: flex;
   flex-wrap: wrap;
@@ -360,7 +360,7 @@
   stroke: #1a1a1a;
 }
 
-/* Trending */
+
 .flix-trending {
   padding: 12px 26px 28px;
 }
@@ -470,7 +470,7 @@
   margin-right: 4px;
 }
 
-/* Wellness library strip (secondary) */
+
 .flix-wellness {
   padding: 0 26px 26px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -623,7 +623,7 @@
   );
 }
 
-/* MindWell catalog — light sky, glass, nature-inspired */
+
 .flix-scope--mindwell.flix-scope--catalog {
   --mw-sky-top: #dff4fc;
   --mw-sky-mid: #c5e8f6;
@@ -670,7 +670,7 @@
   -webkit-backdrop-filter: blur(18px);
 }
 
-/* Герой на всю ширину контента: кнопка «назад» поверх фото в углу */
+
 .flix-scope--mindwell .flix-catalog-hero-stage {
   position: relative;
   width: 100%;
@@ -724,7 +724,7 @@
   max-width: none;
 }
 
-/* Баннеры и поиск — та же колонка, что и текст в листе (max-width + боковые поля листа) */
+
 .flix-scope--mindwell .flix-catalog-header > *:not(.flix-catalog-mock) {
   max-width: var(--flix-align-max);
   width: 100%;
@@ -741,7 +741,7 @@
   box-sizing: border-box;
 }
 
-/* Верх страницы как у «Тесты»: фото + белый лист с вырезом, забота, заголовок, две колонки текста */
+
 .flix-catalog-mock {
   width: 100%;
   max-width: none;
@@ -1079,7 +1079,7 @@
   box-shadow: 0 4px 16px rgba(106, 138, 214, 0.18);
 }
 
-/* Плашки-фильтры под поиском (как на странице событий) */
+
 .flix-film-filter-toolbar {
   position: relative;
   z-index: 90;
@@ -1092,7 +1092,7 @@
   width: 100%;
 }
 
-/* Выбранные значения фильтров: чипы с иконкой оси и кнопкой снятия */
+
 .flix-scope--mindwell .flix-film-filter-chips {
   display: flex;
   flex-wrap: wrap;
@@ -1558,7 +1558,7 @@
   color: rgba(50, 90, 70, 0.95);
 }
 
-/* Banner collection page (after banner click) */
+
 .films-collection-page {
   position: relative;
   width: 100%;
@@ -1569,7 +1569,7 @@
   background: #ffffff;
 }
 
-/* Same pill as film detail page «Назад» */
+
 .films-collection-page .films-collection-back {
   --dash-surface: rgba(255, 255, 255, 0.92);
   --dash-mock-text: #2d2a4a;

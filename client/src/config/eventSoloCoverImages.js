@@ -1,6 +1,4 @@
-/**
- * Обложки событий (Алматы) — локальные файлы в public/images/events.
- */
+
 const publicBase = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
 
 export const EVENT_SOLO_COVER_BY_TITLE = {

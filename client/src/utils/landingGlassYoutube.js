@@ -1,4 +1,4 @@
-/** https://youtu.be/gc7SIKLHhuY — calm track for landing glass card */
+
 export const LANDING_GLASS_MUSIC_VIDEO_ID = 'gc7SIKLHhuY';
 export const LANDING_GLASS_MUSIC_VOLUME = 28;
 

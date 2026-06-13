@@ -1,6 +1,6 @@
 
 .dashboard-new {
-  /* приветствие и полоса дней — Nunito */
+  
   --font-dash-greeting: 'Nunito', system-ui, sans-serif;
   --font-dash-week: 'Nunito', system-ui, sans-serif;
   --dash-accent: #82a5eb;

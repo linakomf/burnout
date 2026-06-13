@@ -125,7 +125,7 @@ function SpaceToPracticesRedirect() {
   return <Navigate to={{ pathname: '/practices', search }} replace />;
 }
 
-/** При переходе на любой маршрут показываем страницу с начала (как обычная навигация). */
+
 function ScrollToTopOnRoute() {
   const { pathname } = useLocation();
   useLayoutEffect(() => {

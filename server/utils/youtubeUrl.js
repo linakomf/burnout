@@ -1,4 +1,4 @@
-/** @returns {{ videoId: string, embedUrl: string } | null} */
+
 function parseYoutubeUrl(raw) {
   const s = String(raw || '').trim();
   if (!s) return null;

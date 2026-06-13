@@ -1,9 +1,8 @@
 import React from 'react';
 import { Heart } from 'lucide-react';
 
-/**
- * Heart on cover image — same look/placement as meditation practice cards (top-left).
- */
+
+
 export default function PracticeCoverFavorite({
   isFavorite,
   onToggle,

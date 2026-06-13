@@ -20,16 +20,16 @@ export const FILM_CATEGORIES = [
   { id: 'motivation', labelKey: 'filmCatMotivation', Icon: Heart },
 ];
 
-/** Совпадает с ключами pages.filmPsych_* в локалях (выбор в админке). */
+
 export const FILM_PSYCH_TAG_IDS = ['antistress', 'motivating', 'light', 'emotional_release'];
 
 export function filmSectionDescKey(categoryId) {
   return `filmSectionDesc${categoryId.charAt(0).toUpperCase() + categoryId.slice(1)}`;
 }
 
-/** @typedef {{ id: string, title: string, source: string, duration: string, year: string, rating: string, categoryId: string, psychTag: string, genres: string, description: string, poster: string, embedUrl: string, watchUrl: string, country?: string, director?: string, screenwriter?: string, gallery?: string[], quote?: string }} Film */
 
-/** @type {Film[]} */
+
+
 export const FILMS = [
   {
     id: 'f1',

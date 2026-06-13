@@ -43,7 +43,7 @@ import {
 } from './sectionFavorites';
 import './ArticlesPracticeHub.css';
 
-/** Статьи: темы контента на странице (порядок как в UX) */
+
 const ARTICLE_FILTER_ITEMS = [
   { id: 'all', labelKey: 'articlesTabFilterAll', Icon: LayoutGrid },
   { id: 'burnout', labelKey: 'articlesFilterBurnout', Icon: Flame },
@@ -56,7 +56,7 @@ const ARTICLE_FILTER_ITEMS = [
   { id: 'communication', labelKey: 'articlesFilterCommunication', Icon: MessageCircle },
 ];
 
-/** Книги */
+
 const BOOK_FILTER_ITEMS = [
   { id: 'all', labelKey: 'booksTabFilterAll', Icon: LayoutGrid },
   { id: 'psychology', labelKey: 'booksFilterPsychology', Icon: Brain },

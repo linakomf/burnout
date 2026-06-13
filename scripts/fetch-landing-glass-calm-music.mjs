@@ -21,7 +21,7 @@ if (!fs.existsSync(binPath)) {
 }
 
 const yt = new YTDlpWrap(binPath);
-/** Calm music for landing glass card — https://youtu.be/gc7SIKLHhuY */
+
 const url = 'https://www.youtube.com/watch?v=gc7SIKLHhuY';
 
 const browsers = (process.env.YTDLP_BROWSER || 'edge,chrome,firefox,brave')

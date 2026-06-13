@@ -1,6 +1,4 @@
-/**
- * Admin & psychologist consoles — same palette, typography, and surfaces as dashboard-new.
- */
+
 
 .admin-section,
 .psych-section,
@@ -59,7 +57,7 @@
   margin-bottom: 20px;
 }
 
-/* Glass cards */
+
 .admin-section .card,
 .psych-section .card,
 .admin-space-unified .card,
@@ -104,7 +102,7 @@
   font-weight: 600;
 }
 
-/* Primary actions — dashboard green pill */
+
 .admin-section .btn-primary,
 .psych-section .btn-primary,
 .admin-space-unified .btn-primary {
@@ -151,7 +149,7 @@
   color: var(--staff-accent-deep);
 }
 
-/* Inputs */
+
 .admin-section .input,
 .psych-section .input,
 .admin-section .admin-field input,
@@ -172,7 +170,7 @@
   box-shadow: 0 0 0 3px rgba(130, 165, 235, 0.22);
 }
 
-/* Tables */
+
 .admin-section .admin-table th {
   color: var(--staff-muted);
   border-bottom-color: var(--staff-border);
@@ -194,7 +192,7 @@
   font-family: var(--font-staff);
 }
 
-/* Role / status chips — blue accent family */
+
 .admin-section .role-chip.role-student,
 .psych-status-badge--in_progress {
   background: rgba(130, 165, 235, 0.18);
@@ -210,7 +208,7 @@
   font-weight: 700;
 }
 
-/* Space tabs — dash-tabs style */
+
 .admin-space-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -258,7 +256,7 @@
     0 1px 0 rgba(255, 255, 255, 0.55) inset;
 }
 
-/* Psychologist admin tabs */
+
 .psych-admin-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -296,7 +294,7 @@
     0 1px 0 rgba(255, 255, 255, 0.55) inset;
 }
 
-/* Support overview block */
+
 .admin-support-overview {
   border: 1px solid var(--staff-border);
   border-left: 4px solid var(--staff-accent);
@@ -322,7 +320,7 @@
   color: var(--staff-accent-deep);
 }
 
-/* Request cards */
+
 .psych-request-card {
   border-radius: 18px;
 }
@@ -365,7 +363,7 @@
   border-radius: 14px;
 }
 
-/* Question builder / modals */
+
 .admin-section .question-builder {
   border-color: var(--staff-border);
   border-radius: 16px;
@@ -386,7 +384,7 @@
   color: var(--staff-accent-deep);
 }
 
-/* Invite page (no sidebar) */
+
 .psych-invite-page {
   background-color: #e5f0f5;
   background-image: url('../../assets/dashboard-bg-hills.png');
@@ -417,7 +415,7 @@
   font-weight: 700;
 }
 
-/* Alerts inside staff consoles */
+
 .admin-section .admin-support-overview-error,
 .psych-section .admin-support-overview-error,
 .admin-section .admin-error-banner,
@@ -436,7 +434,7 @@
   border-radius: 14px;
 }
 
-/* Loading state */
+
 .staff-loading {
   display: flex;
   align-items: center;
@@ -444,7 +442,7 @@
   min-height: 40vh;
 }
 
-/* Dark theme */
+
 [data-theme='dark'] .admin-section,
 [data-theme='dark'] .psych-section,
 [data-theme='dark'] .admin-space-unified {

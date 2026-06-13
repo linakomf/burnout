@@ -168,7 +168,7 @@ router.put('/me', authMiddleware, async (req, res) => {
   }
 });
 
-/** Подбор пространства (не психодиагностика) — предпочтения для рекомендаций на главной. */
+
 router.put('/me/space-preferences', authMiddleware, async (req, res) => {
   const userId = req.user.user_id;
   const body = req.body && typeof req.body === 'object' ? req.body : {};

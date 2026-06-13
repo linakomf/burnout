@@ -1,7 +1,4 @@
-/**
- * Отправка приглашения психологу.
- * Если SMTP не настроен — ссылка возвращается в API для копирования админом.
- */
+
 function buildInviteUrl(token) {
   const base = (
     process.env.PUBLIC_APP_URL ||

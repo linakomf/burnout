@@ -73,7 +73,7 @@ export function normalizeAnswerList(raw) {
   return [];
 }
 
-/** Сохранённые предпочтения → состояние ответов по шагам. */
+
 export function spacePreferencesToAnswers(prefs) {
   if (!prefs || typeof prefs !== 'object') return {};
   const out = {};
@@ -83,7 +83,7 @@ export function spacePreferencesToAnswers(prefs) {
   return out;
 }
 
-/** Ответы → payload для API (полная замена предпочтений). */
+
 export function buildSpacePreferencesPayload(answers) {
   const out = {
     contentPreferences: [],

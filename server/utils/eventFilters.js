@@ -1,4 +1,4 @@
-/** Совпадает с EventsPracticeHub.jsx */
+
 
 const KINDS = new Set(['solo', 'group']);
 

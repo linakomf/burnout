@@ -14,7 +14,7 @@ export function writeLocalNotificationsEnabled(enabled) {
   try {
     localStorage.setItem(NOTIF_STORAGE_KEY, enabled ? '1' : '0');
   } catch {
-    /* ignore */
+    
   }
   if (typeof window !== 'undefined') {
     window.dispatchEvent(
@@ -23,7 +23,7 @@ export function writeLocalNotificationsEnabled(enabled) {
   }
 }
 
-/** Предпочтение из профиля пользователя или localStorage (по умолчанию включено). */
+
 export function areNotificationsEnabled(user) {
   if (user && typeof user.notifications_enabled === 'boolean') {
     return user.notifications_enabled;

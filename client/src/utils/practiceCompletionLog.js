@@ -17,11 +17,11 @@ function writeLog(obj) {
   try {
     localStorage.setItem(LOG_KEY, JSON.stringify(obj));
   } catch {
-    /* ignore */
+    
   }
 }
 
-/** Записать завершённую практику (дата — сегодня). */
+
 export function logPracticeCompleted(practiceId = 'practice') {
   const dateKey = format(new Date(), 'yyyy-MM-dd');
   const log = readLog();

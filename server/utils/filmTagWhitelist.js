@@ -1,4 +1,4 @@
-/** Совпадает с client/src/components/Practices/filmsHubFilters.js (без опции «Любое» id:null). */
+
 
 const MOOD_IDS = new Set([
   'relax',
@@ -48,10 +48,8 @@ function sanitizeStringIds(raw, allowedSet, maxLen = 24) {
   return out;
 }
 
-/**
- * @param {unknown} raw
- * @returns {{ mood: string[], genre: string[], type: string[], atmosphere: string[] }}
- */
+
+
 function normalizeFilmTags(raw) {
   let obj = raw;
   if (typeof raw === 'string') {

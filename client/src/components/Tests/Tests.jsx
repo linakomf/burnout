@@ -17,7 +17,7 @@ import { mergeTestRu } from '../../config/testDisplayRu';
 import testsHeroImg from '../../assets/tests-page-blossoms-hero.png';
 import './Tests.css';
 
-/** Порядок: более узкие категории раньше, чтобы подпись на карточке была однозначной */
+
 const CATEGORY_LABEL_ORDER = ['burnout', 'anxiety', 'sleep', 'motivation', 'mood', 'stress', 'resource'];
 
 const FEATURED_PREVIEW_CATEGORY_IDS = ['stress', 'mood', 'burnout'];

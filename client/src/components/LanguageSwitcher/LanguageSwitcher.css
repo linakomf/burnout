@@ -55,7 +55,7 @@
   color: var(--ref-blue-deep, #3d6fbe);
 }
 
-/* Внутри капсулы хедера лендинга — без фона и кружков */
+
 .lang-switch--in-pill {
   background: transparent;
   border: none;
@@ -83,7 +83,7 @@
   font-weight: 800;
 }
 
-/* Выпадающий список (настройки профиля) */
+
 .lang-dropdown {
   position: relative;
   flex-shrink: 0;

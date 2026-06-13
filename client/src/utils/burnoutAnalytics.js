@@ -25,9 +25,8 @@ function testStressOnDate(results, dateKey) {
   return clamp(scores.reduce((a, b) => a + b, 0) / scores.length);
 }
 
-/**
- * Индекс выгорания 0–100 (выше = больше риск).
- */
+
+
 export function dailyBurnoutIndex({
   dateKey,
   moodPct,

@@ -954,7 +954,7 @@
   min-height: 50vh;
 }
 
-/* —— Tests catalog v2 (hero + overlapping sheet) —— aligned with dashboard-new —— */
+
 .tests-mock-page--v2 {
   --font-tests-head: 'Nunito', system-ui, sans-serif;
   --dash-accent: #82a5eb;
@@ -981,7 +981,7 @@
   min-height: max(140px, calc(clamp(220px, 16vw, 380px) - 3cm));
   background-color: #dbeafe;
   background-size: cover;
-  /* кадр: персонаж / горизонт */
+  
   background-position: center 22%;
   background-repeat: no-repeat;
 }
@@ -1075,7 +1075,7 @@
   margin-left: 4px;
 }
 
-/* Две класса — выше специфичность, чем у .tests-mock-lead ниже по файлу */
+
 .tests-mock-lead.tests-mock-lead--v2 {
   margin: 14px 0 0;
   max-width: min(720px, 100%);
@@ -2422,7 +2422,7 @@
   color: #64748b;
 }
 
-/* --- Take test flow: фон-пейзаж задаётся в Layout (.main-content:has(.take-test)) --- */
+
 .take-test.take-test--intro,
 .take-test.take-test--empty,
 .take-test:has(.test-result) {
@@ -2458,7 +2458,7 @@
   color: var(--text-mid);
 }
 
-/* --- Survey question step — палитра и типографика как .dashboard-new --- */
+
 .take-test.take-test--survey-mock {
   --font-dash-greeting: 'Nunito', system-ui, sans-serif;
   --survey-purple: #6a8ad6;

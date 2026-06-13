@@ -1,4 +1,4 @@
-/** Фильтры страницы «Музыка» (ключи локалей pages.*). */
+
 
 export const MUSIC_FILTER_MOOD_OPTIONS = [
   { id: null, labelKey: 'musicFilterAny' },
@@ -31,7 +31,7 @@ export const MUSIC_FILTER_GENRE_OPTIONS = [
 const MOOD_IDS = new Set(MUSIC_FILTER_MOOD_OPTIONS.filter((o) => o.id).map((o) => o.id));
 const GENRE_IDS = new Set(MUSIC_FILTER_GENRE_OPTIONS.filter((o) => o.id).map((o) => o.id));
 
-/** Старые mood из демо-данных → новые теги фильтра */
+
 const LEGACY_MOOD_TO_TAGS = {
   calm: ['calm_down', 'recovery', 'evening'],
   focus: ['concentration'],
@@ -60,14 +60,13 @@ const GENRE_LABEL_ALIASES = {
   soft_vocals: ['soft vocals', 'vocals', 'вокал'],
 };
 
-/** @param {{ mood?: string }} track */
+
 export function getTrackMoodTags(track) {
   const m = String(track?.mood || '').trim();
   if (MOOD_IDS.has(m)) return [m];
   return LEGACY_MOOD_TO_TAGS[m] || (m ? [m] : []);
 }
 
-/** @param {{ genre?: string, genreKey?: string, genreLabel?: string }} track */
 export function getTrackGenreTags(track) {
   const rawGenre = String(track?.genre || '').trim();
   if (GENRE_IDS.has(rawGenre)) return [rawGenre];
@@ -88,17 +87,12 @@ export function getTrackGenreTags(track) {
   return [];
 }
 
-/** @param {string[] | null | undefined} selected */
 function dimensionPasses(tags, selected) {
   if (!selected || selected.length === 0) return true;
   if (!tags.length) return false;
   return selected.some((id) => tags.includes(id));
 }
 
-/**
- * @param {{ mood?: string, genre?: string, genreKey?: string, genreLabel?: string, kind?: string }} track
- * @param {{ moods?: string[], genres?: string[] }} filters
- */
 export function trackPassesMusicFilters(track, { moods, genres }) {
   if (track?.kind === 'quick') return true;
   const moodTags = getTrackMoodTags(track);

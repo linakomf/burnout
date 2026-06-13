@@ -24,10 +24,8 @@ function AudienceChipGroup({ label, hint, options, value, onChange }) {
   );
 }
 
-/**
- * @param {{ target_role: string, target_gender: string }} value
- * @param {(next: { target_role: string, target_gender: string }) => void} onChange
- */
+
+
 export default function AdminAudienceFields({ value, onChange }) {
   const v = value || { target_role: 'all', target_gender: 'all' };
 

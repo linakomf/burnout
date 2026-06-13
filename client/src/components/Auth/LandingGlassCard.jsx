@@ -78,7 +78,7 @@ export default function LandingGlassCard() {
     try {
       player?.pauseVideo?.();
     } catch {
-      /* ignore */
+      
     }
     setIsPlaying(false);
   }, [getPlayer]);
@@ -161,7 +161,7 @@ export default function LandingGlassCard() {
         try {
           player.destroy();
         } catch {
-          /* ignore */
+          
         }
       }
       playerRef.current = null;

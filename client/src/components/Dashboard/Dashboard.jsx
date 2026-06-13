@@ -46,7 +46,7 @@ import {
 import SpaceOnboardingModal from './SpaceOnboardingModal';
 import './Dashboard.css';
 
-/** Иконки строк в модалке «Подробнее» (настроение / стресс / энергия) */
+
 const DETAILS_ROW_TWEMOJI = {
   mood: '2600',
   stress: '1f329',
@@ -484,7 +484,7 @@ const Dashboard = () => {
     try {
       await api.patch('/users/notifications/read-all');
     } catch {
-      /* keep the visible list even if mark-as-read sync fails */
+      
     }
   };
 

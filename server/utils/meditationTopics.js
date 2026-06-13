@@ -1,4 +1,4 @@
-/** Совпадает с MEDITATION_FILTERS в Practices.jsx (без «all»). */
+
 const TOPIC_IDS = new Set(['anxiety', 'sleep', 'recovery', 'focus', 'sounds']);
 
 const KINDS = new Set(['meditation', 'sound']);

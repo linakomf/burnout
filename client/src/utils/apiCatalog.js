@@ -1,11 +1,7 @@
 import api from './api';
 
-/**
- * GET каталога с логом ошибки (не глотать 500/CORS молча).
- * @param {string} path — например '/events'
- * @param {object} emptyData — { events: [] }
- * @param {string} label — для console
- */
+
+
 export async function apiGetCatalog(path, emptyData, label = path) {
   try {
     return await api.get(path);

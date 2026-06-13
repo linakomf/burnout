@@ -4,10 +4,8 @@ import { useSidebarCollapse } from '../../context/SidebarCollapseContext';
 import { useLanguage } from '../../context/LanguageContext';
 import './SidebarCollapseButton.css';
 
-/**
- * Optional collapse control for legacy layouts.
- * Prefer collapsing from the active item in `Sidebar.jsx` (rail toggle).
- */
+
+
 export default function SidebarCollapseButton({ className = '' }) {
   const { collapsed, toggle } = useSidebarCollapse();
   const { t } = useLanguage();

@@ -167,7 +167,7 @@ async function fetchUserTestHistory(userId, limit = 8) {
         normalizeRiskLevel(row.level, row.scoring_type) ||
         bucketFromPercent(percent, true);
     } catch {
-      /* keep stored level */
+      
     }
     out.push({
       result_id: row.result_id,

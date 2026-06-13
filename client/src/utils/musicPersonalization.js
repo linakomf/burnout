@@ -1,4 +1,4 @@
-/** Клиент: mood треков по лайкам персонализации пользователя. */
+
 
 const LIKE_TO_MUSIC_MOODS = {
   music: ['calm_down', 'rest', 'evening', 'motivation'],

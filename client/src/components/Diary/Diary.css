@@ -27,7 +27,7 @@
   font-family: var(--font-sans);
 }
 
-/* Hero — природа + стекло (подбор запроса) */
+
 .diary-nature-hero {
   position: relative;
   border-radius: 44px;
@@ -746,7 +746,7 @@
 .legend-label { font-size: 11px; color: var(--text-light); margin-right: 2px; }
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
 
-/* Twemoji: только картинка, без подложки-карточки */
+
 .diary-mood-emoji-card {
   display: inline-flex;
   align-items: center;

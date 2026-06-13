@@ -28,7 +28,7 @@ const psychologistOnly = async (req, res, next) => {
   }
 };
 
-/** Психолог с подтверждённым аккаунтом */
+
 const approvedPsychologistOnly = async (req, res, next) => {
   try {
     const row = await refreshUserRole(req);

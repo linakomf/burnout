@@ -1,9 +1,7 @@
 const pool = require('./db');
 
-/**
- * Быстрая проверка: схема уже развёрнута (прод Neon).
- * На Vercel пропускаем тяжёлый bootstrap при холодном старте.
- */
+
+
 async function isDatabaseInitialized() {
   try {
     await pool.query('SELECT user_id FROM public.users LIMIT 1');

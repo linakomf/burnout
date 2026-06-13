@@ -1,4 +1,4 @@
-/** Имя для отображения: имя + фамилия (если есть). */
+
 export function formatUserDisplayName(user) {
   const first = String(user?.name ?? '').trim();
   const last = String(user?.last_name ?? user?.lastName ?? '').trim();

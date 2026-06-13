@@ -1,8 +1,7 @@
 import React from 'react';
 
-/**
- * Общий фон и стеклянная карточка для входа, регистрации и онбординга.
- */
+
+
 export default function AuthFlowBackdrop({ children, cardClassName = '', variant = 'landing' }) {
   const isLanding = variant === 'landing';
 

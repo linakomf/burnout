@@ -1,8 +1,4 @@
-/**
- * Одноразовое наполнение каталога «События» (Алматы, июнь 2026).
- * Запуск из корня: node scripts/seed-events-almaty.js
- * Повторный запуск пропускает события с тем же title.
- */
+
 const path = require('path');
 
 require('dotenv').config({ path: path.join(__dirname, '..', 'server', '.env') });
@@ -205,7 +201,7 @@ const EVENTS = [
     suit_tags: ['Компаниям друзей', 'Любителям open-air', 'Тем, кто любит музыку'],
     important_notes: ['18+', 'Рекомендуем взять воду и удобную обувь'],
   },
-  // —— Один (Алматы, июнь 2026) ——
+  
   {
     title: 'Лекции в Art Society',
     kind: 'solo',

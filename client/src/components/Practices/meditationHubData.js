@@ -1,7 +1,7 @@
 import { backendPublicUrl } from '../../utils/assetUrl';
 import { coverWithFallback, seedFromMediaId } from '../../utils/mediaFallback';
 
-/** Как MEDITATION_FILTERS в Practices.jsx (без «all»). */
+
 export const MEDITATION_TOPIC_OPTIONS = [
   { id: 'anxiety', labelKey: 'meditationFilterAnxiety' },
   { id: 'sleep', labelKey: 'meditationFilterSleep' },

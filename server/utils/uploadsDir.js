@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 
-/** Локально — server/uploads; на Vercel — /tmp (эфемерно, только для приёма файлов). */
+
 function getUploadsDir() {
   const dir = process.env.VERCEL
     ? path.join('/tmp', 'burnout-uploads')

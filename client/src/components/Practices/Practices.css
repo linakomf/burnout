@@ -31,7 +31,7 @@
   min-height: calc(100dvh - 86px);
 }
 
-/* Страница одного события: шире контейнер практик, отступы как у хаба событий */
+
 .practices-page--event-detail {
   max-width: none;
   margin: 0;
@@ -251,7 +251,7 @@
   color: #82a5eb;
 }
 
-/* Heart on media covers (films, books, music moods, podcasts) — как в медитации */
+
 .hub-cover-fav.practice-card-fav--cover {
   position: absolute;
   top: 10px;
@@ -447,7 +447,7 @@
   font-size: 12px;
 }
 
-/* Медитация: модальное окно практики (макет с обложкой и плеером) */
+
 .meditation-hub,
 .practices-modal-card--meditation {
   --med-dash-accent: #82a5eb;
@@ -2160,7 +2160,7 @@
   }
 }
 
-/* Desktop 1:1 polish overrides */
+
 .music-ref-page {
   background: #f4f6fb;
   padding: 24px 28px;
@@ -2299,7 +2299,7 @@
   }
 }
 
-/* Music tab visual style aligned to provided reference */
+
 .music-player-block.music-ref-page {
   background:
     radial-gradient(1100px 560px at 15% 0%, rgba(148, 109, 255, 0.55) 0%, rgba(106, 82, 209, 0.3) 36%, rgba(38, 24, 88, 0.08) 70%),
@@ -2517,7 +2517,7 @@
   }
 }
 
-/* Modern music page */
+
 .music-modern-page {
   min-height: calc(100dvh - 86px);
   padding: 12px 8px 32px;
@@ -3259,7 +3259,7 @@
   padding: 0;
 }
 
-/* —— Каталог фильмов: glassmorphism, небо, три колонки —— */
+
 .films-hub {
   --films-glass-bg: rgba(255, 255, 255, 0.28);
   --films-glass-border: rgba(255, 255, 255, 0.42);
@@ -3886,7 +3886,7 @@
   box-shadow: 0 0 0 2px #cae4bf, 0 12px 28px rgba(25, 60, 120, 0.18);
 }
 
-/* Совместимость: старые классы, если где-то остались */
+
 .films-hub-head {
   max-width: 1200px;
   margin: 0 auto;
@@ -4532,7 +4532,7 @@
   }
 }
 
-/* Practices hub landing (4 categories) */
+
 .practices-page--hub {
   max-width: none;
   margin: 0;
@@ -4545,7 +4545,7 @@
   padding: 0 0 56px;
 }
 
-/* —— Hero: небесно-голубой, «цветы», фото, центрированный текст, CTA —— */
+
 .practices-landing-hero--airy {
   position: relative;
   min-height: min(72vh, 620px);
@@ -4736,7 +4736,7 @@
   outline-offset: 3px;
 }
 
-/* Три карточки на стыке hero: отзывы в едином белом стиле */
+
 .practices-landing-testimonials {
   position: relative;
   z-index: 4;
@@ -4758,7 +4758,7 @@
     0 0 0 1px rgba(226, 232, 240, 0.9);
 }
 
-/* Три карточки под героем: «записка» — #faf9fa, пунктир, заголовок голубым скриптом */
+
 .practices-hero-float-card--plain {
   padding: 28px 22px 30px;
   background: #faf9fa;
@@ -4889,7 +4889,7 @@
   box-shadow: 0 8px 20px rgba(13, 71, 161, 0.2);
 }
 
-/* Секция: волна, заголовок, сетка карточек */
+
 .practices-landing-services {
   position: relative;
   max-width: 1220px;
@@ -4929,7 +4929,7 @@
   gap: 20px;
 }
 
-/* Единая страница «Пространство» — вкладки разделов */
+
 .practices-space-unified {
   display: flex;
   flex-direction: column;
@@ -5068,7 +5068,7 @@
   margin-top: 0;
 }
 
-/* Единая «Пространство»: без дублирующих шапок и баннеров внутри разделов */
+
 .practices-space-unified .practices-space-section-block {
   margin-top: 0;
   padding-top: 0;
@@ -5423,7 +5423,7 @@
   color: #6b9bd4;
 }
 
-/* Только картинка / видео в капсуле (как на макете) */
+
 .practices-space-pill {
   display: inline-block;
   vertical-align: -0.35em;
@@ -5452,7 +5452,7 @@
   pointer-events: none;
 }
 
-/* Капсулы: спокойствие и «дорога» к восстановлению — в духе Burnout */
+
 .practices-space-pill--sky-static {
   background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=500&q=85');
   background-position: center 40%;
@@ -5496,7 +5496,7 @@
   border-radius: 40px;
 }
 
-/* Карточка: фото сверху, круг с иконкой на стыке, текст и точки снизу */
+
 .practices-landing-tile-card {
   display: block;
   width: 100%;
@@ -5531,7 +5531,7 @@
   position: relative;
   display: block;
   width: 100%;
-  /* Ниже прежнего 4/5 — заметно короче по высоте (~на порядок «4 см» на типичной карточке) */
+  
   aspect-ratio: 4 / 3.35;
   border-radius: 36px 36px 0 0;
   overflow: hidden;
@@ -5632,7 +5632,7 @@
   margin-bottom: 0;
 }
 
-/* ===== Пространство: folder card — верхний «лист» + мягкий «карман» с волнистым краем ===== */
+
 .practices-landing-tile--pocket {
   max-width: 320px;
 }
@@ -5865,7 +5865,7 @@
   padding: 12px 8px 40px;
 }
 
-/* «К Пространству» — единый текстовый «назад» без плашки (иконка + подпись, синий) */
+
 .practices-sub-back,
 .meditation-hub-back,
 .music-hub-back,
@@ -5935,7 +5935,7 @@
   line-height: 1.5;
 }
 
-/* --- Медитации: герой с иллюстрацией, «воздушные» карточки (макет) --- */
+
 .meditation-hub {
   max-width: 1200px;
   margin: 0 auto;
@@ -6619,7 +6619,7 @@
   margin-bottom: 12px;
 }
 
-/* Избранное: голубые сердечки на карточках (ниже hub-cover-cards — перебивает серый/чёрный) */
+
 .practices-favorites-page .hub-cover-cards .practice-card-fav--cover,
 .practices-favorites-page .hub-cover-cards .practice-card-fav--cover:hover,
 .practices-favorites-page .hub-cover-cards .practice-card-fav--cover.is-on,

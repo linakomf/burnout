@@ -1,4 +1,4 @@
-/** Опции выпадающих фильтров на странице «Фильмы» (ключи локалей pages.*). */
+
 
 export const FILMS_FILTER_MOOD_OPTIONS = [
   { id: null, labelKey: 'filmsFilterAny' },
@@ -41,7 +41,7 @@ export const FILMS_FILTER_ATMOS_OPTIONS = [
   { id: 'aesthetic', labelKey: 'filmsFilterAtmosAesthetic' },
 ];
 
-/** @param {string[] | null | undefined} selected */
+
 function tagDimensionPasses(tags, selected, tagKey) {
   if (!selected || selected.length === 0) return true;
   const arr = tags[tagKey];
@@ -54,10 +54,8 @@ function tagDimensionPasses(tags, selected, tagKey) {
   });
 }
 
-/**
- * @param {{ moods?: string[], genres?: string[], types?: string[], atmospheres?: string[] }} filters
- * Несколько значений в одной оси: фильм подходит, если совпадает хотя бы одно (ИЛИ внутри оси, И между осями).
- */
+
+
 export function filmPassesHubFilters(film, { moods, genres, types, atmospheres }) {
   const tags = film.tags;
   if (!tags) return true;

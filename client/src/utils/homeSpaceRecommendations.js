@@ -1,7 +1,4 @@
-/**
- * Рекомендации главной: только карточки из админских API + скоринг по состоянию,
- * онбордингу «пространства» и последним результатам тестов (без изменения логики тестов).
- */
+
 import { getTrackGenreTags, getTrackMoodTags } from '../components/Practices/musicHubFilters';
 import { mapRemoteMusicTrack } from '../components/Practices/musicHubData';
 import { mapRemoteArticlePayload, mapRemoteBookPayload } from '../components/Practices/articlesHubData';
@@ -33,7 +30,6 @@ function addW(m, key, w) {
   m.set(key, (m.get(key) || 0) + w);
 }
 
-/** Ключи: fm:* film mood, fg:* genre, fa:* atmosphere, mm:/mg: music, pt:/ps: podcast, md: meditation topic, ar: article cat, bk: book cat, ev: event tf.mood */
 function moodWeightsByBand(b) {
   const m = new Map();
   const R = {
@@ -237,7 +233,7 @@ function mergeMaps(into, from, scale = 1) {
   for (const [k, v] of from.entries()) addW(into, k, v * scale);
 }
 
-/** Сохраняем порядок выбора, убираем дубликаты. */
+
 function dedupeContentPrefs(arr) {
   const seen = new Set();
   const out = [];
@@ -250,7 +246,6 @@ function dedupeContentPrefs(arr) {
   return out;
 }
 
-/** Теги Q1 → типы карточек в скоринге (reading = одна карточка: статья или книга). */
 const CONTENT_PREF_TO_CARD_TYPES = {
   music: ['music'],
   movies: ['film'],
@@ -291,7 +286,7 @@ function cardDedupeKey(c) {
   return `${c.type}:${c.path}:${c.title}`;
 }
 
-/** Раздел на главной: не больше одной карточки на bucket (статья и книга — одно «чтение»). */
+
 function sectionBucket(cardType) {
   if (cardType === 'article' || cardType === 'book') return 'reading';
   const m = {
@@ -304,10 +299,8 @@ function sectionBucket(cardType) {
   return m[cardType] || cardType;
 }
 
-/**
- * Не больше одной карточки на раздел (фильмы / музыка / …).
- * Если в Q1 выбраны категории — только они (без добора фильмов/событий по скорингу настроения).
- */
+
+
 function pickHomeCards(candidates, spacePreferences) {
   const prefs = dedupeContentPrefs(spacePreferences?.contentPreferences);
   const hasContentPrefs = prefs.length > 0;
@@ -529,10 +522,8 @@ function anxietyFromResultsSimple(results) {
   return Math.min(100, Math.round(avg * (21 / 10)));
 }
 
-/**
- * @param {object} ctx
- * @returns {Array<{ type: string, score: number, title: string, subtitle: string, description: string, image: string, path: string }>}
- */
+
+
 export function buildHomeRecommendationCards(ctx) {
   const {
     moodVal,

@@ -1,7 +1,4 @@
-/**
- * Обновляет cover_url и hero_url для 8 одиночных событий.
- * Запуск: node scripts/update-events-solo-covers.js
- */
+
 const path = require('path');
 
 require('dotenv').config({ path: path.join(__dirname, '..', 'server', '.env') });

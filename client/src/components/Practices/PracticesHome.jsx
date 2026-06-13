@@ -48,7 +48,7 @@ const springReveal = (delay = 0, stiffness = 95, damping = 18) => ({
   delay,
 });
 
-/** Три белые карточки под героем: заголовок + короткий текст (ключи локалей T1 / T2 / T3). */
+
 function PracticesSpaceAnnaFloatCard({
   revealProps,
   viewport,
@@ -68,7 +68,7 @@ function PracticesSpaceAnnaFloatCard({
   );
 }
 
-/** Карточка категории: «лист» (только фото) + мягкий «карман» с волнистым краем. */
+
 function PracticesPocketTileFace({ cat, t }) {
   const label = POCKET_LABEL[cat.id];
   const title = t(`pages.practicesPocket${label}Title`);
@@ -156,7 +156,7 @@ function PracticesHome() {
           },
         };
 
-  /* Срабатываем раньше, пока блок только входит в экран */
+  
   const viewOpts = { once: true, amount: 0.02, margin: '140px 0px 0px 0px' };
 
   const scrollToGrid = () => {

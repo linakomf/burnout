@@ -1,9 +1,7 @@
 const pool = require('./db');
 
-/**
- * Создаёт основные таблицы и начальные категории, если БД пустая.
- * Каталог тестов и вопросы подтягивает ensureTestCatalog.js.
- */
+
+
 async function ensureCoreSchema() {
   await pool.query('CREATE SCHEMA IF NOT EXISTS public');
   try {

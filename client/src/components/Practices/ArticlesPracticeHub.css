@@ -1,4 +1,4 @@
-/* Статьи: шапка как у каталога фильмов MindWell — небо, «назад» на фото, белый лист с вырезом, без лишнего поля сверху */
+
 
 .articles-hub {
   --ah-align-max: 1120px;
@@ -201,7 +201,7 @@
   line-height: 1.55;
 }
 
-/* Вкладки «Статьи» | «Книги» */
+
 .articles-hub-type-tabs {
   display: flex;
   flex-wrap: nowrap;
@@ -458,7 +458,7 @@
   }
 }
 
-/* На ширине полки — 5 карточек в ряд, ещё больше «воздуха», компактнее карточка */
+
 @media (min-width: 1024px) {
   .articles-books-shelf-row {
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -529,7 +529,7 @@
   border-radius: 10px;
 }
 
-/* «Страница книги»: серая подкладка, сдвинута вверх-вправо */
+
 .articles-books-card-stack {
   position: relative;
   width: 100%;
@@ -612,7 +612,7 @@
   box-shadow: 0 8px 18px rgba(90, 70, 48, 0.12), 0 2px 0 rgba(255, 255, 255, 0.45) inset;
 }
 
-/* Тёмная тема */
+
 [data-theme='dark'] .articles-hub-ambient {
   background: var(--bg-app, #0f1419);
 }
