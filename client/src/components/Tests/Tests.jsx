@@ -502,6 +502,7 @@ export const TakeTest = () => {
       const res = await api.post(`/tests/${id}/submit`, { answers });
       setResult(res.data);
       setStep(test.questions.length + 1);
+      window.dispatchEvent(new Event('burnout-test-completed'));
     } catch (err) {
       console.error(err);
     } finally {

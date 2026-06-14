@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   format,
   subDays,
@@ -8,6 +8,7 @@ import {
   eachMonthOfInterval,
   startOfMonth,
   endOfMonth,
+  endOfDay,
   isWithinInterval } from
 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -35,6 +36,7 @@ import {
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useLocation } from 'react-router-dom';
 import {
   stressFromCatalogLevel,
   compositeStressPct,
@@ -147,6 +149,38 @@ function diaryStreak(dateKeys) {
   return streak;
 }
 
+function diaryEntryDateKey(entry) {
+  if (entry?.session_date) {
+    const sessionKey = String(entry.session_date).slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(sessionKey)) return sessionKey;
+  }
+  if (!entry?.created_at) return null;
+  const d = new Date(entry.created_at);
+  if (Number.isNaN(d.getTime())) return null;
+  return format(d, 'yyyy-MM-dd');
+}
+
+function resultDateKey(result) {
+  if (!result?.created_at) return null;
+  const d = new Date(result.created_at);
+  if (Number.isNaN(d.getTime())) return null;
+  return format(d, 'yyyy-MM-dd');
+}
+
+function isDateKeyInRange(dateKey, range) {
+  if (!dateKey) return false;
+  const startKey = format(range.start, 'yyyy-MM-dd');
+  const endKey = format(range.end, 'yyyy-MM-dd');
+  return dateKey >= startKey && dateKey <= endKey;
+}
+
+function isTimestampInRange(value, range) {
+  if (!value) return false;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return false;
+  return isWithinInterval(d, { start: range.start, end: range.end });
+}
+
 function DonutStat({ current, max, label, color }) {
   const pct = max > 0 ? Math.min(100, Math.round(current / max * 100)) : 0;
   const r = 44;
@@ -213,6 +247,7 @@ function MetricStateImage({ metric, percent, reverseScale = false, label }) {
 const Stats = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const location = useLocation();
   const periods = useMemo(
     () => [
     { id: 'week', label: t('pages.periodWeek') },
@@ -226,57 +261,79 @@ const Stats = () => {
   const [results, setResults] = useState([]);
   const [diaryEntries, setDiaryEntries] = useState([]);
   const [moodStats, setMoodStats] = useState([]);
+  const [testsCatalogCount, setTestsCatalogCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadAnalyticsData = useCallback(() => {
     let cancelled = false;
+    setLoading(true);
     Promise.all([
-    api.get('/tests/results/my'),
-    api.get('/diary'),
-    api.get('/diary/mood-stats')]
-    ).
-    then(([r, d, m]) => {
-      if (!cancelled) {
+      api.get('/tests/results/my'),
+      api.get('/diary'),
+      api.get('/diary/mood-stats'),
+      api.get('/tests'),
+    ])
+      .then(([r, d, m, testsRes]) => {
+        if (cancelled) return;
         setResults(r.data || []);
         setDiaryEntries(d.data || []);
         setMoodStats(m.data || []);
-      }
-    }).
-    catch(() => {
-      if (!cancelled) {
+        setTestsCatalogCount(Array.isArray(testsRes.data) ? testsRes.data.length : 0);
+      })
+      .catch(() => {
+        if (cancelled) return;
         setResults([]);
         setDiaryEntries([]);
         setMoodStats([]);
-      }
-    }).
-    finally(() => {
-      if (!cancelled) setLoading(false);
-    });
+        setTestsCatalogCount(0);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  useEffect(() => {
+    const cancel = loadAnalyticsData();
+    return cancel;
+  }, [loadAnalyticsData, location.pathname]);
+
+  useEffect(() => {
+    const onActivitySaved = () => {
+      loadAnalyticsData();
+    };
+    window.addEventListener('burnout-checkin-saved', onActivitySaved);
+    window.addEventListener('burnout-test-completed', onActivitySaved);
+    window.addEventListener('burnout-diary-saved', onActivitySaved);
+    return () => {
+      window.removeEventListener('burnout-checkin-saved', onActivitySaved);
+      window.removeEventListener('burnout-test-completed', onActivitySaved);
+      window.removeEventListener('burnout-diary-saved', onActivitySaved);
+    };
+  }, [loadAnalyticsData]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      loadAnalyticsData();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [loadAnalyticsData]);
+
   const range = useMemo(() => {
     const end = new Date();
     const start = subDays(end, DAYS_PERIOD[period] - 1);
-    return { start: startOfDay(start), end: startOfDay(end) };
+    return { start: startOfDay(start), end: endOfDay(end) };
   }, [period]);
 
   const resultsInPeriod = useMemo(() => {
-    return results.filter((r) => {
-      if (!r.created_at) return false;
-      const d = new Date(r.created_at);
-      return isWithinInterval(d, { start: range.start, end: range.end });
-    });
+    return results.filter((r) => isDateKeyInRange(resultDateKey(r), range));
   }, [results, range]);
 
   const diaryInPeriod = useMemo(() => {
-    return diaryEntries.filter((e) => {
-      if (!e.created_at) return false;
-      const d = new Date(e.created_at);
-      return isWithinInterval(d, { start: range.start, end: range.end });
-    });
+    return diaryEntries.filter((e) => isDateKeyInRange(diaryEntryDateKey(e), range));
   }, [diaryEntries, range]);
 
   const moodByDate = useMemo(() => {
@@ -293,8 +350,8 @@ const Stats = () => {
       map.set(key, moodScoreToPercent(row.avg_mood));
     });
     diaryInPeriod.forEach((e) => {
-      const key = format(new Date(e.created_at), 'yyyy-MM-dd');
-      if (!map.has(key) && e.mood_score != null) {
+      const key = diaryEntryDateKey(e);
+      if (key && !map.has(key) && e.mood_score != null) {
         map.set(key, moodScoreToPercent(e.mood_score));
       }
     });
@@ -307,7 +364,7 @@ const Stats = () => {
   }, [moodStats, diaryInPeriod, onboardingPct, user?.onboarding_burnout_completed_at]);
 
   const chartDays = useMemo(() => {
-    const end = range.end;
+    const end = startOfDay(new Date());
     if (period === 'year') {
       return eachMonthOfInterval({
         start: startOfMonth(subMonths(end, 11)),
@@ -317,14 +374,16 @@ const Stats = () => {
     const n = period === 'week' ? 7 : 30;
     const start = subDays(end, n - 1);
     return eachDayOfInterval({ start, end });
-  }, [period, range.end]);
+  }, [period]);
 
   const burnoutChartData = useMemo(() => {
     const onboardingDateKey =
       onboardingPct != null && user?.onboarding_burnout_completed_at ?
         format(new Date(user.onboarding_burnout_completed_at), 'yyyy-MM-dd') :
         null;
-    const diaryKeys = diaryEntries.map((e) => format(new Date(e.created_at), 'yyyy-MM-dd'));
+    const diaryKeys = diaryEntries.
+      map((e) => diaryEntryDateKey(e)).
+      filter(Boolean);
     return buildBurnoutTimeline({
       chartDays,
       period,
@@ -366,10 +425,7 @@ const Stats = () => {
     map((v) => moodScoreToPercent(v));
     if (vals.length) return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
     const fromStats = moodStats.
-    filter((row) => {
-      const d = new Date(row.date);
-      return isWithinInterval(d, { start: range.start, end: range.end });
-    }).
+    filter((row) => isTimestampInRange(row.date, range)).
     map((row) => moodScoreToPercent(row.avg_mood));
     if (fromStats.length) return Math.round(fromStats.reduce((a, b) => a + b, 0) / fromStats.length);
     return 0;
@@ -413,25 +469,17 @@ const Stats = () => {
 
   const prevRange = useMemo(() => {
     const len = DAYS_PERIOD[period];
-    const end = subDays(range.start, 1);
-    const start = subDays(end, len - 1);
-    return { start: startOfDay(start), end: startOfDay(end) };
+    const end = endOfDay(subDays(range.start, 1));
+    const start = startOfDay(subDays(end, len - 1));
+    return { start, end };
   }, [period, range.start]);
 
   const prevDiary = useMemo(() => {
-    return diaryEntries.filter((e) => {
-      if (!e.created_at) return false;
-      const d = new Date(e.created_at);
-      return isWithinInterval(d, { start: prevRange.start, end: prevRange.end });
-    });
+    return diaryEntries.filter((e) => isDateKeyInRange(diaryEntryDateKey(e), prevRange));
   }, [diaryEntries, prevRange]);
 
   const prevResults = useMemo(() => {
-    return results.filter((r) => {
-      if (!r.created_at) return false;
-      const d = new Date(r.created_at);
-      return isWithinInterval(d, { start: prevRange.start, end: prevRange.end });
-    });
+    return results.filter((r) => isDateKeyInRange(resultDateKey(r), prevRange));
   }, [results, prevRange]);
 
   const prevMoodPctRaw = useMemo(() => {
@@ -441,10 +489,7 @@ const Stats = () => {
     map((v) => moodScoreToPercent(v));
     if (vals.length) return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
     const fromStats = moodStats.
-    filter((row) => {
-      const d = new Date(row.date);
-      return isWithinInterval(d, { start: prevRange.start, end: prevRange.end });
-    }).
+    filter((row) => isTimestampInRange(row.date, prevRange)).
     map((row) => moodScoreToPercent(row.avg_mood));
     if (fromStats.length) return Math.round(fromStats.reduce((a, b) => a + b, 0) / fromStats.length);
     return 0;
@@ -505,13 +550,19 @@ const Stats = () => {
 
 
   const diaryDateKeys = useMemo(
-    () => diaryEntries.map((e) => format(new Date(e.created_at), 'yyyy-MM-dd')),
+    () => diaryEntries.map((e) => diaryEntryDateKey(e)).filter(Boolean),
     [diaryEntries]
   );
 
   const streak = diaryStreak(diaryDateKeys);
   const entriesCount = diaryInPeriod.length;
-  const testsCount = resultsInPeriod.length;
+  const onboardingTestsInPeriod =
+    user?.onboarding_burnout_completed && isTimestampInRange(user?.onboarding_burnout_completed_at, range) ?
+      1 :
+      0;
+  const testsCount = resultsInPeriod.length + onboardingTestsInPeriod;
+  const entriesGoal = Math.max(14, entriesCount, period === 'week' ? 7 : period === 'month' ? 30 : 365);
+  const testsGoal = Math.max(5, testsCatalogCount, testsCount, 1);
   if (loading) {
     return (
       <div className="analytics-page analytics-page--loading">
@@ -747,11 +798,11 @@ const Stats = () => {
         <h2 className="analytics-section-title">Прогресс активности</h2>
         <div className="analytics-card analytics-donuts-card">
           <div className="analytics-donuts-track">
-            <DonutStat current={entriesCount} max={50} label="Записей создано" color="#5b8fd8" />
+            <DonutStat current={entriesCount} max={entriesGoal} label="Записей создано" color="#5b8fd8" />
             <span className="analytics-donut-bridge" aria-hidden />
             <DonutStat current={Math.min(streak, 14)} max={14} label="Дней подряд" color="#3d6fb5" />
             <span className="analytics-donut-bridge" aria-hidden />
-            <DonutStat current={testsCount} max={10} label="Тестов пройдено" color="#9bbef0" />
+            <DonutStat current={testsCount} max={testsGoal} label="Тестов пройдено" color="#9bbef0" />
             <span className="analytics-donut-bridge analytics-donut-bridge--short" aria-hidden />
             <div className="analytics-progress-plane" aria-hidden>
               <Send size={22} strokeWidth={2.2} />

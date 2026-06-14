@@ -75,6 +75,7 @@ export function useChat({ onSessionSaved } = {}) {
     if (!nextMessages.length) return;
     try {
       await saveDiaryChatSession(sessionDateRef.current, nextMessages, moodMeta);
+      window.dispatchEvent(new Event('burnout-diary-saved'));
       await onSavedRef.current?.();
     } catch (err) {
       console.error('[diary chat session save]', err);
