@@ -15,10 +15,10 @@ import ChatPanel from '../chat/ChatPanel';
 import api from '../../utils/api';
 import {
   getCheckinForDate,
-  getCheckinsSortedDesc,
   CHECKIN_MOOD_EMOJIS,
   percentToOneToTen } from
 '../../utils/dailyCheckinStorage';
+import { normalizeChatMessages } from '../../utils/diaryChatSession';
 import {
   CHECKIN_MOOD_TWEMOJI_FILES,
   moodEmojiUrl,
@@ -50,6 +50,7 @@ const Diary = () => {
   const today = new Date();
 
   const [calMonth, setCalMonth] = useState(today);
+  const [selectedCalDate, setSelectedCalDate] = useState(format(today, 'yyyy-MM-dd'));
   const [diaryEntries, setDiaryEntries] = useState([]);
   const [checkinListTick, setCheckinListTick] = useState(0);
   const [expandedCheckinDate, setExpandedCheckinDate] = useState(null);
@@ -88,10 +89,11 @@ const Diary = () => {
     el?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }, [expandedCheckinDate]);
 
-  const checkinHistory = useMemo(() => {
+  useEffect(() => {
     void checkinListTick;
-    return getCheckinsSortedDesc();
-  }, [checkinListTick]);
+    const checkin = getCheckinForDate(selectedCalDate);
+    setExpandedCheckinDate(checkin ? selectedCalDate : null);
+  }, [selectedCalDate, checkinListTick]);
 
   const MOODS = useMemo(
     () => [
@@ -113,19 +115,7 @@ const Diary = () => {
     loading: chatLoading,
     messagesEndRef
   } = useChat({
-    userFirstName: user?.name?.split(' ')[0] || t('dash.greeting.friend'),
-    onUserMessageSent: async (text) => {
-      try {
-        await api.post('/diary', {
-          mood: 'neutral',
-          mood_score: 4,
-          note: text
-        });
-        await fetchEntries();
-      } catch (err) {
-        console.error(err);
-      }
-    }
+    onSessionSaved: fetchEntries,
   });
 
   const dateLocale = lang === 'en' ? enUS : ru;
@@ -134,38 +124,82 @@ const Diary = () => {
     const groups = [];
     const groupsMap = new Map();
 
-    diaryEntries.
-    filter((entry) => typeof entry?.note === 'string' && entry.note.trim()).
-    sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).
-    forEach((entry, index) => {
-      const createdAt = new Date(entry.created_at);
-      if (Number.isNaN(createdAt.getTime())) return;
-
-      const dateKey = format(createdAt, 'yyyy-MM-dd');
+    const ensureGroup = (dateKey, createdAt) => {
+      if (groupsMap.has(dateKey)) return groupsMap.get(dateKey);
       const dateLabel =
         lang === 'kk' ?
-        `${createdAt.getDate()} ${t(`cal.months.${createdAt.getMonth()}`)}` :
-        format(createdAt, 'd MMMM', { locale: dateLocale });
+          `${createdAt.getDate()} ${t(`cal.months.${createdAt.getMonth()}`)}` :
+          format(createdAt, 'd MMMM', { locale: dateLocale });
+      const nextGroup = { dateKey, dateLabel, entries: [] };
+      groupsMap.set(dateKey, nextGroup);
+      groups.push(nextGroup);
+      return nextGroup;
+    };
 
-      if (!groupsMap.has(dateKey)) {
-        const nextGroup = {
-          dateKey,
-          dateLabel,
-          entries: []
-        };
-        groupsMap.set(dateKey, nextGroup);
-        groups.push(nextGroup);
-      }
+    [...diaryEntries]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .forEach((entry, index) => {
+        const chatMessages = normalizeChatMessages(entry.chat_messages);
+        if (chatMessages.length) {
+          const sessionDay = entry.session_date ?
+            new Date(`${String(entry.session_date).slice(0, 10)}T12:00:00`) :
+            new Date(entry.created_at);
+          if (Number.isNaN(sessionDay.getTime())) return;
+          const dateKey = format(sessionDay, 'yyyy-MM-dd');
+          const group = ensureGroup(dateKey, sessionDay);
+          chatMessages.forEach((msg, msgIdx) => {
+            group.entries.push({
+              id: `${entry.entry_id || dateKey}-chat-${msgIdx}`,
+              time: msg.time || format(new Date(entry.created_at), 'HH:mm'),
+              text: msg.content,
+              role: msg.role,
+            });
+          });
+          return;
+        }
 
-      groupsMap.get(dateKey).entries.push({
-        id: entry.entry_id || `${dateKey}-${index}`,
-        time: format(createdAt, 'HH:mm'),
-        text: entry.note.trim()
+        if (typeof entry?.note !== 'string' || !entry.note.trim()) return;
+        const createdAt = new Date(entry.created_at);
+        if (Number.isNaN(createdAt.getTime())) return;
+        const dateKey = format(createdAt, 'yyyy-MM-dd');
+        const group = ensureGroup(dateKey, createdAt);
+        group.entries.push({
+          id: entry.entry_id || `${dateKey}-${index}`,
+          time: format(createdAt, 'HH:mm'),
+          text: entry.note.trim(),
+          role: 'user',
+        });
       });
-    });
 
     return groups;
   }, [diaryEntries, lang, t, dateLocale]);
+
+  const aiLogMessageCount = useMemo(
+    () => aiDiaryGroups.reduce((sum, group) => sum + group.entries.length, 0),
+    [aiDiaryGroups]
+  );
+
+  const selectedCheckin = useMemo(() => {
+    void checkinListTick;
+    return getCheckinForDate(selectedCalDate);
+  }, [selectedCalDate, checkinListTick]);
+
+  const selectedAiGroup = useMemo(
+    () => aiDiaryGroups.find((group) => group.dateKey === selectedCalDate) || null,
+    [aiDiaryGroups, selectedCalDate]
+  );
+
+  const selectedDayLabel = useMemo(() => {
+    const rowDate = new Date(`${selectedCalDate}T12:00:00`);
+    if (Number.isNaN(rowDate.getTime())) return selectedCalDate;
+    if (lang === 'kk') {
+      return `${rowDate.getDate()} ${t(`cal.months.${rowDate.getMonth()}`)}`;
+    }
+    return format(rowDate, 'd MMMM', { locale: dateLocale });
+  }, [selectedCalDate, lang, t, dateLocale]);
+
+  const calDateStrForDay = (day) =>
+    format(new Date(calMonth.getFullYear(), calMonth.getMonth(), day), 'yyyy-MM-dd');
 
   const calTitleStr = useMemo(() => {
     if (lang === 'kk') {
@@ -237,25 +271,30 @@ const Diary = () => {
             <div className="cal-days-grid">
               {calDays.map((day, i) => {
                 const mood = getMoodForDay(day);
+                const dateStr = day ? calDateStrForDay(day) : null;
+                const selected = Boolean(dateStr && selectedCalDate === dateStr);
+                if (!day) {
+                  return <div key={i} className="cal-cell empty" aria-hidden />;
+                }
                 return (
-                  <div
+                  <button
                     key={i}
-                    className={`cal-cell ${!day ? 'empty' : ''} ${isToday(day) ? 'today' : ''}`}>
-                    
-                    {day &&
-                    <>
-                        <span className="cal-num">{day}</span>
-                        {mood &&
+                    type="button"
+                    className={`cal-cell ${isToday(day) ? 'today' : ''} ${selected && !isToday(day) ? 'selected' : ''}`}
+                    onClick={() => setSelectedCalDate(dateStr)}
+                    aria-label={format(new Date(`${dateStr}T12:00:00`), 'd MMMM yyyy', { locale: dateLocale })}
+                    aria-pressed={selected}
+                  >
+                    <span className="cal-num">{day}</span>
+                    {mood ? (
                       <div
                         className="cal-mood-dot"
                         style={{ background: mood.color }}
-                        title={mood.label} />
-
-                      }
-                      </>
-                    }
-                  </div>);
-
+                        title={mood.label}
+                      />
+                    ) : null}
+                  </button>
+                );
               })}
             </div>
           </div>
@@ -263,29 +302,28 @@ const Diary = () => {
           <div className="diary-card history-block">
             <div className="history-header">
               <span className="history-title">{t('pages.diaryHistory')}</span>
-              <span className="history-count-badge">{t('pages.diaryEntriesBadge', { n: checkinHistory.length })}</span>
+              <span className="history-count-badge">
+                {t('pages.diaryEntriesBadge', { n: selectedCheckin ? 1 : 0 })}
+              </span>
             </div>
+            <p className="history-selected-day">{selectedDayLabel}</p>
             <div className="state-history-list">
-              {checkinHistory.length === 0 ?
+              {!selectedCheckin ? (
               <div className="history-empty-state">
                 <div className="history-empty-art" aria-hidden>
                   <BookOpen className="history-empty-icon" size={52} strokeWidth={1.35} />
                 </div>
-                <p className="history-empty-title">{t('pages.diaryEmpty')}</p>
-                <p className="history-empty-hint">{t('pages.diaryEmptyHint')}</p>
-              </div> :
-
-              checkinHistory.map((row) => {
+                <p className="history-empty-title">{t('dash.checkin.noCheckinTitle')}</p>
+                <p className="history-empty-hint">{t('dash.checkin.noCheckinSub')}</p>
+              </div>
+              ) : (
+              (() => {
+                const row = selectedCheckin;
                 const open = expandedCheckinDate === row.date;
                 const e = percentToOneToTen(row.energy);
                 const s = percentToOneToTen(row.stress);
                 const moodTwemojiFile =
                 CHECKIN_MOOD_TWEMOJI_FILES[Math.min(4, Math.max(0, row.moodIndex))] || '1f610';
-                const rowDate = new Date(`${row.date}T12:00:00`);
-                const dayLabel =
-                lang === 'kk' ?
-                `${rowDate.getDate()} ${t(`cal.months.${rowDate.getMonth()}`)}` :
-                format(rowDate, 'd MMMM', { locale: dateLocale });
                 return (
                   <div key={row.date} className="state-history-card" data-checkin-date={row.date}>
                       <button
@@ -295,7 +333,7 @@ const Diary = () => {
                       setExpandedCheckinDate((cur) => cur === row.date ? null : row.date)
                       }
                       aria-expanded={open}>
-                        <span className="state-history-date-text">{dayLabel}</span>
+                        <span className="state-history-date-text">{selectedDayLabel}</span>
                         <span className="state-history-chev" aria-hidden>
                           {open ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                         </span>
@@ -322,7 +360,6 @@ const Diary = () => {
                               <div
                             className="state-bar-fill state-bar-fill--energy"
                             style={{ width: `${e * 10}%` }} />
-                          
                             </div>
                           </div>
                           <div className="state-history-section">
@@ -336,7 +373,6 @@ const Diary = () => {
                               <div
                             className="state-bar-fill state-bar-fill--stress"
                             style={{ width: `${s * 10}%` }} />
-                          
                             </div>
                           </div>
                           {row.notes &&
@@ -348,9 +384,8 @@ const Diary = () => {
                         </div>
                     }
                     </div>);
-
-              })
-              }
+              })()
+              )}
             </div>
           </div>
         </div>
@@ -372,35 +407,42 @@ const Diary = () => {
           <div className="diary-card ai-log-block">
             <div className="ai-log-header">
               <span className="ai-log-title">{t('pages.diaryAiLog')}</span>
-              <span className="ai-log-total">{t('pages.diaryEntriesBadge', { n: diaryEntries.length })}</span>
+              <span className="ai-log-total">
+                {t('pages.diaryAiMessagesBadge', { n: selectedAiGroup?.entries.length || 0 })}
+              </span>
             </div>
+            <p className="history-selected-day">{selectedDayLabel}</p>
 
-            {aiDiaryGroups.length === 0 ?
+            {!selectedAiGroup ?
             <div className="history-empty-state ai-log-empty-state">
                 <div className="history-empty-art" aria-hidden>
                   <BookOpen className="history-empty-icon" size={52} strokeWidth={1.35} />
                 </div>
-                <p className="history-empty-title">{t('pages.diaryAiEmpty')}</p>
-                <p className="history-empty-hint">{t('pages.diaryAiEmptyHint')}</p>
+                <p className="history-empty-title">
+                  {aiLogMessageCount === 0 ? t('pages.diaryAiEmpty') : t('pages.diaryAiEmptyForDay')}
+                </p>
+                <p className="history-empty-hint">
+                  {aiLogMessageCount === 0 ? t('pages.diaryAiEmptyHint') : t('pages.diaryAiEmptyForDayHint')}
+                </p>
               </div>
              :
             <div className="ai-log-list">
-                {aiDiaryGroups.map((group) =>
-              <article key={group.dateKey} className="ai-log-card">
+                <article className="ai-log-card">
                     <div className="ai-log-card-head">
-                      <span className="ai-log-date">{group.dateLabel}</span>
-                      <span className="ai-log-count">{t('pages.diaryAiMessagesBadge', { n: group.entries.length })}</span>
+                      <span className="ai-log-date">{selectedAiGroup.dateLabel}</span>
+                      <span className="ai-log-count">
+                        {t('pages.diaryAiMessagesBadge', { n: selectedAiGroup.entries.length })}
+                      </span>
                     </div>
                     <div className="ai-log-messages">
-                      {group.entries.map((entry) =>
-                  <div key={entry.id} className="ai-log-message">
+                      {selectedAiGroup.entries.map((entry) =>
+                  <div key={entry.id} className={`ai-log-message${entry.role === 'assistant' ? ' ai-log-message--assistant' : ''}`}>
                           <span className="ai-log-message-time">{entry.time}</span>
                           <p className="ai-log-message-text">{entry.text}</p>
                         </div>
                   )}
                     </div>
                   </article>
-              )}
                 </div>
             }
           </div>

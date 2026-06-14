@@ -703,6 +703,13 @@ export function buildHomeRecommendationCards(ctx) {
 
   candidates.sort((a, b) => b.score - a.score);
 
+  if (ctx.fullPool) {
+    return candidates
+      .filter((c) => c.score > 0)
+      .slice(0, 48)
+      .map(({ score, ...rest }) => rest);
+  }
+
   return pickHomeCards(candidates, spacePreferences);
 }
 

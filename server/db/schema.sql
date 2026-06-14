@@ -62,6 +62,8 @@ CREATE TABLE IF NOT EXISTS diary_entries (
     mood VARCHAR(45),
     mood_score INT DEFAULT 5 CHECK (mood_score BETWEEN 1 AND 10),
     note TEXT,
+    chat_messages JSONB,
+    session_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

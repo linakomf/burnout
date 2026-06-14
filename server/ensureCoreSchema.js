@@ -84,6 +84,20 @@ async function ensureCoreSchema() {
   `);
 
   await pool.query(`
+    ALTER TABLE public.diary_entries
+    ADD COLUMN IF NOT EXISTS chat_messages JSONB;
+  `);
+  await pool.query(`
+    ALTER TABLE public.diary_entries
+    ADD COLUMN IF NOT EXISTS session_date DATE;
+  `);
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_diary_chat_session_user_day
+    ON public.diary_entries (user_id, session_date)
+    WHERE chat_messages IS NOT NULL;
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS public.user_notifications (
       notification_id SERIAL PRIMARY KEY,
       user_id INT NOT NULL REFERENCES public.users(user_id) ON DELETE CASCADE,

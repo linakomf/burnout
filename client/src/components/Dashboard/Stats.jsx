@@ -30,9 +30,6 @@ import {
 import {
   TrendingUp,
   TrendingDown,
-  Sun,
-  AlertTriangle,
-  Lightbulb,
   Send } from
 'lucide-react';
 import api from '../../utils/api';
@@ -50,9 +47,7 @@ import {
   buildBurnoutTimeline,
   averageBurnoutIndex,
   burnoutRiskFromIndex,
-  buildPersonalInsights,
 } from '../../utils/burnoutAnalytics';
-import { getCheckinLog } from '../../utils/dailyCheckinStorage';
 import energyState1 from '../../assets/stats-states/energy-state-1.png';
 import energyState2 from '../../assets/stats-states/energy-state-2.png';
 import energyState3 from '../../assets/stats-states/energy-state-3.png';
@@ -517,54 +512,6 @@ const Stats = () => {
   const streak = diaryStreak(diaryDateKeys);
   const entriesCount = diaryInPeriod.length;
   const testsCount = resultsInPeriod.length;
-  const diaryNotesCount = useMemo(
-    () => diaryInPeriod.filter((e) => e.note && String(e.note).trim().length > 0).length,
-    [diaryInPeriod]
-  );
-
-  const diaryDaysWithCheckin = useMemo(() => {
-    const log = getCheckinLog();
-    return Object.keys(log).filter((dateKey) => {
-      const d = startOfDay(new Date(`${dateKey}T12:00:00`));
-      return isWithinInterval(d, { start: range.start, end: range.end });
-    }).length;
-  }, [range]);
-
-  const insights = useMemo(
-    () =>
-      buildPersonalInsights({
-        entriesCount,
-        diaryNotesCount,
-        testsCount,
-        avgMoodPct,
-        moodTrend,
-        stressPct,
-        stressTrend,
-        anxietyPct,
-        anxietyTrend,
-        energyPct,
-        energyTrend,
-        burnoutIndex: currentBurnoutIndex ?? stressPct,
-        diaryDaysWithCheckin,
-      }),
-    [
-      entriesCount,
-      diaryNotesCount,
-      testsCount,
-      avgMoodPct,
-      moodTrend,
-      stressPct,
-      stressTrend,
-      anxietyPct,
-      anxietyTrend,
-      energyPct,
-      energyTrend,
-      currentBurnoutIndex,
-      diaryDaysWithCheckin,
-    ]
-  );
-
-
   if (loading) {
     return (
       <div className="analytics-page analytics-page--loading">
@@ -793,28 +740,6 @@ const Stats = () => {
               </ResponsiveContainer>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="analytics-insights">
-        <h2 className="analytics-section-title">Персональные инсайты</h2>
-        <div className="analytics-insights-grid">
-          {insights.map((item) =>
-          <article key={item.title} className={`analytics-insight analytics-insight--${item.kind}`}>
-              <div
-              className={`analytics-insight-icon analytics-insight-icon--${item.kind}`}
-              aria-hidden>
-              
-                {item.kind === 'good' ?
-              <Sun size={22} strokeWidth={2.2} /> :
-              item.kind === 'warn' ?
-              <AlertTriangle size={22} strokeWidth={2.2} /> :
-              <Lightbulb size={22} strokeWidth={2.2} />}
-              </div>
-              <h3 className="analytics-insight-title">{item.title}</h3>
-              <p className="analytics-insight-text">{item.text}</p>
-            </article>
-          )}
         </div>
       </section>
 

@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { format } from 'date-fns';
 import { Send, Activity } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import ChatRecommendationCards from './ChatRecommendationCards';
 
 const QUICK_TAG_KEYS = ['diaryQuick1', 'diaryQuick2', 'diaryQuick3', 'diaryQuick4'];
 
@@ -19,6 +20,8 @@ const ChatPanel = ({ user, messages, input, setInput, sendMessage, loading, mess
     },
     [setInput]
   );
+
+  const showQuickTags = !input.trim();
 
   return (
     <div className="diary-chat-scene">
@@ -48,6 +51,9 @@ const ChatPanel = ({ user, messages, input, setInput, sendMessage, loading, mess
               )}
               <div className="chat-bubble-wrap">
                 <div className={`chat-bubble-msg ${msg.role}`}>{msg.content}</div>
+                {msg.role === 'assistant' && msg.cards?.length ? (
+                  <ChatRecommendationCards cards={msg.cards} label={t('pages.chatRecLabel')} />
+                ) : null}
                 {msg.time && <span className="chat-time">{msg.time}</span>}
               </div>
               {msg.role === 'user' && (
@@ -85,24 +91,26 @@ const ChatPanel = ({ user, messages, input, setInput, sendMessage, loading, mess
                 }
               }}
               disabled={loading}
-              rows={5}
+              rows={3}
               aria-label={t('pages.chatInputAria')}
             />
           </div>
 
-          <div className="diary-quick-tags">
-            {QUICK_TAG_KEYS.map((key) => (
-              <button
-                key={key}
-                type="button"
-                className="diary-quick-tag"
-                onClick={() => appendQuick(t(`pages.${key}`))}
-                disabled={loading}
-              >
-                {t(`pages.${key}`)}
-              </button>
-            ))}
-          </div>
+          {showQuickTags ? (
+            <div className="diary-quick-tags">
+              {QUICK_TAG_KEYS.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className="diary-quick-tag"
+                  onClick={() => appendQuick(t(`pages.${key}`))}
+                  disabled={loading}
+                >
+                  {t(`pages.${key}`)}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <button
             type="button"
