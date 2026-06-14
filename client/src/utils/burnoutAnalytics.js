@@ -33,7 +33,6 @@ export function dailyBurnoutIndex({
   checkin,
   testStress,
   hasDiary,
-  hasPractice,
   onboardingPct,
 }) {
   const parts = [];
@@ -67,7 +66,6 @@ export function dailyBurnoutIndex({
   const wSum = weights.reduce((a, b) => a + b, 0);
   let index = parts.reduce((sum, val, i) => sum + val * weights[i], 0) / wSum;
   if (hasDiary) index -= 5;
-  if (hasPractice) index -= 8;
   return clamp(index);
 }
 
@@ -76,13 +74,11 @@ export function buildBurnoutTimeline({
   period,
   moodByDate,
   diaryDateKeys,
-  practiceDateKeys,
   results,
   onboardingPct,
   onboardingDateKey,
 }) {
   const diarySet = new Set(diaryDateKeys);
-  const practiceSet = practiceDateKeys instanceof Set ? practiceDateKeys : new Set(practiceDateKeys);
 
   if (period === 'year') {
     return chartDays.map((monthStart) => {
@@ -97,7 +93,6 @@ export function buildBurnoutTimeline({
           checkin: getCheckinForDate(key),
           testStress: testStressOnDate(results, key),
           hasDiary: diarySet.has(key),
-          hasPractice: practiceSet.has(key),
           onboardingPct: key === onboardingDateKey ? onboardingPct : null,
         });
         if (idx != null) indices.push(idx);
@@ -123,7 +118,6 @@ export function buildBurnoutTimeline({
       checkin: getCheckinForDate(key),
       testStress: testStressOnDate(results, key),
       hasDiary: diarySet.has(key),
-      hasPractice: practiceSet.has(key),
       onboardingPct: key === onboardingDateKey ? onboardingPct : null,
     });
     let label;
@@ -158,7 +152,7 @@ export function buildBurnoutDrivers({ stressPct, anxietyPct, energyPct, moodPct 
   drivers.sort((a, b) => b.weight - a.weight);
   const top = drivers.filter((d) => d.weight >= 45).slice(0, 2);
   if (!top.length) {
-    return 'Показатели в балансе — продолжайте короткие практики и записи в дневнике.';
+    return 'Показатели в балансе — продолжайте отмечать состояние и вести дневник.';
   }
   if (top.length === 1) {
     return `Сильнее всего сейчас влияет ${top[0].label}.`;
@@ -179,7 +173,6 @@ export function buildPersonalInsights(ctx) {
     entriesCount,
     diaryNotesCount,
     testsCount,
-    practicesCount,
     avgMoodPct,
     moodTrend,
     stressPct,
@@ -187,7 +180,6 @@ export function buildPersonalInsights(ctx) {
     energyPct,
     burnoutIndex,
     diaryDaysWithCheckin,
-    practiceDaysCount,
   } = ctx;
 
   const goodPool = [];
@@ -211,14 +203,6 @@ export function buildPersonalInsights(ctx) {
       kind: 'good',
       title: 'С чистого листа',
       text: 'Начните с одной короткой записи в ИИ-дневнике — инсайты и графики станут персональнее уже через пару дней.',
-    });
-  }
-
-  if (practicesCount >= 1 || practiceDaysCount >= 1) {
-    goodPool.push({
-      kind: 'good',
-      title: 'Практики работают',
-      text: 'После завершённых практик восстановления уровень напряжения чаще снижается — можно повторить знакомые форматы.',
     });
   }
 
@@ -263,8 +247,8 @@ export function buildPersonalInsights(ctx) {
   if (avgMoodPct >= 50 && moodTrend.up !== false) {
     tipPool.push({
       kind: 'tip',
-      title: 'Спокойные активности',
-      text: 'Ваше состояние улучшается, когда появляется больше спокойных активностей — раздел «Пространство» подберёт мягкие форматы.',
+      title: 'Спокойный режим',
+      text: 'Ваше состояние улучшается, когда появляется больше спокойных пауз и отдыха — попробуйте сохранять этот ритм.',
     });
   }
 
@@ -281,8 +265,8 @@ export function buildPersonalInsights(ctx) {
     title: burnoutIndex >= 65 ? 'Мягкий режим' : 'Рекомендация',
     text:
       burnoutIndex >= 65 ?
-        'Сейчас может быть полезен мягкий режим: короткие практики, спокойная музыка и бережный темп в течение дня.' :
-        'Попробуйте дыхательную практику перед важными делами или материалы из раздела «Пространство» — ответы в дневнике тоже учитываются в сводке.',
+        'Сейчас может быть полезен мягкий режим: больше отдыха, короткие паузы и бережный темп в течение дня.' :
+        'Попробуйте короткие паузы перед важными делами — записи в дневнике тоже учитываются в сводке.',
   });
 
   const pick = (pool, index) => pool[Math.min(index, pool.length - 1)];
@@ -295,7 +279,6 @@ export function buildWeekSummary(ctx) {
     periodLabel,
     testsCount,
     entriesCount,
-    practicesCount,
     moodTrend,
     stressTrend,
     anxietyTrend,
@@ -306,7 +289,7 @@ export function buildWeekSummary(ctx) {
 
   const parts = [];
   parts.push(
-    `За ${periodLabel} вы прошли ${testsCount} ${pluralTests(testsCount)}, сделали ${entriesCount} ${pluralEntries(entriesCount)} в дневнике и завершили ${practicesCount} ${pluralPractices(practicesCount)}.`
+    `За ${periodLabel} вы прошли ${testsCount} ${pluralTests(testsCount)} и сделали ${entriesCount} ${pluralEntries(entriesCount)} в дневнике.`
   );
 
   const changes = [];
@@ -345,11 +328,6 @@ function pluralEntries(n) {
   if (n >= 2 && n <= 4) return 'записи';
   return 'записей';
 }
-function pluralPractices(n) {
-  if (n === 1) return 'практику';
-  if (n >= 2 && n <= 4) return 'практики';
-  return 'практик';
-}
 function capitalize(s) {
   if (!s) return s;
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -362,38 +340,35 @@ export function buildWeekGoals(ctx) {
     energyPct,
     entriesCount,
     testsCount,
-    practicesCount,
-    favoritesCount,
     burnoutIndex,
   } = ctx;
 
   const goals = [];
 
   if (stressPct >= 55 || burnoutIndex >= 60) {
-    goals.push('Пройти 3 короткие антистресс-практики из раздела «Пространство»');
-    goals.push('Перед важными делами — 1 минута спокойного дыхания');
+    goals.push('Сделать 1–2 короткие паузы в течение дня');
+    goals.push('Перед важными делами — минута спокойного дыхания');
   }
 
   if (anxietyPct >= 50) {
-    goals.push('Добавить 2 спокойные медитации');
-    goals.push('Открыть раздел «Звуки» или «Музыка для успокоения»');
+    goals.push('Выделить 10 минут на спокойный отдых без экрана');
+    goals.push('Снизить темп и убрать лишние задачи на сегодня');
   }
 
   if (energyPct < 45) {
-    goals.push('Выбрать лёгкое чтение или спокойный фильм на вечер');
-    goals.push('Пройти одну практику восстановления');
+    goals.push('Выбрать лёгкий отдых на вечер без перегруза');
+    goals.push('Лечь спать чуть раньше обычного');
   }
 
-  const lowActivity = entriesCount < 2 && testsCount < 1 && practicesCount < 1;
-  if (lowActivity || favoritesCount < 2) {
+  const lowActivity = entriesCount < 2 && testsCount < 1;
+  if (lowActivity) {
     goals.push('Сделать 1 запись в ИИ-дневнике');
     goals.push('Пройти 1 короткий тест из каталога');
-    if (favoritesCount < 2) goals.push('Сохранить 2 материала в избранное');
   }
 
   if (!goals.length) {
     goals.push('Продолжать отмечать состояние в дневнике 2–3 раза в неделю');
-    goals.push('Чередовать спокойные практики и лёгкий отдых без перегруза');
+    goals.push('Чередовать работу и отдых без перегруза');
     goals.push('Раз в неделю — короткий тест для сверки динамики');
   }
 
@@ -417,7 +392,6 @@ export function buildBalanceChartHelp({
   stressPct,
   anxietyPct,
   energyPct,
-  sleepPct,
 }) {
   return {
     intro: 'Дальше от центра — выше значение по оси.',
@@ -426,7 +400,6 @@ export function buildBalanceChartHelp({
       { label: 'Стресс', text: balanceLoadPhrase(stressPct) },
       { label: 'Тревога', text: balanceLoadPhrase(anxietyPct) },
       { label: 'Энергия', text: balanceResourcePhrase(energyPct) },
-      { label: 'Сон', text: balanceResourcePhrase(sleepPct) },
     ],
   };
 }
@@ -462,12 +435,12 @@ export function buildBalanceInsight({
     return (
       'Радар показывает, как сочетаются настроение, стресс, тревожность, энергия и индекс выгорания. ' +
       'Сейчас показатели близки друг к другу — форма почти ровная, это признак устойчивого баланса. ' +
-      'Продолжайте короткие практики и записи в дневнике, чтобы удерживать этот ритм.'
+      'Продолжайте отмечать состояние и вести дневник, чтобы удерживать этот ритм.'
     );
   }
 
   return (
-    'Радар объединяет пять показателей в одну картину: чем дальше точка от центра, тем выше значение по оси. ' +
+    'Радар объединяет четыре показателя в одну картину: чем дальше точка от центра, тем выше значение по оси. ' +
     `Сейчас сильнее выделяется ${topLoad.label}; больше опоры дают ${topResource.label} и ${resourceAxes[1]?.label || 'спокойный режим'}. ` +
     'Так проще увидеть, что поддерживает вас и куда направить восстановление в ближайшие дни.'
   );

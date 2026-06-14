@@ -244,6 +244,11 @@
   color: #a33a36;
 }
 
+.analytics-kpi-delta--flat {
+  background: rgba(100, 116, 139, 0.12);
+  color: #64748b;
+}
+
 
 .analytics-charts-row {
   display: grid;

@@ -30,7 +30,6 @@ import {
 import {
   TrendingUp,
   TrendingDown,
-  Check,
   Sun,
   AlertTriangle,
   Lightbulb,
@@ -51,15 +50,9 @@ import {
   buildBurnoutTimeline,
   averageBurnoutIndex,
   burnoutRiskFromIndex,
-  buildBurnoutDrivers,
   buildPersonalInsights,
-  buildWeekSummary,
-  buildWeekGoals,
-  buildBalanceChartHelp,
 } from '../../utils/burnoutAnalytics';
-import { countPracticesInRange, practiceDatesInRange } from '../../utils/practiceCompletionLog';
 import { getCheckinLog } from '../../utils/dailyCheckinStorage';
-import { loadAllSectionFavoriteSets } from '../Practices/sectionFavorites';
 import energyState1 from '../../assets/stats-states/energy-state-1.png';
 import energyState2 from '../../assets/stats-states/energy-state-2.png';
 import energyState3 from '../../assets/stats-states/energy-state-3.png';
@@ -133,6 +126,13 @@ function formatTrend(prev, cur) {
   if (diff === 0) return { text: '0%', up: null };
   const up = diff > 0;
   return { text: `${up ? '+' : ''}${diff}%`, up };
+}
+
+function resolveAnxietyPct(anxietyValue, stressPct) {
+  if (anxietyValue != null && !Number.isNaN(Number(anxietyValue))) {
+    return Number(anxietyValue);
+  }
+  return Math.round((stressPct ?? 40) * 0.88);
 }
 
 function diaryStreak(dateKeys) {
@@ -330,13 +330,11 @@ const Stats = () => {
         format(new Date(user.onboarding_burnout_completed_at), 'yyyy-MM-dd') :
         null;
     const diaryKeys = diaryEntries.map((e) => format(new Date(e.created_at), 'yyyy-MM-dd'));
-    const practiceKeys = practiceDatesInRange(range.start, range.end);
     return buildBurnoutTimeline({
       chartDays,
       period,
       moodByDate,
       diaryDateKeys: diaryKeys,
-      practiceDateKeys: practiceKeys,
       results,
       onboardingPct,
       onboardingDateKey,
@@ -414,7 +412,7 @@ const Stats = () => {
     () => compositeAnxietyPct({ onboardingPercent: onboardingPct, periodAnxietyFromTests: anxietyFromTests }),
     [onboardingPct, anxietyFromTests]
   );
-  const anxietyPct = anxietyPctValue ?? Math.round(stressPct * 0.88);
+  const anxietyPct = resolveAnxietyPct(anxietyPctValue, stressPct);
 
   const energyPct = useMemo(() => compositeEnergyPct(avgMoodPct, stressPct), [avgMoodPct, stressPct]);
 
@@ -497,39 +495,18 @@ const Stats = () => {
     [prevMood, prevStressPctValue]
   );
 
+  const prevAnxietyPct = resolveAnxietyPct(prevAnxietyValue, prevStressPctValue ?? 40);
+
   const moodTrend = formatTrend(prevMood, avgMoodPct);
   const stressTrend = formatTrend(prevStressPctValue, stressPctValue);
-  const anxietyTrend = formatTrend(prevAnxietyValue, anxietyPctValue);
+  const anxietyTrend = formatTrend(prevAnxietyPct, anxietyPct);
   const energyTrend = formatTrend(prevEnergy, energyPct);
-
-  const burnoutDriversText = useMemo(
-    () => buildBurnoutDrivers({ stressPct, anxietyPct, energyPct, moodPct: avgMoodPct }),
-    [stressPct, anxietyPct, energyPct, avgMoodPct]
-  );
-
-  const sleepPct = useMemo(
-    () => Math.min(100, Math.round(avgMoodPct * 0.55 + energyPct * 0.45)),
-    [avgMoodPct, energyPct]
-  );
-
-  const balanceChartHelp = useMemo(
-    () =>
-      buildBalanceChartHelp({
-        avgMoodPct,
-        stressPct,
-        anxietyPct,
-        energyPct,
-        sleepPct,
-      }),
-    [avgMoodPct, stressPct, anxietyPct, energyPct, sleepPct]
-  );
 
   const radarData = [
   { subject: 'Настроение', value: avgMoodPct, fullMark: 100 },
   { subject: 'Стресс', value: stressPct, fullMark: 100 },
   { subject: 'Тревога', value: anxietyPct, fullMark: 100 },
-  { subject: 'Энергия', value: energyPct, fullMark: 100 },
-  { subject: 'Сон', value: sleepPct, fullMark: 100 }];
+  { subject: 'Энергия', value: energyPct, fullMark: 100 }];
 
 
   const diaryDateKeys = useMemo(
@@ -540,19 +517,10 @@ const Stats = () => {
   const streak = diaryStreak(diaryDateKeys);
   const entriesCount = diaryInPeriod.length;
   const testsCount = resultsInPeriod.length;
-  const practicesDone = countPracticesInRange(range.start, range.end);
-  const practiceDaysInPeriod = practiceDatesInRange(range.start, range.end).size;
   const diaryNotesCount = useMemo(
     () => diaryInPeriod.filter((e) => e.note && String(e.note).trim().length > 0).length,
     [diaryInPeriod]
   );
-
-  const favoritesCount = useMemo(() => {
-    const sets = loadAllSectionFavoriteSets();
-    return sets.films.size + sets.reading.size + sets.music.size + sets.podcasts.size + sets.events.size;
-  }, []);
-
-  const periodLabel = period === 'week' ? 'неделю' : period === 'month' ? 'месяц' : 'год';
 
   const diaryDaysWithCheckin = useMemo(() => {
     const log = getCheckinLog();
@@ -568,7 +536,6 @@ const Stats = () => {
         entriesCount,
         diaryNotesCount,
         testsCount,
-        practicesCount: practicesDone,
         avgMoodPct,
         moodTrend,
         stressPct,
@@ -579,13 +546,11 @@ const Stats = () => {
         energyTrend,
         burnoutIndex: currentBurnoutIndex ?? stressPct,
         diaryDaysWithCheckin,
-        practiceDaysCount: practiceDaysInPeriod,
       }),
     [
       entriesCount,
       diaryNotesCount,
       testsCount,
-      practicesDone,
       avgMoodPct,
       moodTrend,
       stressPct,
@@ -596,59 +561,6 @@ const Stats = () => {
       energyTrend,
       currentBurnoutIndex,
       diaryDaysWithCheckin,
-      practiceDaysInPeriod,
-    ]
-  );
-
-  const weekSummaryText = useMemo(
-    () =>
-      buildWeekSummary({
-        periodLabel,
-        testsCount,
-        entriesCount,
-        practicesCount: practicesDone,
-        moodTrend,
-        stressTrend,
-        anxietyTrend,
-        energyTrend,
-        avgMoodPct,
-        stressPct,
-      }),
-    [
-      periodLabel,
-      testsCount,
-      entriesCount,
-      practicesDone,
-      moodTrend,
-      stressTrend,
-      anxietyTrend,
-      energyTrend,
-      avgMoodPct,
-      stressPct,
-    ]
-  );
-
-  const weekGoals = useMemo(
-    () =>
-      buildWeekGoals({
-        stressPct,
-        anxietyPct,
-        energyPct,
-        entriesCount,
-        testsCount,
-        practicesCount: practicesDone,
-        favoritesCount,
-        burnoutIndex: currentBurnoutIndex ?? stressPct,
-      }),
-    [
-      stressPct,
-      anxietyPct,
-      energyPct,
-      entriesCount,
-      testsCount,
-      practicesDone,
-      favoritesCount,
-      currentBurnoutIndex,
     ]
   );
 
@@ -666,7 +578,7 @@ const Stats = () => {
       <header className="analytics-header">
         <div>
           <h1 className="analytics-title">{t('pages.statsTitle')}</h1>
-          <p className="analytics-subtitle">Индекс выгорания, риски и мягкие шаги на основе вашей активности</p>
+          <p className="analytics-subtitle">Индекс выгорания и показатели вашего состояния</p>
         </div>
         <div className="analytics-segment" role="tablist" aria-label={t('pages.statsPeriodAria')}>
           {periods.map((p) =>
@@ -728,9 +640,14 @@ const Stats = () => {
             <div className="analytics-kpi-head">
               <p className="analytics-kpi-label">Тревожность</p>
               <div className="analytics-kpi-delta-slot">
-                {anxietyTrend.text !== '-' && anxietyTrend.up != null ? (
-                  <span className={`analytics-kpi-delta ${deltaToneClass(anxietyTrend, false)}`}>
-                    {anxietyTrend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                {anxietyTrend.text !== '-' ? (
+                  <span
+                    className={`analytics-kpi-delta${
+                      anxietyTrend.up != null ? ` ${deltaToneClass(anxietyTrend, false)}` : ' analytics-kpi-delta--flat'
+                    }`}
+                  >
+                    {anxietyTrend.up === true ? <TrendingUp size={14} /> : null}
+                    {anxietyTrend.up === false ? <TrendingDown size={14} /> : null}
                     {anxietyTrend.text}
                   </span>
                 ) : null}
@@ -848,17 +765,12 @@ const Stats = () => {
             <li><span className="analytics-burnout-legend-swatch analytics-burnout-legend-swatch--high" /> Высокий риск</li>
           </ul>
           </div>
-
-          <div className="analytics-burnout-insight-block">
-            <h3 className="analytics-burnout-insight-title">Что влияет</h3>
-            <p className="analytics-burnout-drivers">{burnoutDriversText}</p>
-          </div>
         </div>
         <div className="analytics-balance-stack">
           <div className="analytics-card analytics-card--radar">
             <div className="analytics-card-head">
               <h2 className="analytics-card-title">Баланс</h2>
-              <span className="analytics-card-meta">5 показателей</span>
+              <span className="analytics-card-meta">4 показателя</span>
             </div>
             <div className="analytics-radar-wrap">
               <ResponsiveContainer width="100%" height={220}>
@@ -880,22 +792,6 @@ const Stats = () => {
                 </RadarChart>
               </ResponsiveContainer>
             </div>
-          </div>
-
-          <div className="analytics-burnout-insight-block analytics-balance-help-block">
-            <h3 className="analytics-burnout-insight-title">Как читать график</h3>
-            <p className="analytics-burnout-drivers analytics-balance-help-intro">
-              {balanceChartHelp.intro}
-            </p>
-            <ul className="analytics-balance-help-list">
-              {balanceChartHelp.items.map((item) => (
-                <li key={item.label}>
-                  <span className="analytics-balance-help-label">{item.label}</span>
-                  {' — '}
-                  {item.text}
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
       </section>
@@ -928,8 +824,6 @@ const Stats = () => {
           <div className="analytics-donuts-track">
             <DonutStat current={entriesCount} max={50} label="Записей создано" color="#5b8fd8" />
             <span className="analytics-donut-bridge" aria-hidden />
-            <DonutStat current={practicesDone} max={30} label="Практик завершено" color="#7aa6e3" />
-            <span className="analytics-donut-bridge" aria-hidden />
             <DonutStat current={Math.min(streak, 14)} max={14} label="Дней подряд" color="#3d6fb5" />
             <span className="analytics-donut-bridge" aria-hidden />
             <DonutStat current={testsCount} max={10} label="Тестов пройдено" color="#9bbef0" />
@@ -938,40 +832,6 @@ const Stats = () => {
               <Send size={22} strokeWidth={2.2} />
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="analytics-week-summary">
-        <div className="analytics-summary-grid">
-          <article className="analytics-summary-tile analytics-summary-tile--done">
-            <span className="analytics-summary-tile-badge" aria-hidden>
-              <Check size={16} strokeWidth={2.5} />
-            </span>
-            <div className="analytics-summary-tile-head">
-              <h3 className="analytics-summary-heading">Итоги {period === 'week' ? 'недели' : 'периода'}</h3>
-              <p className="analytics-summary-lead">Факты и изменения</p>
-            </div>
-            <p className="analytics-week-summary-text">{weekSummaryText}</p>
-            <div className="analytics-summary-tile-deco" aria-hidden />
-          </article>
-          <article className="analytics-summary-tile analytics-summary-tile--goals">
-            <span className="analytics-summary-tile-badge analytics-summary-tile-badge--outline" aria-hidden>
-              <Check size={16} strokeWidth={2.5} />
-            </span>
-            <div className="analytics-summary-tile-head">
-              <h3 className="analytics-summary-heading">Цели на следующую неделю</h3>
-              <p className="analytics-summary-lead">Мягкие шаги к балансу</p>
-            </div>
-            <ul className="analytics-summary-list analytics-summary-list--dots">
-              {weekGoals.map((line) => (
-                <li key={line}>
-                  <span className="analytics-summary-dot" />
-                  {line}
-                </li>
-              ))}
-            </ul>
-            <div className="analytics-summary-tile-deco analytics-summary-tile-deco--stones" aria-hidden />
-          </article>
         </div>
       </section>
     </div>);

@@ -4119,14 +4119,29 @@
   border-radius: inherit;
 }
 
-.landing-v2 .land-bottom-format-video,
-.landing-v2 .land-bottom-format-poster {
+.landing-v2 .land-bottom-format-video {
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
   object-position: center;
-  transition: transform 0.45s ease;
+  opacity: 0;
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.landing-v2 .land-bottom-format-video.is-ready {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-v2 .land-bottom-format-video {
+    opacity: 1;
+    transition: none;
+  }
+}
+
+.landing-v2 .land-bottom-format:hover .land-bottom-format-video.is-ready {
+  transform: scale(1.03);
 }
 
 .landing-v2 .land-bottom-format-shade {

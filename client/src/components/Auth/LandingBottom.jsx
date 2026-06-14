@@ -10,10 +10,9 @@ import {
   SPACE_PRACTICES_PILL_MIST_VIDEO,
   SPACE_PRACTICES_PILL_SKY_VIDEO,
 } from '../Practices/spaceNatureImagery';
-import aiDiaryBg from '../../assets/ai-diary-page-bg.png';
-import dashboardHillsBg from '../../assets/dashboard-bg-hills.png';
 
 const publicBase = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
+const DASH_HERO_VIDEO = `${publicBase}/media/dash-hero-bg.mp4`;
 const CTA_COMMUNITY_AVATARS = [
   `${publicBase}/landing/community-avatar-1.png`,
   `${publicBase}/landing/community-avatar-2.png`,
@@ -183,61 +182,48 @@ function ForWhomShowcase({ t }) {
 }
 
 const FORMAT_LOOP_MEDIA = {
-  music: {
-    video: SPACE_PRACTICES_PILL_SKY_VIDEO,
-    poster: `${publicBase}/images/practices/category-music.png`,
-  },
-  articles: {
-    video: SPACE_PRACTICES_PILL_MIST_VIDEO,
-    poster: `${publicBase}/images/practices/category-articles.png`,
-  },
-  films: {
-    video: SPACE_PRACTICES_HERO_VIDEO,
-    poster: `${publicBase}/images/practices/category-films.png`,
-  },
-  practices: {
-    video: MEDITATION_HERO_BANNER_VIDEO,
-    poster: `${publicBase}/images/practices/category-meditation.png`,
-  },
-  events: {
-    video: SPACE_PRACTICES_HERO_VIDEO,
-    poster: `${publicBase}/images/practices/category-events.png`,
-  },
-  chatbot: {
-    poster: aiDiaryBg,
-  },
-  analytics: {
-    poster: dashboardHillsBg,
-  },
-  meditation: {
-    video: MEDITATION_HERO_BANNER_VIDEO,
-    poster: `${publicBase}/images/practices/category-meditation.png`,
-  },
+  music: { video: SPACE_PRACTICES_PILL_SKY_VIDEO },
+  articles: { video: SPACE_PRACTICES_PILL_MIST_VIDEO },
+  films: { video: SPACE_PRACTICES_HERO_VIDEO },
+  practices: { video: MEDITATION_HERO_BANNER_VIDEO },
+  events: { video: SPACE_PRACTICES_HERO_VIDEO },
+  chatbot: { video: SPACE_PRACTICES_PILL_MIST_VIDEO },
+  analytics: { video: DASH_HERO_VIDEO },
+  meditation: { video: MEDITATION_HERO_BANNER_VIDEO },
 };
 
 function FormatCardVisual({ formatId }) {
   const reduceMotion = useReducedMotion();
   const media = FORMAT_LOOP_MEDIA[formatId];
-  if (!media) return null;
+  const videoRef = useRef(null);
+  const [videoReady, setVideoReady] = useState(false);
+
+  useEffect(() => {
+    setVideoReady(false);
+    const video = videoRef.current;
+    if (video && video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      setVideoReady(true);
+    }
+  }, [formatId, media?.video]);
+
+  if (!media?.video) return null;
+
+  if (reduceMotion) return null;
 
   return (
-    <>
-      {media.video && !reduceMotion ? (
-        <video
-          className="land-bottom-format-video"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          poster={media.poster}
-        >
-          <source src={media.video} type="video/mp4" />
-        </video>
-      ) : (
-        <img className="land-bottom-format-poster" src={media.poster} alt="" loading="lazy" decoding="async" />
-      )}
-    </>
+    <video
+      ref={videoRef}
+      className={`land-bottom-format-video${videoReady ? ' is-ready' : ''}`}
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="auto"
+      onLoadedData={() => setVideoReady(true)}
+      onCanPlay={() => setVideoReady(true)}
+    >
+      <source src={media.video} type="video/mp4" />
+    </video>
   );
 }
 

@@ -7,15 +7,15 @@ import { enUS, ru } from 'date-fns/locale';
 import {
   ArrowRight,
   Bell,
-  Calendar,
   CloudLightning,
   Flower2,
+  Info,
   Mountain,
   Save,
   Sun,
   X,
-  Zap } from
-'lucide-react';
+  Zap,
+} from 'lucide-react';
 import api from '../../utils/api';
 import { apiGetCatalog } from '../../utils/apiCatalog';
 import {
@@ -38,6 +38,7 @@ import { buildHomeRecommendationCards } from '../../utils/homeSpaceRecommendatio
 import supportNearbyArt from '../../assets/dash-support-nearby.png';
 import testsNavIcon from '../../assets/tests-nav-icon.png';
 import { resolveHomeBannerVideoSrc } from '../../config/homeBannerVideo';
+import { dailyBurnoutIndex, burnoutRiskFromIndex } from '../../utils/burnoutAnalytics';
 import { moodEmojiUrl } from '../../utils/moodEmojiAssets';
 import {
   areNotificationsEnabled,
@@ -398,30 +399,74 @@ const Dashboard = () => {
     [moodFromTests, stressFromTests]
   );
 
+  const selectedCheckin = useMemo(
+    () => getCheckinForDate(selectedDayStr),
+    [selectedDayStr, checkinVersion]
+  );
+
   const todayCheckin = useMemo(
     () => getCheckinForDate(todayStr),
-
-
     [todayStr, checkinVersion]
   );
 
-  const stressVal =
-  isViewingToday && todayCheckin ? todayCheckin.stress : stressFromTests;
-  const moodVal = isViewingToday && todayCheckin ? todayCheckin.mood : moodFromTests;
-  const energyVal = isViewingToday && todayCheckin ? todayCheckin.energy : energyFromTests;
+  const hasSelectedDayCheckin = Boolean(selectedCheckin);
   const hasTodayCheckin = Boolean(todayCheckin);
+  const showStatePanel = hasSelectedDayCheckin;
 
-  const statePanelDateLine = useMemo(() => {
-    let s;
-    if (lang === 'en') s = format(selectedDay, 'MMMM d, EEEE', { locale: enUS });
-    else if (lang === 'ru') s = format(selectedDay, 'd MMMM, EEEE', { locale: ru });
-    else s = format(selectedDay, 'd MMMM, EEEE', { locale: ru });
-    return s.charAt(0).toUpperCase() + s.slice(1);
-  }, [selectedDay, lang]);
+  const stressVal = todayCheckin ? todayCheckin.stress : stressFromTests;
+  const moodVal = todayCheckin ? todayCheckin.mood : moodFromTests;
+  const energyVal = todayCheckin ? todayCheckin.energy : energyFromTests;
 
-  const moodBand = moodStateBand(moodVal);
-  const stressBand = stressStateBand(stressVal);
-  const energyBand = energyStateBand(energyVal);
+  const panelStressVal = selectedCheckin?.stress ?? 0;
+  const panelMoodVal = selectedCheckin?.mood ?? 0;
+  const panelEnergyVal = selectedCheckin?.energy ?? 0;
+
+  const onboardingDateKey = useMemo(() => {
+    if (user?.onboarding_burnout_percent == null || !user?.onboarding_burnout_completed_at) return null;
+    return format(new Date(user.onboarding_burnout_completed_at), 'yyyy-MM-dd');
+  }, [user?.onboarding_burnout_percent, user?.onboarding_burnout_completed_at]);
+
+  const testStressForDay = (dateKey) => {
+    const dayTests = testResults.filter((r) => {
+      if (!r.created_at) return false;
+      return format(new Date(r.created_at), 'yyyy-MM-dd') === dateKey;
+    });
+    if (!dayTests.length) return null;
+    const scores = dayTests.map((r) => (stressFromCatalogLevel(r.level) ?? Number(r.score)) || 40);
+    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+  };
+
+  const burnoutIndexForDay = (dateKey, checkin, moodPct) =>
+    dailyBurnoutIndex({
+      dateKey,
+      moodPct,
+      checkin,
+      testStress: testStressForDay(dateKey),
+      hasDiary: false,
+      onboardingPct: dateKey === onboardingDateKey ? user?.onboarding_burnout_percent : null,
+    });
+
+  const burnoutVal = useMemo(() => {
+    if (!selectedCheckin) return null;
+    const fromDay = burnoutIndexForDay(selectedDayStr, selectedCheckin, selectedCheckin.mood);
+    if (fromDay != null) return fromDay;
+    return selectedCheckin.stress;
+  }, [
+    selectedDayStr,
+    selectedCheckin,
+    testResults,
+    user?.onboarding_burnout_percent,
+    onboardingDateKey,
+  ]);
+
+  const burnoutRisk = useMemo(
+    () => (burnoutVal != null ? burnoutRiskFromIndex(burnoutVal) : null),
+    [burnoutVal]
+  );
+
+  const panelMoodBand = moodStateBand(panelMoodVal);
+  const panelStressBand = stressStateBand(panelStressVal);
+  const panelEnergyBand = energyStateBand(panelEnergyVal);
 
   const greetingLine = useMemo(() => {
     const h = new Date().getHours();
@@ -628,7 +673,7 @@ const Dashboard = () => {
     const stress = Math.min(100, Math.max(0, Math.round(Number(checkinForm.stress) * 10)));
     const energy = Math.min(100, Math.max(0, Math.round(Number(checkinForm.energy) * 10)));
     try {
-      setCheckinForDate(todayStr, {
+      setCheckinForDate(selectedDayStr, {
         mood,
         stress,
         energy,
@@ -821,34 +866,45 @@ const Dashboard = () => {
         </div>
         <div className="hero-right">
           <div
-            className={`checkin-prompt-card ${isViewingToday && !hasTodayCheckin ? '' : 'checkin-prompt-card--state'}`}>
-            {isViewingToday && !hasTodayCheckin ? (
-              <>
-                <div className="checkin-prompt-top">
-                  <span className="checkin-prompt-icon-badge" aria-hidden>
-                    <Flower2 size={18} strokeWidth={2} className="checkin-prompt-flower" />
-                  </span>
-                  <h3 className="checkin-prompt-title">{t('dash.checkin.title')}</h3>
-                </div>
-                <p className="checkin-prompt-sub">{t('dash.checkin.sub')}</p>
-                <button type="button" className="checkin-prompt-cta" onClick={openCheckinModal}>
-                  {t('dash.checkin.cta')}
-                </button>
-              </>
-            ) : (
+            className={`checkin-prompt-card ${showStatePanel ? 'checkin-prompt-card--state' : ''}`}>
+            {showStatePanel ? (
               <div className="dash-state-panel" role="region" aria-labelledby="dash-state-heading">
                 <header className="dash-state-head">
-                  <div className="dash-state-head-text">
-                    <h2 id="dash-state-heading" className="dash-state-title">
-                      {t('dash.state.title')}
-                    </h2>
-                    <p className="dash-state-sub">{t('dash.state.subtitle')}</p>
-                  </div>
-                  <div className="dash-state-date">
-                    <Calendar size={16} strokeWidth={2} aria-hidden />
-                    <span>{statePanelDateLine}</span>
-                  </div>
+                  <h2 id="dash-state-heading" className="dash-state-title">
+                    {t('dash.state.title')}
+                  </h2>
                 </header>
+
+                <article className="dash-state-burnout" aria-labelledby="dash-state-burnout-title">
+                  <div className="dash-state-burnout__head">
+                    <h3 id="dash-state-burnout-title" className="dash-state-burnout__title">
+                      {t('dash.state.burnoutTitle')}
+                    </h3>
+                    <button
+                      type="button"
+                      className="dash-state-burnout__info"
+                      onClick={() => navigate('/stats')}
+                      aria-label={t('dash.state.burnoutStatsAria')}
+                    >
+                      <Info size={16} strokeWidth={2.2} aria-hidden />
+                    </button>
+                  </div>
+
+                  <div className="dash-state-burnout__scale-wrap" aria-hidden>
+                    <div className="dash-state-burnout__scale-bar">
+                      <div className="dash-state-burnout__scale-gradient" />
+                      <div
+                        className="dash-state-burnout__scale-marker"
+                        style={{ left: `${Math.min(100, Math.max(0, burnoutVal))}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <p className={`dash-state-burnout__status dash-state-burnout__status--${burnoutRisk?.level ?? 'medium'}`}>
+                    {t(`dash.state.burnoutStatus.${burnoutRisk?.level ?? 'medium'}`)} {Math.round(burnoutVal ?? 0)}%
+                  </p>
+                  <p className="dash-state-burnout__hint">{t(`dash.state.burnoutHint.${burnoutRisk?.level ?? 'medium'}`)}</p>
+                </article>
 
                 <div className="dash-state-cards">
                   <article className="dash-state-card dash-state-card--mood">
@@ -856,12 +912,12 @@ const Dashboard = () => {
                       <Sun size={22} strokeWidth={2.2} aria-hidden />
                     </div>
                     <div className="dash-state-card__label">{t('dash.state.labels.mood')}</div>
-                    <div className="dash-state-card__value dash-state-card__value--mood">{moodVal}%</div>
+                    <div className="dash-state-card__value dash-state-card__value--mood">{panelMoodVal}%</div>
                     <div className="dash-state-card__badge">
-                      <span>{t(`dash.state.moodStatus.${moodBand}`)}</span>
+                      <span>{t(`dash.state.moodStatus.${panelMoodBand}`)}</span>
                     </div>
                     <div className="dash-state-card__chart">
-                      <MiniSparkline value={moodVal} stroke="#f8cd8b" />
+                      <MiniSparkline value={panelMoodVal} stroke="#f8cd8b" />
                     </div>
                     <div className="dash-state-card__scale">
                       <span>{t('dash.state.scaleMin')}</span>
@@ -874,12 +930,12 @@ const Dashboard = () => {
                       <CloudLightning size={22} strokeWidth={2.2} aria-hidden />
                     </div>
                     <div className="dash-state-card__label">{t('dash.state.labels.stress')}</div>
-                    <div className="dash-state-card__value dash-state-card__value--stress">{stressVal}%</div>
+                    <div className="dash-state-card__value dash-state-card__value--stress">{panelStressVal}%</div>
                     <div className="dash-state-card__badge">
-                      <span>{t(`dash.state.stressStatus.${stressBand}`)}</span>
+                      <span>{t(`dash.state.stressStatus.${panelStressBand}`)}</span>
                     </div>
                     <div className="dash-state-card__chart">
-                      <MiniSparkline value={stressVal} stroke="#ff9567" />
+                      <MiniSparkline value={panelStressVal} stroke="#ff9567" />
                     </div>
                     <div className="dash-state-card__scale">
                       <span>{t('dash.state.scaleMin')}</span>
@@ -892,12 +948,12 @@ const Dashboard = () => {
                       <Zap size={22} strokeWidth={2.2} aria-hidden />
                     </div>
                     <div className="dash-state-card__label">{t('dash.state.labels.energy')}</div>
-                    <div className="dash-state-card__value dash-state-card__value--energy">{energyVal}%</div>
+                    <div className="dash-state-card__value dash-state-card__value--energy">{panelEnergyVal}%</div>
                     <div className="dash-state-card__badge">
-                      <span>{t(`dash.state.energyStatus.${energyBand}`)}</span>
+                      <span>{t(`dash.state.energyStatus.${panelEnergyBand}`)}</span>
                     </div>
                     <div className="dash-state-card__chart">
-                      <MiniSparkline value={energyVal} stroke="#898de2" />
+                      <MiniSparkline value={panelEnergyVal} stroke="#898de2" />
                     </div>
                     <div className="dash-state-card__scale">
                       <span>{t('dash.state.scaleMin')}</span>
@@ -905,20 +961,24 @@ const Dashboard = () => {
                     </div>
                   </article>
                 </div>
-
-                <div className="dash-state-banner">
-                  <div className="dash-state-banner__icon" aria-hidden>
-                    <Mountain size={22} strokeWidth={2} />
-                  </div>
-                  <div className="dash-state-banner__text">
-                    <div className="dash-state-banner__title">{t('dash.state.bannerTitle')}</div>
-                    <p className="dash-state-banner__sub">{t('dash.state.bannerSub')}</p>
-                  </div>
-                  <button type="button" className="dash-state-banner__btn" onClick={() => setDetailsOpen(true)}>
-                    {t('dash.stats.more')}
-                  </button>
-                </div>
               </div>
+            ) : (
+              <>
+                <div className="checkin-prompt-top">
+                  <span className="checkin-prompt-icon-badge" aria-hidden>
+                    <Flower2 size={18} strokeWidth={2} className="checkin-prompt-flower" />
+                  </span>
+                  <h3 className="checkin-prompt-title">
+                    {isViewingToday ? t('dash.checkin.title') : t('dash.checkin.titlePast')}
+                  </h3>
+                </div>
+                <p className="checkin-prompt-sub">
+                  {isViewingToday ? t('dash.checkin.sub') : t('dash.checkin.subPast')}
+                </p>
+                <button type="button" className="checkin-prompt-cta" onClick={openCheckinModal}>
+                  {t('dash.checkin.cta')}
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -981,24 +1041,18 @@ const Dashboard = () => {
                 <span className="dash-advice__title-accent">под ваше состояние</span>
               </>
             ) : (
-              <>
-                <span className="dash-advice__title-main">Не знаете, с чего начать?</span>{' '}
-                <span className="dash-advice__title-accent">мы поможем выбрать</span>
-              </>
+              <span className="dash-advice__title-main">Не знаете, с чего начать?</span>
             )}
           </h2>
           {!hasSpaceOnboarding ? (
-            <>
-              <p className="dash-advice__lead">Пройдите короткий подбор, чтобы мы показывали более бережный и подходящий контент.</p>
-              <p className="dash-advice__lead dash-advice__lead--second">Это не диагностика — только настройка форматов рекомендаций.</p>
-            </>
+            <p className="dash-advice__lead">Пройдите короткий подбор, чтобы мы показывали более бережный и подходящий контент.</p>
           ) : (
             <>
               <p className="dash-advice__lead">Рекомендации собираются из карточек, добавленных администратором, с учётом вашего состояния и предпочтений.</p>
               <p className="dash-advice__lead dash-advice__lead--second">Вы можете пройти подбор заново в любой момент.</p>
             </>
           )}
-          <div style={{ marginTop: 12 }}>
+          <div className="dash-advice__cta">
             <button
               type="button"
               className="btn btn-primary"

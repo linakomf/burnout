@@ -7,13 +7,29 @@ export default {
     heroAlt: 'Character',
     checkin: {
       title: 'How are you feeling?',
+      titlePast: 'How were you feeling?',
       sub: "Log how you feel today and track your progress",
+      subPast: 'Add a check-in for the selected day to see your trends more clearly.',
       cta: 'Log my state'
     },
     stats: { mood: 'Your mood', stress: 'Stress', energy: 'Energy', more: 'Details' },
     state: {
       title: 'Your state',
-      subtitle: 'Track your mood and energy',
+      subtitle: 'Track your mood and burnout level',
+      burnoutTitle: 'Burnout level',
+      burnoutStatsAria: 'Open burnout statistics',
+      burnoutStatus: {
+        low: 'Low',
+        medium: 'Moderate',
+        high: 'Elevated'
+      },
+      burnoutHint: {
+        low: 'Your load looks manageable — keep balancing work and rest.',
+        medium: "You're coping, but don't forget rest and self-care.",
+        high: 'The load is noticeable — take a pause and reach out if it feels heavy.'
+      },
+      noCheckinTitle: 'No check-in on this day',
+      noCheckinSub: 'Pick another day in the calendar or log how you feel today.',
       bannerTitle: "You're on the right track!",
       bannerSub: 'A small step each day is already self-care.',
       labels: { mood: 'Mood', stress: 'Stress', energy: 'Energy' },
