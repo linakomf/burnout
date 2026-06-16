@@ -165,6 +165,20 @@ async function ensurePsychologistSchema() {
       ON support_request_confirmations (request_id, created_at DESC);
   `);
 
+  const { syncSerialSequence } = require('./ensureSerialSequences');
+  for (const [table, col] of [
+    ['psychologist_invitations', 'invitation_id'],
+    ['psychologist_documents', 'document_id'],
+    ['support_request_notes', 'note_id'],
+    ['support_request_confirmations', 'confirmation_id'],
+  ]) {
+    try {
+      await syncSerialSequence(table, col);
+    } catch (e) {
+      console.warn(`ensurePsychologistSchema sequence ${table}:`, e.message);
+    }
+  }
+
   console.log('✅ Схема психологов и расширенные обращения готовы');
 }
 

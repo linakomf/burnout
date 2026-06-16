@@ -8,6 +8,7 @@ const { authMiddleware, adminOnly } = require('../middleware/auth');
 const { approvedPsychologistOnly, psychologistOnly } = require('../middleware/psychologistAuth');
 const { dbErrorToMessage } = require('../utils/dbErrorToMessage');
 const { buildInviteUrl, sendPsychologistInviteEmail } = require('../utils/sendInviteEmail');
+const { syncSerialSequence } = require('../ensureSerialSequences');
 const {
   SUPPORT_SELECT_CORE,
   SUPPORT_FROM_JOIN,
@@ -58,6 +59,16 @@ const profileUpload = multer({
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
+}
+
+async function insertPsychologistInvitation(row) {
+  return pool.query(
+    `INSERT INTO psychologist_invitations (
+      token, email, invite_name, work_phone, organization, specialist_level, invited_by, expires_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING invitation_id, expires_at`,
+    row
+  );
 }
 
 async function getPsychologistProfile(userId) {
@@ -306,22 +317,28 @@ router.post('/invitations', authMiddleware, adminOnly, async (req, res) => {
 
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    const ins = await pool.query(
-      `INSERT INTO psychologist_invitations (
-        token, email, invite_name, work_phone, organization, specialist_level, invited_by, expires_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING invitation_id, expires_at`,
-      [
-        token,
-        email,
-        inviteName,
-        workPhone || null,
-        organization || null,
-        specialistLevel || null,
-        req.user.user_id,
-        expiresAt
-      ]
-    );
+    const insertParams = [
+      token,
+      email,
+      inviteName,
+      workPhone || null,
+      organization || null,
+      specialistLevel || null,
+      req.user.user_id,
+      expiresAt
+    ];
+
+    let ins;
+    try {
+      ins = await insertPsychologistInvitation(insertParams);
+    } catch (insertErr) {
+      if (insertErr.code === '23505' && /psychologist_invitations_pkey/i.test(insertErr.constraint || '')) {
+        await syncSerialSequence('psychologist_invitations', 'invitation_id');
+        ins = await insertPsychologistInvitation(insertParams);
+      } else {
+        throw insertErr;
+      }
+    }
 
     const inviteUrl = buildInviteUrl(token);
     const mail = await sendPsychologistInviteEmail({
